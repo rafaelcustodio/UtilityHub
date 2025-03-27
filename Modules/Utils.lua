@@ -1,8 +1,8 @@
-function MDH:ApplyPrefix(text)
-    return MDH.prefix .. text
+function UTILS:ApplyPrefix(text)
+    return UTILS.prefix .. text
 end
 
-function MDH:AddMovableToFrame(frameRef)
+function UTILS:AddMovableToFrame(frameRef)
     frameRef:SetMovable(true);
 
     frameRef.isMoving = false
@@ -21,7 +21,7 @@ function MDH:AddMovableToFrame(frameRef)
     end)
 end
 
-function MDH:GetTimeString(seconds, countOnly, type)
+function UTILS:GetTimeString(seconds, countOnly, type)
     local timecalc = 0;
 
     if (countOnly) then
@@ -173,7 +173,7 @@ function MDH:GetTimeString(seconds, countOnly, type)
     end
 end
 
-function MDH:ValueInTable(table, valueToFind)
+function UTILS:ValueInTable(table, valueToFind)
     for key, value in pairs(table) do
         if (value == valueToFind) then
             return true;
@@ -183,7 +183,7 @@ function MDH:ValueInTable(table, valueToFind)
     return false;
 end
 
-function MDH:RawMoneyToGold(raw)
+function UTILS:RawMoneyToGold(raw)
     if (raw == nil) then
         return 0;
     end
@@ -198,11 +198,11 @@ function MDH:RawMoneyToGold(raw)
     return tonumber(goldString);
 end
 
-function MDH:ShowChatNotification(text)
+function UTILS:ShowChatNotification(text)
     print("|cffddff00[BH]|r " .. text)
 end
 
-function MDH:CreateCheckbox(name, parent, label, checked, onClick)
+function UTILS:CreateCheckbox(name, parent, label, checked, onClick)
     local checkboxRef = CreateFrame("CheckButton", name, parent, "InterfaceOptionsCheckButtonTemplate");
 
     checkboxRef:SetScript("OnClick", function(self)
@@ -224,7 +224,7 @@ function MDH:CreateCheckbox(name, parent, label, checked, onClick)
     return checkboxRef;
 end
 
-function MDH:ShallowCopyTable(t)
+function UTILS:ShallowCopyTable(t)
     local t2 = {};
 
     for k, v in pairs(t) do
@@ -234,7 +234,7 @@ function MDH:ShallowCopyTable(t)
     return t2;
 end
 
-function MDH:ReverseTable(t)
+function UTILS:ReverseTable(t)
     local reversed = {};
     local n = #t;
 
@@ -245,7 +245,7 @@ function MDH:ReverseTable(t)
     return reversed;
 end
 
-function MDH:CreateIconButton(parent, id, skipTextures)
+function UTILS:CreateIconButton(parent, id, skipTextures)
     local button = CreateFrame("DropdownButton", nil, parent, nil, id);
     local size = 30;
 
@@ -273,7 +273,7 @@ function MDH:CreateIconButton(parent, id, skipTextures)
     return button;
 end
 
-function MDH:GetItemIDFromLink(itemLink)
+function UTILS:GetItemIDFromLink(itemLink)
     if (itemLink) then
         local itemID = itemLink:match("item:(%d+)");
         return tonumber(itemID);
@@ -282,7 +282,7 @@ function MDH:GetItemIDFromLink(itemLink)
     return nil;
 end
 
-function MDH:TableLength(t)
+function UTILS:TableLength(t)
     local tLength = 0;
 
     for _ in pairs(t) do
@@ -292,7 +292,7 @@ function MDH:TableLength(t)
     return tLength;
 end
 
-function MDH:PrintGetItemInfo(item)
+function UTILS:PrintGetItemInfo(item)
     local itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc,
         itemTexture, integersellPrice, classID, subclassID, bindType, expansionID, setID, isCraftingReagent =
         C_Item.GetItemInfo(item);
@@ -315,7 +315,7 @@ function MDH:PrintGetItemInfo(item)
     print("isCraftingReagent: " .. tostring(isCraftingReagent));
 end
 
-function MDH:PrintTablePropertiesAndValue(t)
+function UTILS:PrintTablePropertiesAndValue(t)
     for key, value in pairs(t) do
         print(key, value);
     end
@@ -357,8 +357,24 @@ local function orderedNext(t, state)
     return
 end
 
-function MDH:OrderedPairs(t)
+function UTILS:OrderedPairs(t)
     -- Equivalent of the pairs() function on tables. Allows to iterate
     -- in order
     return orderedNext, t, nil;
+end
+
+function UTILS:GetCompactRaidFrameByUnit(unit)
+    if (not unit) then
+        return nil;
+    end
+
+    for i = 1, 40 do
+        local frame = _G["CompactRaidFrame" .. i];
+
+        if (frame and frame.unit and UnitIsUnit(frame.unit, unit)) then
+            return frame;
+        end
+    end
+
+    return nil;
 end

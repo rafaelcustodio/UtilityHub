@@ -1,6 +1,6 @@
 function MDH:GetLoadPresetGeneratorFunction()
     return function(owner, rootDescription)
-        rootDescription:CreateTitle(MDH:TableLength(MDH.db.global.presets) == 0 and "No presets available" or
+        rootDescription:CreateTitle(UTILS:TableLength(MDH.db.global.presets) == 0 and "No presets available" or
                                         "Presets available");
 
         for key, value in pairs(MDH.db.global.presets) do

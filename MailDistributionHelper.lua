@@ -5,9 +5,12 @@ local LDB = LibStub:GetLibrary("LibDataBroker-1.1");
 MDH.LDBIcon = LibStub("LibDBIcon-1.0");
 MDH.realmName = GetRealmName();
 MDH.playerName = UnitName("player");
-MDH.prefix = "MDH";
 
 -- GLOBALS
+UTILS = {
+    prefix = "MDH"
+};
+
 function MDH:InitVariables()
     self.db = LibStub("AceDB-3.0"):New("MDHdatabase", {
         global = {
@@ -20,7 +23,7 @@ function MDH:InitVariables()
     }, "Default");
 
     if (MDH.db.global.debugMode) then
-        MDH:ShowChatNotification("Executing InitVariables");
+        UTILS:ShowChatNotification("Executing InitVariables");
     end
 
     if (#MDH.db.global.presets > 0) then
@@ -61,9 +64,9 @@ function MDH:SetupSlashCommands()
         local command = (fragments[1] or ""):trim();
 
         if (command == "") then
-            MDH:ShowChatNotification("Type /bh help for commands");
+            UTILS:ShowChatNotification("Type /bh help for commands");
         elseif (command == "help") then
-            MDH:ShowChatNotification("Use the following parameters with /bh");
+            UTILS:ShowChatNotification("Use the following parameters with /bh");
             print("- |cffddff00goldPerRun or gpr|r:");
             print("  If a value is informed, it will change the gold per run. If not, will show the current value.");
             print("- |cffddff00debug|r");
@@ -72,7 +75,7 @@ function MDH:SetupSlashCommands()
             local gpr = fragments[2];
 
             if (gpr == nil) then
-                MDH:ShowChatNotification("Current GoldPerRun: " .. MDH.db.global.goldPerRun .. "g");
+                UTILS:ShowChatNotification("Current GoldPerRun: " .. MDH.db.global.goldPerRun .. "g");
                 return;
             end
 
@@ -80,11 +83,11 @@ function MDH:SetupSlashCommands()
         elseif (command == "debug") then
             MDH.db.global.debugMode = (not MDH.db.global.debugMode);
             local debugText = MDH.db.global.debugMode and "ON" or "OFF";
-            MDH:ShowChatNotification("Debug mode " .. debugText);
+            UTILS:ShowChatNotification("Debug mode " .. debugText);
         elseif (command == "item") then
-            MDH:PrintGetItemInfo(fragments[2]);
+            UTILS:PrintGetItemInfo(fragments[2]);
         else
-            MDH:ShowChatNotification("Command not found");
+            UTILS:ShowChatNotification("Command not found");
         end
     end
 end
@@ -107,8 +110,8 @@ function MDH:CreateBroker()
                     MDH:ShowOptionsFrame();
                 else
                     MDH:TogglePartyMemberFrames();
-                    MDH:ShowChatNotification((MDH.db.global.isPartyMemberVisible and "Showing" or "Hiding") ..
-                                                 " Party Member Count Frames");
+                    UTILS:ShowChatNotification((MDH.db.global.isPartyMemberVisible and "Showing" or "Hiding") ..
+                                                   " Party Member Count Frames");
                 end
             end
         end,
