@@ -10,8 +10,8 @@ embeds.xml
 
 # LUAs
 MailDistributionHelper.lua
-Modules/Utils.lua
 Modules/MailButtons.lua
 Modules/NewPreset.lua
 Modules/LoadPreset.lua
 Modules/ManagePreset.lua
+Modules/TradeData.lua

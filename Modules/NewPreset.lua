@@ -54,7 +54,7 @@ MDH.ItemGroupOptions = {
                 "Living Essence"
             };
 
-            return UTILS:ValueInTable(essenceList, itemName);
+            return MDH.UTILS:ValueInTable(essenceList, itemName);
         end
     },
     ["Stone"] = {
@@ -69,7 +69,7 @@ MDH.ItemGroupOptions = {
                 "Dense Stone"
             };
 
-            return UTILS:ValueInTable(itemsList, itemName);
+            return MDH.UTILS:ValueInTable(itemsList, itemName);
         end
     },
     ["Gem"] = {
@@ -105,7 +105,7 @@ MDH.ItemGroupOptions = {
                 "Huge Emerald"
             };
 
-            return UTILS:ValueInTable(itemsList, itemName);
+            return MDH.UTILS:ValueInTable(itemsList, itemName);
         end
     },
     ["Enchant"] = {
@@ -153,7 +153,7 @@ MDH.ItemGroupOptions = {
                 "Large Brilliant Shard"
             };
 
-            return UTILS:ValueInTable(itemsList, itemName);
+            return MDH.UTILS:ValueInTable(itemsList, itemName);
         end
     },
     ["Cloth"] = {
@@ -184,7 +184,7 @@ MDH.ItemGroupOptions = {
                 "Bolt of Runecloth"
             };
 
-            return UTILS:ValueInTable(itemsList, itemName);
+            return MDH.UTILS:ValueInTable(itemsList, itemName);
         end
     },
     ["Herb"] = {
@@ -229,7 +229,7 @@ MDH.ItemGroupOptions = {
                 "Bloodvine"
             };
 
-            return UTILS:ValueInTable(itemsList, itemName);
+            return MDH.UTILS:ValueInTable(itemsList, itemName);
         end
     },
     ["Consumables"] = {
@@ -281,7 +281,7 @@ MDH.ItemGroupOptions = {
                 "Lesser Bloodstone Ore"
             };
 
-            return UTILS:ValueInTable(itemsList, itemName);
+            return MDH.UTILS:ValueInTable(itemsList, itemName);
         end
     },
     ["Bar"] = {
@@ -311,7 +311,7 @@ MDH.ItemGroupOptions = {
                 "Elementium Bar"
             };
 
-            return UTILS:ValueInTable(itemsList, itemName);
+            return MDH.UTILS:ValueInTable(itemsList, itemName);
         end
     },
     ["Lockbox"] = {
@@ -342,7 +342,7 @@ MDH.ItemGroupOptions = {
                 "Elementium Lockbox"
             };
 
-            return UTILS:ValueInTable(itemsList, itemName);
+            return MDH.UTILS:ValueInTable(itemsList, itemName);
         end
     },
     ["Recipe"] = {
@@ -367,13 +367,13 @@ local id = nil;
 
 function MDH:CreateNewPresetFrame()
     local frameHeight = 350;
-    MDH.NewPresetFrame = CreateFrame("Frame", UTILS:ApplyPrefix("NewPresetFrame"), UIParent, "DialogBoxFrame");
+    MDH.NewPresetFrame = CreateFrame("Frame", MDH.UTILS:ApplyPrefix("NewPresetFrame"), UIParent, "DialogBoxFrame");
     MDH.NewPresetFrame:SetPoint("CENTER", UIParent, "CENTER");
     MDH.NewPresetFrame:SetClampedToScreen(true);
     MDH.NewPresetFrame:SetSize(350, frameHeight);
     MDH.NewPresetFrame:Hide();
 
-    UTILS:AddMovableToFrame(MDH.NewPresetFrame);
+    MDH.UTILS:AddMovableToFrame(MDH.NewPresetFrame);
 
     -- Hide original button
     select(1, MDH.NewPresetFrame:GetChildren()):Hide();
@@ -438,7 +438,7 @@ function MDH:CreateNewPresetFrame()
     local height = 0;
     local previousRef = nil;
 
-    for key, value in UTILS:OrderedPairs(MDH.ItemGroupOptions) do
+    for key, value in MDH.UTILS:OrderedPairs(MDH.ItemGroupOptions) do
         MDH.NewPresetFrame.checkboxList[key] = MDH:CreateItemGroupOption(key, value.label, previousRef,
             tabItemGroups.ScrollChildFrame);
         previousRef = MDH.NewPresetFrame.checkboxList[key];
@@ -460,13 +460,13 @@ function MDH:CreateNewPresetFrame()
     tinsert(MDH.NewPresetFrame.ScrollFrameParent.Tabs, tabCustomButton:GetID(), tabCustomButton);
     tinsert(MDH.NewPresetFrame.ScrollFrameParent.Tabs, tabItemGroupsButton:GetID(), tabItemGroupsButton);
     tinsert(MDH.NewPresetFrame.ScrollFrameParent.Tabs, tabExclusionsButton:GetID(), tabExclusionsButton);
-    MDH.NewPresetFrame.ScrollFrameParent.numTabs = UTILS:TableLength(MDH.NewPresetFrame.ScrollFrameParent.Tabs);
+    MDH.NewPresetFrame.ScrollFrameParent.numTabs = MDH.UTILS:TableLength(MDH.NewPresetFrame.ScrollFrameParent.Tabs);
 
     -- After creating all tabs
     MDH:OnClickTab(tabCustomButton);
 
     -- Footer
-    MDH.NewPresetFrame.CloseButton = CreateFrame("Button", UTILS:ApplyPrefix("NewPresetFrameCloseButton"),
+    MDH.NewPresetFrame.CloseButton = CreateFrame("Button", MDH.UTILS:ApplyPrefix("NewPresetFrameCloseButton"),
         MDH.NewPresetFrame, "UIPanelButtonTemplate");
     MDH.NewPresetFrame.CloseButton:SetPoint("BOTTOMRIGHT", MDH.NewPresetFrame, "BOTTOMRIGHT", -10, 10);
     MDH.NewPresetFrame.CloseButton:SetWidth(80);
@@ -475,7 +475,7 @@ function MDH:CreateNewPresetFrame()
         MDH:CloseNewPresetFrame();
     end);
 
-    MDH.NewPresetFrame.SaveButton = CreateFrame("Button", UTILS:ApplyPrefix("NewPresetFrameSaveButton"),
+    MDH.NewPresetFrame.SaveButton = CreateFrame("Button", MDH.UTILS:ApplyPrefix("NewPresetFrameSaveButton"),
         MDH.NewPresetFrame, "UIPanelButtonTemplate");
     MDH.NewPresetFrame.SaveButton:SetPoint("RIGHT", MDH.NewPresetFrame.CloseButton, "LEFT", -5, 0);
     MDH.NewPresetFrame.SaveButton:SetWidth(80);
@@ -489,7 +489,7 @@ function MDH:CreateNewPresetFrame()
 end
 
 function MDH:CreateItemGroupOption(key, label, previousRef, parent)
-    local checkbox = UTILS:CreateCheckbox(UTILS:ApplyPrefix("Checkbox" .. key), parent, label, false, function()
+    local checkbox = MDH.UTILS:CreateCheckbox(MDH.UTILS:ApplyPrefix("Checkbox" .. key), parent, label, false, function()
     end);
 
     if (previousRef) then
@@ -502,7 +502,7 @@ function MDH:CreateItemGroupOption(key, label, previousRef, parent)
 end
 
 function MDH:CreateNewPresetTab(name, index, label, frameHeight, y, previousTabButton)
-    local tab = CreateFrame("Button", UTILS:ApplyPrefix("NewPresetTab" .. name), MDH.NewPresetFrame.ScrollFrameParent,
+    local tab = CreateFrame("Button", MDH.UTILS:ApplyPrefix("NewPresetTab" .. name), MDH.NewPresetFrame.ScrollFrameParent,
         "CharacterFrameTabButtonTemplate");
     tab:SetID(index);
     tab:SetText(label);
@@ -566,7 +566,7 @@ function MDH:UpdateNewPresetItemRows(tab, tempKey)
     end
 
     for i, itemLink in ipairs(rows) do
-        local itemId = UTILS:GetItemIDFromLink(itemLink);
+        local itemId = MDH.UTILS:GetItemIDFromLink(itemLink);
 
         if (itemId) then
             local rowRef = scrollChildFrame.ItemRows[itemId];
@@ -612,7 +612,7 @@ function MDH:UpdateNewPresetItemRows(tab, tempKey)
         end
     end
 
-    if (UTILS:TableLength(temp[tempKey]) == 0) then
+    if (MDH.UTILS:TableLength(temp[tempKey]) == 0) then
         tab.EmptyText:Show();
     else
         tab.EmptyText:Hide();
@@ -632,7 +632,7 @@ function MDH:AddListToTab(tab, tempKey)
     tab:SetScript("OnMouseUp", function()
         local _, _, itemLink = GetCursorInfo();
 
-        if (itemLink and not UTILS:ValueInTable(temp[tempKey], itemLink)) then
+        if (itemLink and not MDH.UTILS:ValueInTable(temp[tempKey], itemLink)) then
             tinsert(temp[tempKey], itemLink);
             MDH:UpdateNewPresetItemRows(tab, tempKey);
             C_Timer.After(0.01, function()
@@ -666,8 +666,8 @@ function MDH:UpdateWithRegister(register, registerID)
 
     MDH.NewPresetFrame.NameInput:SetText(register.name or "");
     MDH.NewPresetFrame.ToInput:SetText(register.to or "");
-    temp.items = UTILS:ShallowCopyTable(register.custom or {});
-    temp.itemsExclusion = UTILS:ShallowCopyTable(register.exclusion or {});
+    temp.items = MDH.UTILS:ShallowCopyTable(register.custom or {});
+    temp.itemsExclusion = MDH.UTILS:ShallowCopyTable(register.exclusion or {});
 
     -- Clear all previous checked
     for key, value in pairs(MDH.ItemGroupOptions) do
@@ -725,7 +725,7 @@ function MDH:CreateFormField(name, labelText, parent, y)
     label:SetText(labelText);
     label:SetJustifyH("LEFT");
 
-    local input = CreateFrame("EditBox", UTILS:ApplyPrefix(name), parent, "InputBoxTemplate");
+    local input = CreateFrame("EditBox", MDH.UTILS:ApplyPrefix(name), parent, "InputBoxTemplate");
     input:SetSize(180, 30);
     input:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -20, y);
     input:SetAutoFocus(false);
@@ -746,13 +746,13 @@ function MDH:SavePreset()
 
     if (not preset.name or #preset.name < 1) then
         MDH.NewPresetFrame.NameInput:SetFocus();
-        UTILS:ShowChatNotification("Field Name is required");
+        MDH.UTILS:ShowChatNotification("Field Name is required");
         return;
     end
 
     if (not preset.to or #preset.to < 1) then
         MDH.NewPresetFrame.ToInput:SetFocus();
-        UTILS:ShowChatNotification("Field To is required");
+        MDH.UTILS:ShowChatNotification("Field To is required");
         return;
     end
 
@@ -766,8 +766,8 @@ function MDH:SavePreset()
         end
     end
 
-    if (UTILS:TableLength(preset.custom) == 0 and (not atLeastOneCheck)) then
-        UTILS:ShowChatNotification("At least one rule is required");
+    if (MDH.UTILS:TableLength(preset.custom) == 0 and (not atLeastOneCheck)) then
+        MDH.UTILS:ShowChatNotification("At least one rule is required");
         -- Warn that at least one config needs to be selected for a preset to be valid
         return;
     end

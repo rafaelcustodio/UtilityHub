@@ -4,7 +4,7 @@ function MDH:CreateMailIconButtons()
     end
 
     -- New
-    MailFrame.NewPresetButton = UTILS:CreateIconButton(MailFrame, UTILS:ApplyPrefix("NewPresetButton"));
+    MailFrame.NewPresetButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.UTILS:ApplyPrefix("NewPresetButton"));
     MailFrame.NewPresetButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
     MailFrame.NewPresetButton.baseTextureRef:SetTexture("Interface/GuildBankFrame/UI-GuildBankFrame-NewTab");
 
@@ -25,7 +25,7 @@ function MDH:CreateMailIconButtons()
     end);
 
     -- Load
-    MailFrame.LoadPresetButton = UTILS:CreateIconButton(MailFrame, UTILS:ApplyPrefix("LoadPresetButton"));
+    MailFrame.LoadPresetButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.UTILS:ApplyPrefix("LoadPresetButton"));
     MailFrame.LoadPresetButton:SetPoint("BOTTOM", MailFrame.NewPresetButton, "BOTTOM", 0, -40);
     local iconTexture = MailFrame.LoadPresetButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Calendar\\MoreArrow.blp");
@@ -58,7 +58,7 @@ function MDH:CreateMailIconButtons()
     MailFrame.LoadPresetButton:SetupMenu(MDH:GetLoadPresetGeneratorFunction());
 
     -- Manage
-    MailFrame.ManagePresetButton = UTILS:CreateIconButton(MailFrame, UTILS:ApplyPrefix("ManagePresetButton"));
+    MailFrame.ManagePresetButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.UTILS:ApplyPrefix("ManagePresetButton"));
     MailFrame.ManagePresetButton:SetPoint("BOTTOM", MailFrame.NewPresetButton, "BOTTOM", 0, -80);
     local iconTexture = MailFrame.ManagePresetButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Buttons\\UI-OptionsButton.blp");

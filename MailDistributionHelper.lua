@@ -5,11 +5,8 @@ local LDB = LibStub:GetLibrary("LibDataBroker-1.1");
 MDH.LDBIcon = LibStub("LibDBIcon-1.0");
 MDH.realmName = GetRealmName();
 MDH.playerName = UnitName("player");
-
--- GLOBALS
-UTILS = {
-    prefix = "MDH"
-};
+MDH.UTILS = LibStub("Utils");
+MDH.UTILS.prefix = "MDH";
 
 function MDH:InitVariables()
     self.db = LibStub("AceDB-3.0"):New("MDHdatabase", {
@@ -18,12 +15,13 @@ function MDH:InitVariables()
             minimapIcon = {
                 hide = false
             },
-            presets = {}
+            presets = {},
+            whispers = {}
         }
     }, "Default");
 
     if (MDH.db.global.debugMode) then
-        UTILS:ShowChatNotification("Executing InitVariables");
+        MDH.UTILS:ShowChatNotification("Executing InitVariables");
     end
 
     if (#MDH.db.global.presets > 0) then
@@ -64,9 +62,9 @@ function MDH:SetupSlashCommands()
         local command = (fragments[1] or ""):trim();
 
         if (command == "") then
-            UTILS:ShowChatNotification("Type /bh help for commands");
+            MDH.UTILS:ShowChatNotification("Type /bh help for commands");
         elseif (command == "help") then
-            UTILS:ShowChatNotification("Use the following parameters with /bh");
+            MDH.UTILS:ShowChatNotification("Use the following parameters with /bh");
             print("- |cffddff00goldPerRun or gpr|r:");
             print("  If a value is informed, it will change the gold per run. If not, will show the current value.");
             print("- |cffddff00debug|r");
@@ -75,7 +73,7 @@ function MDH:SetupSlashCommands()
             local gpr = fragments[2];
 
             if (gpr == nil) then
-                UTILS:ShowChatNotification("Current GoldPerRun: " .. MDH.db.global.goldPerRun .. "g");
+                MDH.UTILS:ShowChatNotification("Current GoldPerRun: " .. MDH.db.global.goldPerRun .. "g");
                 return;
             end
 
@@ -83,11 +81,11 @@ function MDH:SetupSlashCommands()
         elseif (command == "debug") then
             MDH.db.global.debugMode = (not MDH.db.global.debugMode);
             local debugText = MDH.db.global.debugMode and "ON" or "OFF";
-            UTILS:ShowChatNotification("Debug mode " .. debugText);
+            MDH.UTILS:ShowChatNotification("Debug mode " .. debugText);
         elseif (command == "item") then
-            UTILS:PrintGetItemInfo(fragments[2]);
+            MDH.UTILS:PrintGetItemInfo(fragments[2]);
         else
-            UTILS:ShowChatNotification("Command not found");
+            MDH.UTILS:ShowChatNotification("Command not found");
         end
     end
 end
@@ -110,8 +108,8 @@ function MDH:CreateBroker()
                     MDH:ShowOptionsFrame();
                 else
                     MDH:TogglePartyMemberFrames();
-                    UTILS:ShowChatNotification((MDH.db.global.isPartyMemberVisible and "Showing" or "Hiding") ..
-                                                   " Party Member Count Frames");
+                    MDH.UTILS:ShowChatNotification((MDH.db.global.isPartyMemberVisible and "Showing" or "Hiding") ..
+                                                       " Party Member Count Frames");
                 end
             end
         end,
@@ -145,36 +143,7 @@ function MDH:CreateBroker()
     end
 end
 
-local eventsFrame = CreateFrame("Frame");
-eventsFrame:RegisterEvent("ADDON_LOADED");
-eventsFrame:RegisterEvent("MAIL_SHOW");
-eventsFrame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_HIDE");
-eventsFrame:SetScript('OnEvent', function(self, event, ...)
-    local success = false;
-    local msg = ...;
-
-    if (event == "ADDON_LOADED" and msg == ADDON_NAME) then
-        eventsFrame:UnregisterEvent("ADDON_LOADED");
-
-        MDH:InitVariables();
-        MDH:SetupSlashCommands();
-        -- MDH:CreateBroker();
-        return;
-    end
-
-    if (event == "MAIL_SHOW") then
-        MDH:CreateMailIconButtons();
-        return;
-    end
-
-    if (event == "PLAYER_INTERACTION_MANAGER_FRAME_HIDE") then
-        if (msg == 17) then
-            MDH:CloseNewPresetFrame();
-        end
-        return;
-    end
-end);
-
+-- Globals
 -- Convert seconds to a readable format.
 L = LibStub("AceLocale-3.0"):NewLocale(ADDON_NAME, "enUS", true, true);
 L["second"] = "second"; -- Second (singular).
@@ -202,5 +171,57 @@ L["minuteShort"] = "m"; -- Used in short timers like 1m30s (single letter only, 
 L["hourShort"] = "h"; -- Used in short timers like 1h30m (single letter only, usually the first letter of hours).
 L["dayShort"] = "d"; -- Used in short timers like 1d8h (single letter only, usually the first letter of days).
 L["yearShort"] = "y"; -- Used in short timers like 1d8h (single letter only, usually the first letter of days).
-
 L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME);
+
+WHISPERS = {};
+
+local eventsFrame = CreateFrame("Frame");
+eventsFrame:RegisterEvent("ADDON_LOADED");
+eventsFrame:RegisterEvent("MAIL_SHOW");
+eventsFrame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_HIDE");
+eventsFrame:RegisterEvent("TRADE_SHOW");
+eventsFrame:RegisterEvent("TRADE_CLOSED");
+eventsFrame:RegisterEvent("CHAT_MSG_WHISPER");
+eventsFrame:SetScript('OnEvent', function(self, event, ...)
+    local arg1, arg2 = ...;
+
+    if (event == "ADDON_LOADED" and arg1 == ADDON_NAME) then
+        eventsFrame:UnregisterEvent("ADDON_LOADED");
+
+        MDH:InitVariables();
+        MDH:SetupSlashCommands();
+        -- MDH:CreateBroker();
+        return;
+    end
+
+    if (event == "MAIL_SHOW") then
+        MDH:CreateMailIconButtons();
+        return;
+    end
+
+    if (event == "PLAYER_INTERACTION_MANAGER_FRAME_HIDE") then
+        if (arg1 == 17) then
+            MDH:CloseNewPresetFrame();
+        end
+        return;
+    end
+
+    if (event == "TRADE_SHOW") then
+        MDH:CreateTradeDataFrame();
+        return;
+    end
+
+    if (event == "TRADE_CLOSED") then
+        MDH:CloseTradeDataFrame();
+        return;
+    end
+
+    if (event == "CHAT_MSG_WHISPER") then
+        MDH:SaveLastWhisper(arg1, arg2);
+        return;
+    end
+end);
+
+function MDH:SaveLastWhisper(message, sender)
+    MDH.db.global.whispers[sender] = message;
+end

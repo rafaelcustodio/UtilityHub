@@ -1,5 +1,19 @@
+local MAJOR, MINOR = "Utils", 0;
+local UTILS = LibStub:NewLibrary(MAJOR, MINOR);
+
+-- If utils is nil, libstub already have that version saved
+if (UTILS == nil) then
+    return;
+end
+
+UTILS.AceGUI = LibStub("AceGUI-3.0");
+
+if not UTILS then
+    return
+end -- No upgrade needed
+
 function UTILS:ApplyPrefix(text)
-    return UTILS.prefix .. text
+    return UTILS.prefix .. text;
 end
 
 function UTILS:AddMovableToFrame(frameRef)
@@ -377,4 +391,66 @@ function UTILS:GetCompactRaidFrameByUnit(unit)
     end
 
     return nil;
+end
+
+function UTILS:GenerateIdByName(name)
+    local time = GetTime(); -- Get current time in seconds with milliseconds
+
+    return tostring(time) .. name;
+end
+
+function UTILS:ExportTableToCSV(tbl, headers)
+    local csvData = {};
+
+    if (headers) then
+        local headerString = nil;
+
+        for key, value in pairs(headers) do
+            if (headerString) then
+                headerString = headerString .. "," .. value;
+            else
+                headerString = value;
+            end
+        end
+
+        table.insert(csvData, headerString);
+    end
+
+    -- Add rows
+    for _, row in ipairs(tbl) do
+        local values = {};
+
+        for _, value in pairs(row) do
+            local val = tostring(value):gsub('"', '""'); -- Escape quotes
+            table.insert(values, val);
+        end
+
+        table.insert(csvData, table.concat(values, ","));
+    end
+
+    -- Convert table to string
+    local csvString = table.concat(csvData, "\n");
+
+    return csvString;
+end
+
+function UTILS:OpenExportDialog(data)
+    local frame = UTILS.AceGUI:Create("Frame");
+    frame:SetTitle("Clients CSV");
+    frame:SetStatusText("Use CTRL+C to copy");
+    frame:SetLayout("Flow");
+    frame:SetWidth(400);
+    frame:SetHeight(300);
+    frame:SetCallback("OnClose", function(widget)
+        UTILS.AceGUI:Release(frame);
+    end);
+
+    local jsonbox = UTILS.AceGUI:Create("MultiLineEditBox");
+    frame:AddChild(jsonbox);
+    jsonbox:SetLabel("Exported data");
+    jsonbox:SetText(data);
+    jsonbox:HighlightText();
+    jsonbox:SetFullWidth(true);
+    jsonbox:SetFullHeight(true);
+    jsonbox:DisableButton(true);
 end
