@@ -2,7 +2,7 @@
 ## Notes: 
 ## Title: MailDistributionHelper
 ## Author: Cacetinho-Nightslayer 
-## Version: 0.3
+## Version: 0.4
 ## SavedVariables: MDHdatabase
 
 # XMLs
@@ -10,9 +10,9 @@ embeds.xml
 
 # LUAs
 MailDistributionHelper.lua
-Modules/MailButtons.lua
-Modules/NewPreset.lua
-Modules/LoadPreset.lua
-Modules/ManagePreset.lua
-Modules/TradeData.lua
-Modules/AutoBuyRares.lua
+Modules/Mail/Preset.lua
+Modules/Mail/Mail.lua
+Modules/Trade/Trade.xml
+Modules/AutoBuy/AutoBuy.lua
+Modules/Compatibility/Compatibility.lua
+Modules/Compatibility/Baganator.lua

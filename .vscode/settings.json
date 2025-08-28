@@ -53,7 +53,13 @@
     "MenuStyle2Mixin",
     "CHAT_MSG_WHISPER",
     "SOUNDKIT",
-    "Lerp"
+    "Lerp",
+    "RegisterStateDriver",
+    "CooldownFrame_Set",
+    "COOLDOWN_TYPE_NORMAL",
+    "NUM_BAG_SLOTS",
+    "MAX_TRADE_ITEMS",
+    "RAID_CLASS_COLORS"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {
@@ -69,5 +75,10 @@
   },
   "Lua.workspace.library": [
     "~\\.vscode\\extensions\\ketho.wow-api-0.21.0\\Annotations\\Core"
-  ]
+  ],
+  "Lua.diagnostics.disable": [
+    "assign-type-mismatch",
+    "undefined-field"
+  ],
+  "Lua.type.weakUnionCheck": true
 }

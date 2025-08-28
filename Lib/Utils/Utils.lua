@@ -1,4 +1,5 @@
-local MAJOR, MINOR = "Utils-1.0", 2;
+local MAJOR, MINOR = "Utils-1.0", 5;
+---@class UTILS
 local UTILS = LibStub:NewLibrary(MAJOR, MINOR);
 
 -- If utils is nil, libstub already have that version saved
@@ -213,7 +214,7 @@ function UTILS:RawMoneyToGold(raw)
 end
 
 function UTILS:ShowChatNotification(text)
-    print("|cffddff00[BH]|r " .. text)
+    print("|cffddff00[" .. self.prefix .. "]|r " .. text)
 end
 
 function UTILS:CreateCheckbox(name, parent, label, checked, onClick)
@@ -308,7 +309,7 @@ end
 
 function UTILS:PrintGetItemInfo(item)
     local itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc,
-        itemTexture, integersellPrice, classID, subclassID, bindType, expansionID, setID, isCraftingReagent =
+    itemTexture, integersellPrice, classID, subclassID, bindType, expansionID, setID, isCraftingReagent =
         C_Item.GetItemInfo(item);
     print("itemName: " .. tostring(itemName));
     print("itemLink: " .. tostring(itemLink));
@@ -456,5 +457,80 @@ function UTILS:OpenExportDialog(data)
 end
 
 function UTILS:StringEndsWith(str, ending)
-    return ending == "" or str:sub(-#ending) == ending
+    return ending == "" or str:sub(- #ending) == ending
+end
+
+function UTILS:IsItemConjured(itemLink)
+    local itemID = C_Item.GetItemInfoInstant(itemLink);
+    local list = {
+        -- Food
+        1113,
+        22895,
+        5349,
+        1487,
+        1114,
+        8078,
+        8076,
+        -- Water
+        5350,
+        2288,
+        8077,
+        3772,
+        8075,
+        8079,
+        -- Gems
+        8007,
+        8008,
+        5513,
+        5514,
+        2136,
+        -- HS
+        19008,
+        19013,
+        5509,
+        5512,
+        19009,
+        19005,
+        19004,
+        5510,
+        5511,
+        19012,
+        9421,
+        19011,
+        19006,
+        19010,
+        19007,
+        -- Firestone
+        13699,
+        13700,
+        13701,
+        1254
+    };
+    return UTILS:ValueInTable(list, itemID);
+end
+
+local function GetClassColor(classFilename)
+    local classColors = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS; -- change for 'WeWantBlueShamans'
+    local color = classColors[classFilename];
+
+    if (color) then
+        return color.r, color.g, color.b, color.colorStr;
+    end
+
+    return 1, 1, 1, "ffffffff";
+end
+
+function UTILS:GetClassColor(class, alpha)
+    local r, g, b, hex = GetClassColor(class);
+
+    if (alpha) then
+        return r, g, b, alpha, hex;
+    else
+        return r, g, b, 1, hex;
+    end
+end
+
+function UTILS:GetClassColoredText(str, class)
+    local r, g, b, a, hex = UTILS:GetClassColor(class);
+    return "|r|c" .. hex .. str .. "|r";
 end
