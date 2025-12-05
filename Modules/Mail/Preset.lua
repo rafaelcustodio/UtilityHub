@@ -188,7 +188,7 @@ Module.ItemGroupOptions = {
                 "Bolt of Linen Cloth",
                 "Bolt of Wool Cloth",
                 "Bolt of Silk Cloth",
-                "Bolt of Mageweave Cloth",
+                "Bolt of Mageweave",
                 "Bolt of Runecloth"
             };
 
@@ -409,7 +409,7 @@ local id = nil;
 
 function Module:CreateNewPresetFrame()
     local frameHeight = 350;
-    Module.NewPresetFrame = CreateFrame("Frame", MDH.UTILS:ApplyPrefix("NewPresetFrame"), UIParent, "DialogBoxFrame");
+    Module.NewPresetFrame = CreateFrame("Frame", MDH.Helpers:ApplyPrefix("NewPresetFrame"), UIParent, "DialogBoxFrame");
     Module.NewPresetFrame:SetPoint("CENTER", UIParent, "CENTER");
     Module.NewPresetFrame:SetClampedToScreen(true);
     Module.NewPresetFrame:SetSize(350, frameHeight);
@@ -419,7 +419,7 @@ function Module:CreateNewPresetFrame()
     Module.NewPresetFrame:SetScript("OnKeyDown", function(self, key)
         if (key == "ESCAPE") then
             Module:CloseNewPresetFrame();
-        else
+        elseif (self and type(self.PropagateKeyDown) == "function") then
             self:PropagateKeyDown(key);
         end
     end);
@@ -517,7 +517,7 @@ function Module:CreateNewPresetFrame()
     Module:OnClickTab(tabCustomButton);
 
     -- Footer
-    Module.NewPresetFrame.CloseButton = CreateFrame("Button", MDH.UTILS:ApplyPrefix("NewPresetFrameCloseButton"),
+    Module.NewPresetFrame.CloseButton = CreateFrame("Button", MDH.Helpers:ApplyPrefix("NewPresetFrameCloseButton"),
         Module.NewPresetFrame, "UIPanelButtonTemplate");
     Module.NewPresetFrame.CloseButton:SetPoint("BOTTOMRIGHT", Module.NewPresetFrame, "BOTTOMRIGHT", -10, 10);
     Module.NewPresetFrame.CloseButton:SetWidth(80);
@@ -526,7 +526,7 @@ function Module:CreateNewPresetFrame()
         Module:CloseNewPresetFrame();
     end);
 
-    Module.NewPresetFrame.SaveButton = CreateFrame("Button", MDH.UTILS:ApplyPrefix("NewPresetFrameSaveButton"),
+    Module.NewPresetFrame.SaveButton = CreateFrame("Button", MDH.Helpers:ApplyPrefix("NewPresetFrameSaveButton"),
         Module.NewPresetFrame, "UIPanelButtonTemplate");
     Module.NewPresetFrame.SaveButton:SetPoint("RIGHT", Module.NewPresetFrame.CloseButton, "LEFT", -5, 0);
     Module.NewPresetFrame.SaveButton:SetWidth(80);
@@ -540,8 +540,9 @@ function Module:CreateNewPresetFrame()
 end
 
 function Module:CreateItemGroupOption(key, label, previousRef, parent)
-    local checkbox = MDH.UTILS:CreateCheckbox(MDH.UTILS:ApplyPrefix("Checkbox" .. key), parent, label, false, function()
-    end);
+    local checkbox = MDH.UTILS:CreateCheckbox(MDH.Helpers:ApplyPrefix("Checkbox" .. key), parent, label, false,
+        function()
+        end);
 
     if (previousRef) then
         checkbox:SetPoint("TOPLEFT", previousRef, "TOPLEFT", 0, -26);
@@ -553,7 +554,7 @@ function Module:CreateItemGroupOption(key, label, previousRef, parent)
 end
 
 function Module:CreateNewPresetTab(name, index, label, frameHeight, y, previousTabButton)
-    local tab = CreateFrame("Button", MDH.UTILS:ApplyPrefix("NewPresetTab" .. name),
+    local tab = CreateFrame("Button", MDH.Helpers:ApplyPrefix("NewPresetTab" .. name),
         Module.NewPresetFrame.ScrollFrameParent, "CharacterFrameTabButtonTemplate");
     tab:SetID(index);
     tab:SetText(label);
@@ -776,7 +777,7 @@ function Module:CreateFormField(name, labelText, parent, y)
     label:SetText(labelText);
     label:SetJustifyH("LEFT");
 
-    local input = CreateFrame("EditBox", MDH.UTILS:ApplyPrefix(name), parent, "InputBoxTemplate");
+    local input = CreateFrame("EditBox", MDH.Helpers:ApplyPrefix(name), parent, "InputBoxTemplate");
     input:SetSize(180, 30);
     input:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -20, y);
     input:SetAutoFocus(false);
@@ -797,13 +798,13 @@ function Module:SavePreset()
 
     if (not preset.name or #preset.name < 1) then
         Module.NewPresetFrame.NameInput:SetFocus();
-        MDH.UTILS:ShowChatNotification("Field Name is required");
+        MDH.Helpers:ShowNotification("Field Name is required");
         return;
     end
 
     if (not preset.to or #preset.to < 1) then
         Module.NewPresetFrame.ToInput:SetFocus();
-        MDH.UTILS:ShowChatNotification("Field To is required");
+        MDH.Helpers:ShowNotification("Field To is required");
         return;
     end
 
@@ -818,7 +819,7 @@ function Module:SavePreset()
     end
 
     if (MDH.UTILS:TableLength(preset.custom) == 0 and (not atLeastOneCheck)) then
-        MDH.UTILS:ShowChatNotification("At least one rule is required");
+        MDH.Helpers:ShowNotification("At least one rule is required");
         -- Warn that at least one config needs to be selected for a preset to be valid
         return;
     end
@@ -844,6 +845,35 @@ function Module:GetLoadPresetGeneratorFunction()
         for key, value in pairs(refMDH.db.global.presets) do
             rootDescription:CreateButton(value.name, function(data)
                 Module:ExecutePreset(value);
+            end);
+        end
+    end
+end
+
+function Module:GetManagePresetGeneratorFunction()
+    local refMDH = MDH;
+
+    return function(owner, rootDescription)
+        rootDescription:CreateTitle(refMDH.UTILS:TableLength(refMDH.db.global.presets) == 0 and "No presets available" or
+            "Presets available");
+
+        for i, value in pairs(refMDH.db.global.presets) do
+            local button = rootDescription:CreateButton(value.name);
+
+            button:CreateButton("Edit", function()
+                Module:OpenNewPresetFrame(value, i);
+            end);
+
+            button:CreateButton("Remove", function()
+                local newPresets = {};
+
+                for j, value in pairs(refMDH.db.global.presets) do
+                    if (i ~= j) then
+                        tinsert(newPresets, value);
+                    end
+                end
+
+                refMDH.db.global.presets = newPresets;
             end);
         end
     end

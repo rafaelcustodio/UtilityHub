@@ -21,7 +21,7 @@ function Module:SearchAndBuyRares()
 
             if (MDH.UTILS:ValueInTable(rareItems, itemID)) then
                 BuyMerchantItem(i, 1);
-                MDH.UTILS:ShowChatNotification("Bought: " .. itemLink);
+                MDH.Helpers:ShowNotification("Bought: " .. itemLink);
             end
         end
     end

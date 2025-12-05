@@ -10,7 +10,9 @@ embeds.xml
 
 # LUAs
 MailDistributionHelper.lua
+Helper.lua
 Modules/Mail/Preset.lua
+Modules/Mail/Characters.lua
 Modules/Mail/Mail.lua
 Modules/Trade/Trade.xml
 Modules/AutoBuy/AutoBuy.lua

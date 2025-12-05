@@ -14,16 +14,18 @@ EventRegistry:RegisterFrameEventAndCallback("CHAT_MSG_WHISPER", function(_, text
     Module:SaveLastWhisper(text, name);
 end);
 
+EventRegistry:RegisterFrameEventAndCallback("TRADE_SHOW", function()
+    if (MDH:GetModule("Trade"):IsEnabled()) then
+        Module:ShowFrames();
+    else
+        ---@diagnostic disable-next-line: undefined-field
+        MDH:EnableModule("Trade");
+    end
+end);
+
 function Module:OnInitialize()
     EventRegistry:RegisterFrameEventAndCallback("TRADE_CLOSED", function()
         Module:HideFrames();
-    end);
-
-    EventRegistry:RegisterFrameEventAndCallback("TRADE_SHOW", function()
-        if (not MDH:GetModule("Trade"):IsEnabled()) then
-            ---@diagnostic disable-next-line: undefined-field
-            MDH:EnableModule("Trade");
-        end
     end);
 end
 

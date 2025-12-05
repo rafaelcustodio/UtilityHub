@@ -7,7 +7,7 @@ local moduleName = 'Compatibility';
 local Module = MDH:NewModule(moduleName);
 
 function MDH.Compatibility.Baganator()
-  MDH.Compatibility:FuncOrWaitframe({ "Baganator", "Dejunk" }, function()
+  MDH.Compatibility:FuncOrWaitFrame({ "Baganator", "Dejunk" }, function()
     Baganator.API.RegisterJunkPlugin("Dejunk + Personal", "dejunkcustom", function(bagID, slotID, _, _)
       return DejunkApi:IsJunk(bagID, slotID) or MDH.UTILS:IsItemConjured(C_Container.GetContainerItemLink(bagID, slotID));
     end)

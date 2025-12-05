@@ -3,16 +3,16 @@ local addonName, addonTable = ...;
 local MDH = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceComm-3.0");
 MDH:SetDefaultModuleState(false);
 MDH.UTILS = LibStub("Utils-1.0");
-MDH.UTILS.prefix = "MDH";
 MDH.Compatibility = {};
----@class Helpers
 MDH.Helpers = {};
+MDH.prefix = "MDH";
+
 function MDH.Helpers:Benchmark(label, func, level)
     if level == nil or type(level) ~= 'number' then level = 1; end
     -- level = level or 1;
     if level < 1 then
         local firstStr = string.format('|cffffd100-----Start Bench: |r|cff8080ff%s|r-----', label)
-        MDH.UTILS:ShowChatNotification(firstStr);
+        MDH.Helpers:ShowNotification(firstStr);
     end
     local startTime = GetTimePreciseSec();
     local results = { func() };
@@ -25,7 +25,7 @@ function MDH.Helpers:Benchmark(label, func, level)
     local str = string.format("|cffffd100%sBench: |r|cff8080ff%s|r took |cffffd100%.4f|r ms", levelStr, label,
         duration * 1000)
     -- print(str)
-    MDH.UTILS:ShowChatNotification(str);
+    MDH.Helpers:ShowNotification(str);
     return results, duration, startTime, endTime;
 end
 
@@ -40,9 +40,16 @@ function MDH:InitVariables()
                 hide = false
             },
             presets = {},
-            whispers = {}
+            whispers = {},
+            characters = {}
         }
     }, "Default");
+
+    local name = UnitName("player");
+
+    if (not MDH.UTILS:ValueInTable(MDH.db.global.characters, name)) then
+        tinsert(MDH.db.global.characters, name);
+    end
 
     if (version ~= self.db.global.version) then
         MDH:MigrateDB();
@@ -90,17 +97,17 @@ function MDH:SetupSlashCommands()
         local command = (fragments[1] or ""):trim();
 
         if (command == "") then
-            MDH.UTILS:ShowChatNotification("Type /mdh help for commands");
+            MDH.Helpers:ShowNotification("Type /mdh help for commands");
         elseif (command == "help") then
-            MDH.UTILS:ShowChatNotification("Use the following parameters with /mdh");
+            MDH.Helpers:ShowNotification("Use the following parameters with /mdh");
             print("- |cffddff00debug|r");
             print("  Toggle the debug mode");
         elseif (command == "debug") then
             MDH.db.global.debugMode = (not MDH.db.global.debugMode);
             local debugText = MDH.db.global.debugMode and "ON" or "OFF";
-            MDH.UTILS:ShowChatNotification("Debug mode " .. debugText);
+            MDH.Helpers:ShowNotification("Debug mode " .. debugText);
         else
-            MDH.UTILS:ShowChatNotification("Command not found");
+            MDH.Helpers:ShowNotification("Command not found");
         end
     end
 end

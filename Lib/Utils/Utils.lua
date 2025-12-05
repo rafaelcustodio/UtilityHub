@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "Utils-1.0", 5;
+local MAJOR, MINOR = "Utils-1.0", 8;
 ---@class UTILS
 local UTILS = LibStub:NewLibrary(MAJOR, MINOR);
 
@@ -8,14 +8,36 @@ if (UTILS == nil) then
 end
 
 UTILS.AceGUI = LibStub("AceGUI-3.0");
+local L = {};
+L["second"] = "second";      -- Second (singular).
+L["seconds"] = "seconds";    -- Seconds (plural).
+L["minute"] = "minute";      -- Minute (singular).
+L["minutes"] = "minutes";    -- Minutes (plural).
+L["hour"] = "hour";          -- Hour (singular).
+L["hours"] = "hours";        -- Hours (plural).
+L["day"] = "day";            -- Day (singular).
+L["days"] = "days";          -- Days (plural).
+L["year"] = "year";          -- Year (singular).
+L["years"] = "years";        -- Years (plural).
+L["secondMedium"] = "sec";   -- Second (singular).
+L["secondsMedium"] = "secs"; -- Seconds (plural).
+L["minuteMedium"] = "min";   -- Minute (singular).
+L["minutesMedium"] = "mins"; -- Minutes (plural).
+L["hourMedium"] = "hour";    -- Hour (singular).
+L["hoursMedium"] = "hours";  -- Hours (plural).
+L["dayMedium"] = "day";      -- Day (singular).
+L["daysMedium"] = "days";    -- Days (plural).
+L["yearMedium"] = "year";    -- Day (singular).
+L["yearsMedium"] = "years";  -- Days (plural).
+L["secondShort"] = "s";      -- Used in short timers like 1m30s (single letter only, usually the first letter of seconds).
+L["minuteShort"] = "m";      -- Used in short timers like 1m30s (single letter only, usually the first letter of minutes).
+L["hourShort"] = "h";        -- Used in short timers like 1h30m (single letter only, usually the first letter of hours).
+L["dayShort"] = "d";         -- Used in short timers like 1d8h (single letter only, usually the first letter of days).
+L["yearShort"] = "y";        -- Used in short timers like 1d8h (single letter only, usually the first letter of days).
 
 if not UTILS then
     return
 end -- No upgrade needed
-
-function UTILS:ApplyPrefix(text)
-    return UTILS.prefix .. text;
-end
 
 function UTILS:AddMovableToFrame(frameRef)
     frameRef:SetMovable(true);
@@ -51,10 +73,6 @@ function UTILS:GetTimeString(seconds, countOnly, type)
     local m = math.floor((timecalc % 3600) / 60);
     local s = math.floor((timecalc % 60));
     local space = "";
-
-    if (LOCALE_koKR or LOCALE_zhCN or LOCALE_zhTW) then
-        space = " ";
-    end
 
     if (type == "short") then
         if (y == 1 and d == 0) then
@@ -213,8 +231,8 @@ function UTILS:RawMoneyToGold(raw)
     return tonumber(goldString);
 end
 
-function UTILS:ShowChatNotification(text)
-    print("|cffddff00[" .. self.prefix .. "]|r " .. text)
+function UTILS:ShowChatNotification(text, prefix)
+    print("|cffddff00[" .. prefix .. "]|r " .. text)
 end
 
 function UTILS:CreateCheckbox(name, parent, label, checked, onClick)
@@ -456,6 +474,26 @@ function UTILS:OpenExportDialog(data)
     jsonbox:DisableButton(true);
 end
 
+function UTILS:IsInsideBG()
+    local inInstance, instanceType = IsInInstance();
+
+    return inInstance and instanceType == "pvp";
+end
+
+function UTILS:UsingRaidFrames()
+    local cvar = GetCVar("useCompactPartyFrames");
+    local usingRaidFrames = cvar == 1 or cvar == "1";
+
+    return usingRaidFrames;
+end
+
+function UTILS:GetGroupAndFrameIndexFromIndex(i)
+    local group = math.modf(((i * 4) / 20) + 0.8);
+    local frame = i - ((group - 1) * 5);
+
+    return group, frame;
+end
+
 function UTILS:StringEndsWith(str, ending)
     return ending == "" or str:sub(- #ending) == ending
 end
@@ -533,4 +571,12 @@ end
 function UTILS:GetClassColoredText(str, class)
     local r, g, b, a, hex = UTILS:GetClassColor(class);
     return "|r|c" .. hex .. str .. "|r";
+end
+
+function UTILS:Trim(s)
+    if (not s) then
+        return s;
+    end
+
+    return (s:gsub("^%s*(.-)%s*$", "%1"));
 end

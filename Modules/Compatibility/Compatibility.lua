@@ -4,7 +4,7 @@ local MDH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 ---@diagnostic disable-next-line: inject-field
 MDH.Compatibility = {};
 
-function MDH.Compatibility:FuncOrWaitframe(addon, func)
+function MDH.Compatibility:FuncOrWaitFrame(addon, func)
     local addons = {};
 
     if (type(addon) == "string") then

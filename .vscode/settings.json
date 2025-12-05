@@ -59,7 +59,12 @@
     "COOLDOWN_TYPE_NORMAL",
     "NUM_BAG_SLOTS",
     "MAX_TRADE_ITEMS",
-    "RAID_CLASS_COLORS"
+    "RAID_CLASS_COLORS",
+    "InterfaceOverrides",
+    "OpenBag",
+    "OpenAllBags",
+    "IsBagOpen",
+    "ToggleAllBags"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {

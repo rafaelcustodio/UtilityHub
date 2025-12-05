@@ -7,8 +7,10 @@ local moduleName = 'Mail';
 local Module = MDH:NewModule(moduleName);
 Module.MailIconButton = nil;
 ---@diagnostic disable-next-line: undefined-field
----@class NewPreset
-local NewPresetModule;
+---@type Preset
+local PresetModule;
+---@type Characters
+local CharactersModule;
 
 function Module:CreateMailIconButtons()
     if (Module.MailIconButton) then
@@ -16,14 +18,14 @@ function Module:CreateMailIconButtons()
     end
 
     -- New
-    MailFrame.NewPresetButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.UTILS:ApplyPrefix("NewPresetButton"));
+    MailFrame.NewPresetButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.Helpers:ApplyPrefix("NewPresetButton"));
     MailFrame.NewPresetButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
     MailFrame.NewPresetButton.baseTextureRef:SetTexture("Interface/GuildBankFrame/UI-GuildBankFrame-NewTab");
 
     -- Events
     MailFrame.NewPresetButton:SetScript("OnClick", function(self)
         PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
-        NewPresetModule:ToggleNewPresetFrame();
+        PresetModule:ToggleNewPresetFrame();
     end);
     MailFrame.NewPresetButton:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
@@ -37,7 +39,7 @@ function Module:CreateMailIconButtons()
     end);
 
     -- Load
-    MailFrame.LoadPresetButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.UTILS:ApplyPrefix("LoadPresetButton"));
+    MailFrame.LoadPresetButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.Helpers:ApplyPrefix("LoadPresetButton"));
     MailFrame.LoadPresetButton:SetPoint("BOTTOM", MailFrame.NewPresetButton, "BOTTOM", 0, -40);
     local iconTexture = MailFrame.LoadPresetButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Calendar\\MoreArrow.blp");
@@ -67,11 +69,11 @@ function Module:CreateMailIconButtons()
         PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
     end);
 
-    MailFrame.LoadPresetButton:SetupMenu(NewPresetModule:GetLoadPresetGeneratorFunction());
+    MailFrame.LoadPresetButton:SetupMenu(PresetModule:GetLoadPresetGeneratorFunction());
 
     -- Manage
-    MailFrame.ManagePresetButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.UTILS:ApplyPrefix("ManagePresetButton"));
-    MailFrame.ManagePresetButton:SetPoint("BOTTOM", MailFrame.NewPresetButton, "BOTTOM", 0, -80);
+    MailFrame.ManagePresetButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.Helpers:ApplyPrefix("ManagePresetButton"));
+    MailFrame.ManagePresetButton:SetPoint("BOTTOM", MailFrame.LoadPresetButton, "BOTTOM", 0, -40);
     local iconTexture = MailFrame.ManagePresetButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Buttons\\UI-OptionsButton.blp");
     iconTexture:ClearAllPoints();
@@ -100,36 +102,40 @@ function Module:CreateMailIconButtons()
         PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
     end);
 
-    MailFrame.ManagePresetButton:SetupMenu(Module:GetManagePresetGeneratorFunction());
-end
+    MailFrame.ManagePresetButton:SetupMenu(PresetModule:GetManagePresetGeneratorFunction());
 
-function Module:GetManagePresetGeneratorFunction()
-    local refMDH = MDH;
+    -- Characters
+    MailFrame.CharactersButton = MDH.UTILS:CreateIconButton(MailFrame, MDH.Helpers:ApplyPrefix("CharactersButton"));
+    MailFrame.CharactersButton:SetPoint("BOTTOM", MailFrame.ManagePresetButton, "BOTTOM", 0, -40);
+    local iconTexture = MailFrame.CharactersButton:CreateTexture(nil, "ARTWORK");
+    iconTexture:SetTexture("Interface\\CHATFRAME\\UI-ChatConversationIcon.blp");
+    iconTexture:ClearAllPoints();
+    iconTexture:SetSize(20, 20);
+    iconTexture:SetPoint("CENTER", MailFrame.CharactersButton, "CENTER", 0, 0);
+    MailFrame.CharactersButton:SetFrameLevel(MailFrame.CharactersButton:GetFrameLevel() + 1);
 
-    return function(owner, rootDescription)
-        rootDescription:CreateTitle(refMDH.UTILS:TableLength(refMDH.db.global.presets) == 0 and "No presets available" or
-            "Presets available");
+    MailFrame.CharactersButton.menuMixin = MenuStyle2Mixin;
+    MailFrame.CharactersButton.menuRelativePoint = "TOPRIGHT";
+    MailFrame.CharactersButton:SetMenuAnchor(AnchorUtil.CreateAnchor(MailFrame.CharactersButton.menuPoint,
+        MailFrame.CharactersButton, MailFrame.CharactersButton.menuRelativePoint,
+        MailFrame.CharactersButton.menuPointX, MailFrame.CharactersButton.menuPointY));
 
-        for i, value in pairs(refMDH.db.global.presets) do
-            local button = rootDescription:CreateButton(value.name);
-
-            button:CreateButton("Edit", function()
-                NewPresetModule:OpenNewPresetFrame(value, i);
-            end);
-
-            button:CreateButton("Remove", function()
-                local newPresets = {};
-
-                for j, value in pairs(refMDH.db.global.presets) do
-                    if (i ~= j) then
-                        tinsert(newPresets, value);
-                    end
-                end
-
-                refMDH.db.global.presets = newPresets;
-            end);
+    -- Events
+    MailFrame.CharactersButton:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+        GameTooltip:AddLine("Account characters", nil, nil, nil);
+        GameTooltip:Show();
+    end);
+    MailFrame.CharactersButton:SetScript("OnLeave", function(self)
+        if (GameTooltip:IsOwned(self)) then
+            GameTooltip:Hide();
         end
-    end
+    end);
+    MailFrame.CharactersButton:SetScript("OnClick", function(self)
+        PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+    end);
+
+    MailFrame.CharactersButton:SetupMenu(CharactersModule:GetAccountCharactersGeneratorFunction());
 end
 
 function Module:OnInitialize()
@@ -142,6 +148,7 @@ function Module:OnInitialize()
 end
 
 function Module:OnEnable()
-    NewPresetModule = MDH:GetModule("Preset");
+    PresetModule = MDH:GetModule("Preset");
+    CharactersModule = MDH:GetModule("Characters");
     Module:CreateMailIconButtons();
 end
