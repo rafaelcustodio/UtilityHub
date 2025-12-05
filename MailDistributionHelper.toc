@@ -1,8 +1,8 @@
-## Interface: 100108
+## Interface: 11508
 ## Notes: 
 ## Title: MailDistributionHelper
 ## Author: Cacetinho-Nightslayer 
-## Version: 0.4
+## Version: 0.5
 ## SavedVariables: MDHdatabase
 
 # XMLs
