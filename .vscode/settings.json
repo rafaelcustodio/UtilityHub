@@ -75,7 +75,10 @@
     "ChatEdit_InsertLink",
     "ChatFrameUtil",
     "Add",
-    "PLAYER"
+    "PLAYER",
+    "UIDropDownMenu_SetSelectedValue",
+    "CHARACTER",
+    "BANK"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {

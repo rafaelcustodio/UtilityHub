@@ -6,9 +6,10 @@ UH.Helpers = {};
 
 --- Return true or false if the player is in the raid or group by his name and his index if in raid
 ---@param playerName string
+---@return boolean, number | nil
 function UH.Helpers:CheckIfPlayerInTheRaidOrGroupByName(playerName)
   if (not IsInGroup() or not IsInRaid()) then
-    return false;
+    return false, nil;
   end
 
   for i = 1, GetNumGroupMembers() do
@@ -22,6 +23,8 @@ function UH.Helpers:CheckIfPlayerInTheRaidOrGroupByName(playerName)
   return false, nil;
 end
 
+---@param seconds number
+---@return string, boolean
 function UH.Helpers:FormatDuration(seconds)
   local hours = math.floor(seconds / 3600);
   local minutes = math.floor((seconds % 3600) / 60);
@@ -30,10 +33,12 @@ function UH.Helpers:FormatDuration(seconds)
       (hours > 24 or (hours == 24 and minutes > 0 and seconds > 0));
 end
 
+---@param text string
 function UH.Helpers:ShowNotification(text)
   UH.UTILS:ShowChatNotification(text, UH.prefix);
 end
 
+---@param text string
 function UH.Helpers:ApplyPrefix(text)
   return UH.prefix .. text;
 end
@@ -71,3 +76,21 @@ function UH.Helpers:AsyncGetItemInfo(item, cb)
 
   return tryCB(nil);
 end;
+
+---@param className string
+---@return BasicRGB
+function UH.Helpers:GetRGBFromClassName(className)
+  ---@type BasicRGB
+  local color = { r = 1, g = 1, b = 1 };
+
+  if (className) then
+    color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[className];
+  end
+
+  return color;
+end
+
+---@class BasicRGB
+---@field r number
+---@field g number
+---@field b number

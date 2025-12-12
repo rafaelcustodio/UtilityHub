@@ -16,33 +16,51 @@ function Module:GetAccountCharactersGeneratorFunction()
   return function(owner, rootDescription)
     rootDescription:CreateTitle("Account characters");
 
-    for i, value in pairs(refUH.db.global.characters) do
-      rootDescription:CreateButton(value, function()
-        Module:StartMail(value);
-      end);
-    end
+    local groups = {
+      [UH.Enums.CHARACTER_GROUP.MAIN_ALT] = {},
+      [UH.Enums.CHARACTER_GROUP.BANK] = {},
+      [UH.Enums.CHARACTER_GROUP.UNGROUPED] = {},
+    };
 
-    rootDescription:CreateDivider();
-    rootDescription:CreateTitle("Options");
-    local button = rootDescription:CreateButton("Manage");
+    for i, row in pairs(refUH.db.global.characters) do
+      local group = row.group or UH.Enums.CHARACTER_GROUP.UNGROUPED;
+      local groupList = groups[group];
 
-    for i, value in pairs(refUH.db.global.characters) do
-      local buttonAction = button:CreateButton(value);
-
-      if (value ~= UnitName("player")) then
-        buttonAction:CreateButton("Remove", function()
-          local newCharacters = {};
-
-          for j, value in pairs(refUH.db.global.characters) do
-            if (i ~= j) then
-              tinsert(newCharacters, value);
-            end
-          end
-
-          refUH.db.global.characters = newCharacters;
-        end);
+      if (groupList) then
+        tinsert(groupList, row);
       end
     end
+
+    for groupID, group in pairs(groups) do
+      table.sort(group, function(a, b)
+        return a.name < b.name;
+      end);
+
+      if (#group > 0) then
+        rootDescription:CreateTitle("• " .. UH.Enums.CHARACTER_GROUP_TEXT[groupID]);
+
+        for _, character in pairs(group) do
+          local characterButton = rootDescription:CreateButton(character.name, function()
+            Module:StartMail(character.name);
+          end, character.name ~= UnitName("player"));
+          characterButton:AddInitializer(function(button, description, menu)
+            local color = UH.Helpers:GetRGBFromClassName(character.className);
+            button.fontString:SetTextColor(color.r, color.g, color.b);
+          end)
+          DevTool:AddData({ characterButton, characterButton.fontString });
+        end
+
+        rootDescription:CreateDivider();
+      end
+    end
+
+    rootDescription:CreateTitle("Options");
+    rootDescription:CreateButton("Manage", function()
+      Settings.OpenToCategory(ADDON_NAME);
+      C_Timer.After(0, function()
+        UH.AceConfigDialog:SelectGroup(ADDON_NAME, "mailGroup");
+      end)
+    end);
   end
 end
 

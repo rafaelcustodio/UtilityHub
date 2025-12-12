@@ -144,28 +144,76 @@ UH.Options = {
           get = function()
             return C_EncodingUtil.SerializeJSON(UH.db.global.characters or {});
           end,
+          ---@type ItemListArg
           arg = {
             HideAdd = true,
+            ClearCustomComponents = function(self, frame, helpers)
+              helpers:ReleaseSimpleFrame(frame.DeleteIconButton);
+              helpers:ReleaseSimpleFrame(frame.DropDownGroup);
+            end,
             CustomizeRowElement = function(self, frame, rowData, helpers)
-              frame:SetText(rowData.name);
+              local widget = self;
 
-              if (rowData.className ~= nil) then
-                local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[rowData.className];
+              function CreateDropDown()
+                frame.DropDownGroup = CreateFrame("Frame", string.format("MailCharacters%sDropDownGroup", rowData.name),
+                  frame,
+                  "UIDropDownMenuTemplate");
+                frame.DropDownGroup:SetPoint("TOPRIGHT", -10, 1);
 
-                if (color) then
-                  frame:GetFontString():SetTextColor(color.r, color.g, color.b);
+                local options = {
+                  { text = "Main/alt",  value = UH.Enums.CHARACTER_GROUP.MAIN_ALT },
+                  { text = "Bank",      value = UH.Enums.CHARACTER_GROUP.BANK },
+                  { text = "Ungrouped", value = UH.Enums.CHARACTER_GROUP.UNGROUPED },
+                };
+
+                local function OnSelect(self, arg1)
+                  UIDropDownMenu_SetSelectedValue(frame.DropDownGroup, arg1);
+                  rowData.group = arg1 or UH.Enums.CHARACTER_GROUP.UNGROUPED;
+                  widget:UpdateList();
+                  widget:FireValueChanged();
                 end
+
+                local function Init(self, level)
+                  for _, item in ipairs(options) do
+                    local info = UIDropDownMenu_CreateInfo();
+                    info.text = item.text;
+                    info.value = item.value;
+                    info.arg1 = item.value;
+                    info.func = OnSelect;
+                    UIDropDownMenu_AddButton(info, level);
+                  end
+                end
+
+                local selectedValue = rowData.group or UH.Enums.CHARACTER_GROUP.UNGROUPED;
+                local selectedOption = options[1];
+
+                for _, option in pairs(options) do
+                  if (option.value == selectedValue) then
+                    selectedOption = option;
+                  end
+                end
+
+                UIDropDownMenu_Initialize(frame.DropDownGroup, Init);
+                UIDropDownMenu_SetWidth(frame.DropDownGroup, 100);
+                UIDropDownMenu_SetSelectedValue(frame.DropDownGroup, selectedOption.value);
+                UIDropDownMenu_SetText(frame.DropDownGroup, selectedOption.text);
               end
 
-              if (rowData == UnitName("player")) then
-                return { skipFontStringPoints = false };
-              else
-                frame:GetFontString():SetPoint("LEFT", 6, 0);
-                frame:GetFontString():SetPoint("RIGHT", -20, 0);
+              frame:SetText(rowData.name);
+              frame:GetFontString():SetPoint("LEFT", 6, 0);
+              frame:GetFontString():SetPoint("RIGHT", -20, 0);
+
+              local color = UH.Helpers:GetRGBFromClassName(rowData.className);
+
+              frame:GetFontString():SetTextColor(color.r, color.g, color.b);
+
+              if (rowData.name ~= UnitName("player")) then
                 helpers.CreateDeleteIconButton(self, frame, rowData);
-
-                return { skipFontStringPoints = true };
               end
+
+              CreateDropDown();
+
+              return { skipFontStringPoints = true };
             end
           }
         }

@@ -4,6 +4,7 @@ local UH = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceComm-3.0");
 
 UH:SetDefaultModuleState(false);
 UH.UTILS = LibStub("Utils-1.0");
+UH.AceConfigDialog = LibStub("AceConfigDialog-3.0");
 UH.Compatibility = {};
 UH.Helpers = {};
 UH.prefix = "UH";
@@ -13,6 +14,19 @@ UH.defaultOptions = {
   autoBuy = false,
   autoBuyList = {},
 };
+UH.Enums = {};
+UH.Enums.CHARACTER_GROUP = {
+  UNGROUPED = 0,
+  MAIN_ALT = 1,
+  BANK = 2,
+  CD = 3,
+};
+UH.Enums.CHARACTER_GROUP_TEXT = {
+  [UH.Enums.CHARACTER_GROUP.UNGROUPED] = "Ungrouped",
+  [UH.Enums.CHARACTER_GROUP.MAIN_ALT] = "Main/alt",
+  [UH.Enums.CHARACTER_GROUP.BANK] = "Bank",
+  [UH.Enums.CHARACTER_GROUP.CD] = "CD",
+};
 
 UH.Events = CreateFromMixins(CallbackRegistryMixin);
 UH.Events:OnLoad();
@@ -21,28 +35,6 @@ UH.Events:GenerateCallbackEvents({
   "CHARACTER_DELETED",
 });
 
-function UH.Helpers:Benchmark(label, func, level)
-  if level == nil or type(level) ~= 'number' then level = 1; end
-  -- level = level or 1;
-  if level < 1 then
-    local firstStr = string.format('|cffffd100-----Start Bench: |r|cff8080ff%s|r-----', label)
-    UH.Helpers:ShowNotification(firstStr);
-  end
-  local startTime = GetTimePreciseSec();
-  local results = { func() };
-  local endTime = GetTimePreciseSec();
-  local duration = endTime - startTime;
-
-  local levelStr = '';
-  if level > 0 then levelStr = string.rep("~", level) .. '>'; end
-
-  local str = string.format("|cffffd100%sBench: |r|cff8080ff%s|r took |cffffd100%.4f|r ms", levelStr, label,
-    duration * 1000)
-  -- print(str)
-  UH.Helpers:ShowNotification(str);
-  return results, duration, startTime, endTime;
-end
-
 function UH:InitVariables()
   local version = C_AddOns.GetAddOnMetadata(ADDON_NAME, "Version");
   local oldVersion = nil;
@@ -50,8 +42,6 @@ function UH:InitVariables()
   if (UHdatabase and UHdatabase.global and UHdatabase.global.oldVersion) then
     oldVersion = UHdatabase.global.oldVersion;
   end
-
-  print(oldVersion, version);
 
   self.db = LibStub("AceDB-3.0"):New("UHdatabase", {
     global = {
@@ -77,7 +67,11 @@ function UH:InitVariables()
 end
 
 function UH:MigrateDB(version, oldVersion)
-  self.Helpers:ShowNotification("Migrating DB version from " .. oldVersion .. " to " .. version);
+  if (version and oldVersion) then
+    self.Helpers:ShowNotification("Migrating DB version from " .. oldVersion .. " to " .. version);
+  else
+    self.Helpers:ShowNotification("Migrating DB version - Forced action without any version change");
+  end
 
   if (#self.db.global.presets > 0) then
     for _, preset in pairs(self.db.global.presets) do
@@ -126,12 +120,14 @@ function UH:MigrateDB(version, oldVersion)
             name = name,
             race = race,
             className = className,
+            group = nil,
           };
         else
           self.db.global.characters[index] = {
             name = name,
             race = nil,
             className = nil,
+            group = nil,
           };
         end
       end
@@ -163,6 +159,8 @@ function UH:SetupSlashCommands()
       UH.Helpers:ShowNotification("Debug mode " .. debugText);
     elseif (command == "options") then
       Settings.OpenToCategory(ADDON_NAME);
+    elseif (command == "migrate") then
+      UH:MigrateDB();
     else
       UH.Helpers:ShowNotification("Command not found");
     end
@@ -171,7 +169,7 @@ end
 
 function UH:RegisterOptions()
   LibStub("AceConfig-3.0"):RegisterOptionsTable(ADDON_NAME, UH.Options);
-  LibStub("AceConfigDialog-3.0"):AddToBlizOptions(ADDON_NAME, ADDON_NAME);
+  UH.AceConfigDialog:AddToBlizOptions(ADDON_NAME, ADDON_NAME);
 end
 
 function UH:OnInitialize()
@@ -202,10 +200,12 @@ function UH:AddCharacterToList()
     name = name,
     race = select(2, UnitRace("player")),
     className = select(2, UnitClass("player")),
+    group = UH.Enums.CHARACTER_GROUP.UNGROUPED,
   };
 
   for index, value in pairs(UH.db.global.characters) do
     if (value.name == name) then
+      playerTable.group = value.group;
       UH.db.global.characters[index] = playerTable;
       return;
     end
@@ -218,3 +218,4 @@ end
 ---@field name string
 ---@field race number
 ---@field className number
+---@field group number

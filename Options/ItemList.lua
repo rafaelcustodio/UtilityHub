@@ -7,8 +7,9 @@ local AceGUI = LibStub("AceGUI-3.0");
 ---@field GetRowIndex? fun(self, list: table[], rowData): number | nil
 ---@field OnEnterRow? fun(self, frame, rowData)
 ---@field OnLeaveRow? fun(self, frame)
----@field CreateNewRow fun(self, text: string, OnSuccess: fun(rowData), OnError: fun())
+---@field CreateNewRow? fun(self, text: string, OnSuccess: fun(rowData), OnError: fun())
 ---@field CustomizeRowElement? fun(self, frame, rowData, helpers): CustomizeRowElementReturnFlags | nil
+---@field ClearCustomComponents? fun(self, frame, helpers)
 
 ---@class CustomizeRowElementReturnFlags
 ---@field skipFontStringPoints? boolean
@@ -67,14 +68,17 @@ local function Constructor()
     end
 
     local view = CreateScrollBoxListLinearView();
-    view:SetElementExtent(20);
+    view:SetElementExtent(26);
     view:SetElementInitializer("Button", function(frame, rowData)
-      -- Clear custom components
-      if (frame.DeleteIconButton) then
-        frame.DeleteIconButton:SetParent(nil);
-        frame.DeleteIconButton:ClearAllPoints();
-        frame.DeleteIconButton:Hide(nil);
-      end
+      widget:ClearCustomComponents(frame, {
+        ReleaseSimpleFrame = function(self, simpleFrame)
+          if (simpleFrame) then
+            simpleFrame:SetParent(nil);
+            simpleFrame:ClearAllPoints();
+            simpleFrame:Hide(nil);
+          end
+        end
+      });
 
       frame:SetPushedTextOffset(0, 0);
       frame:SetHighlightAtlas("search-highlight");
@@ -221,7 +225,7 @@ local function Constructor()
     widget.GetRowIndex = (data and data.GetRowIndex) or widget.GetRowIndexBase;
     widget.CreateNewRow = (data and data.CreateNewRow) or widget.CreateNewRowBase;
     widget.CustomizeRowElement = (data and data.CustomizeRowElement) or widget.CustomizeRowElementBase;
-
+    widget.ClearCustomComponents = (data and data.ClearCustomComponents) or widget.ClearCustomComponentsBase;
     widget:ToggleAddBar();
   end
 
@@ -282,6 +286,10 @@ local function Constructor()
       content:ClearAllPoints();
       content:SetPoint("TOPLEFT", frame.EditBoxAdd, "TOPLEFT", -2, -30);
     end
+  end
+
+  function widget:ClearCustomComponentsBase(frame, helpers)
+    helpers:ReleaseSimpleFrame(frame.DeleteIconButton);
   end
 
   hooksecurefunc("ChatEdit_InsertLink", function(link)
