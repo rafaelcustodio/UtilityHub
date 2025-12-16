@@ -14,8 +14,6 @@ function Module:GetAccountCharactersGeneratorFunction()
   local refUH = UH;
 
   return function(owner, rootDescription)
-    rootDescription:CreateTitle("Account characters");
-
     local groups = {
       [UH.Enums.CHARACTER_GROUP.MAIN_ALT] = {},
       [UH.Enums.CHARACTER_GROUP.BANK] = {},
@@ -56,10 +54,10 @@ function Module:GetAccountCharactersGeneratorFunction()
     end
 
     rootDescription:CreateTitle("Options");
-    rootDescription:CreateButton("Manage", function()
+    rootDescription:CreateButton("Open config", function()
       Settings.OpenToCategory(ADDON_NAME);
       C_Timer.After(0, function()
-        UH.AceConfigDialog:SelectGroup(ADDON_NAME, "mailGroup");
+        UH.AceConfigDialog:SelectGroup(ADDON_NAME, "mailGroup", "mailCharactersGroup");
       end)
     end);
   end

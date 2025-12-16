@@ -9,15 +9,18 @@ local Module = UH:NewModule(moduleName);
 Module.eventRegistered = false;
 
 function Module:SearchAndBuyRares()
-  local autoBuyList = UH.db.global.autoBuyList or {};
+  local autoBuyList = UH.db.global.options.autoBuyList or {};
 
   for i = 1, GetMerchantNumItems() do
     local itemLink = GetMerchantItemLink(i);
 
     if (itemLink) then
       local itemID = tonumber(string.match(itemLink, "item:(%d+):"));
+      local searchResult = UH.UTILS:ValueInTable(autoBuyList, function(value)
+        return itemID == tonumber(string.match(value, "item:(%d+):"));
+      end);
 
-      if (UH.UTILS:ValueInTable(autoBuyList, itemID)) then
+      if (searchResult) then
         BuyMerchantItem(i, 1);
         UH.Helpers:ShowNotification("Bought: " .. itemLink);
       end
@@ -31,7 +34,7 @@ function Module:OnEnable()
   end
 
   Module.eventRegistered = EventRegistry:RegisterFrameEventAndCallback("MERCHANT_SHOW", function()
-    if (not UH:GetModule("Trade"):IsEnabled()) then
+    if (not UH:GetModule("AutoBuy"):IsEnabled()) then
       return;
     end
 

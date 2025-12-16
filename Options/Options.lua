@@ -1,38 +1,83 @@
-local ADDON_NAME = ...;
+local ADDON_NAME, addonTable = ...;
 ---@type UtilityHub
 local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
-local order = 0;
 
-local function GetNextOrder()
-  order = order + 1;
-  return order;
-end
+function addonTable.GenerateOptions()
+  local order = {};
 
-UH.Options = {
-  name = ADDON_NAME,
-  type = "group",
-  args = {
-    tooltipGroup = {
+  local function GetNextOrder(key)
+    order[key] = (order[key] or 0) + 1;
+    return order[key];
+  end
+
+  local function GenerateSeparator(key)
+    return {
+      type = "header",
+      name = "",
+      order = GetNextOrder(key),
+    };
+  end
+
+  local function GenerateSpacer(key)
+    return {
+      type = "description",
+      name = " ",
+      order = GetNextOrder(key),
+      fontSize = "large",
+    };
+  end
+
+  UH.Options = {};
+
+  -- Default
+  tinsert(UH.Options, {
+    name = ADDON_NAME,
+    root = true,
+    group = {
+      type = "group",
+      order = GetNextOrder("default"),
+      args = {
+        addonSeparator = GenerateSeparator("default"),
+        addonDescription1 = {
+          type = "description",
+          name =
+          "I did this addon because i like to code and to solve problems without WA. If you have any ideas, contact me.",
+          order = GetNextOrder("default"),
+          fontSize = "medium",
+        },
+        spacer1 = GenerateSpacer("default"),
+        addonDescription2 = {
+          type = "description",
+          name = "For the addon options, check the options on the left.",
+          order = GetNextOrder("default"),
+          fontSize = "large",
+        },
+        spacer2 = GenerateSpacer("default"),
+        addonTitle = {
+          type = "description",
+          name = "Author: Cacetinho - Nightslayer",
+          order = GetNextOrder("default"),
+          fontSize = "medium",
+        },
+      },
+    },
+  });
+
+  -- Tooltip
+  tinsert(UH.Options, {
+    name = "Tooltip",
+    root = false,
+    group = {
       name = "Tooltip",
       type = "group",
-      order = GetNextOrder(),
+      order = GetNextOrder("tooltip"),
       args = {
-        tooltipGroupTitle = {
-          type = "description",
-          name = "Module: Tooltip",
-          fontSize = "large",
-          order = GetNextOrder(),
-        },
-        tooltipGroupSeparator = {
-          type = "header",
-          name = "",
-          order = GetNextOrder(),
-        },
+        tooltipGroupSeparator = GenerateSeparator("tooltip"),
         tooltipSimpleStats = {
           type = "toggle",
           name = "Enable",
           desc = "Change the way most stats are shown in the tooltip",
-          order = GetNextOrder(),
+          order = GetNextOrder("tooltip"),
           get = function() return UH.db.global.options.simpleStatsTooltip end,
           set = function(_, val)
             UH.db.global.options.simpleStatsTooltip = val;
@@ -41,28 +86,23 @@ UH.Options = {
         },
       },
     },
-    autoBuyGroup = {
+  });
+
+  -- AutoBuy
+  tinsert(UH.Options, {
+    name = "AutoBuy",
+    root = false,
+    group = {
       name = "AutoBuy",
       type = "group",
-      order = GetNextOrder(),
+      order = GetNextOrder("autoBuy"),
       args = {
-        autoBuyGroupTitle = {
-          type = "description",
-          name = "Module: AutoBuy",
-          fontSize = "large",
-          order = GetNextOrder(),
-        },
-        autoBuyGroupSeparator = {
-          type = "header",
-          name = "",
-          order = GetNextOrder(),
-        },
         autoBuy = {
           type = "toggle",
           name = "Enable",
           desc =
           "Enable the functionality to autobuy specific limited stock items from vendors when the window is opened",
-          order = GetNextOrder(),
+          order = GetNextOrder("autoBuy"),
           get = function() return UH.db.global.options.autoBuy end,
           set = function(_, val)
             UH.db.global.options.autoBuy = val;
@@ -73,7 +113,7 @@ UH.Options = {
           type = "input",
           dialogControl = "ItemList",
           name = "AutoBuyItemList",
-          order = GetNextOrder(),
+          order = GetNextOrder("autoBuy"),
           width = "full",
           set = function(_, val)
             UH.db.global.options.autoBuyList = C_EncodingUtil.DeserializeJSON(val);
@@ -83,6 +123,8 @@ UH.Options = {
           end,
           ---@type ItemListArg
           arg = {
+            widthSizeType = "full",
+            heightSizeType = "full",
             OnEnterRow = function(self, frame, rowData)
               GameTooltip:SetOwner(frame, "ANCHOR_RIGHT");
               GameTooltip:SetHyperlink(rowData);
@@ -113,111 +155,475 @@ UH.Options = {
               return { skipFontStringPoints = true };
             end
           },
-        }
+        },
       },
     },
-    mailGroup = {
+  });
+
+  -- Mail
+
+  ---@type Preset
+  local presetModule = UH:GetModule("Preset");
+  UH.tempPreset = presetModule:GetNewEmptyPreset();
+
+  local function GenerateNewPreset()
+    return {
+      name = function()
+        return UH.tempPreset and UH.tempPreset.id and "Editing preset" or "New preset";
+      end,
+      type = "group",
+      order = GetNextOrder("mail"),
+      args = {
+        newPresetTitle = {
+          type = "description",
+          name = "New preset",
+          fontSize = "large",
+          order = GetNextOrder("mail"),
+        },
+        newPresetNameInput = {
+          type = "input",
+          name = "Name",
+          order = GetNextOrder("mail"),
+          width = "full",
+          get = function()
+            return UH.tempPreset.name;
+          end,
+          set = function(_, value)
+            UH.tempPreset.name = value;
+          end
+        },
+        newPresetToInput = {
+          type = "input",
+          name = "To",
+          width = "full",
+          order = GetNextOrder("mail"),
+          get = function()
+            return UH.tempPreset.to;
+          end,
+          set = function(_, value)
+            UH.tempPreset.to = value;
+          end
+        },
+        newPresetItemGroups = {
+          name = function()
+            local count = 0;
+
+            for _, group in ipairs(UH.tempPreset.itemGroups) do
+              if (group.checked) then
+                count = count + 1;
+              end
+            end
+
+            return string.format("Item groups: %s", count);
+          end,
+          type = "group",
+          order = GetNextOrder("mail"),
+          inline = true,
+          args = {
+            presetItemGroupList = {
+              type = "input",
+              dialogControl = "ItemList",
+              name = "PresetItemGroupList",
+              order = GetNextOrder("mail"),
+              width = "full",
+              set = function(_, val)
+                UH.tempPreset.itemGroups = C_EncodingUtil.DeserializeJSON(val);
+              end,
+              get = function()
+                return C_EncodingUtil.SerializeJSON(UH.tempPreset.itemGroups or {});
+              end,
+              ---@type ItemListArg
+              arg = {
+                hideAdd = true,
+                widthSizeType = "manual",
+                heightSizeType = "manual",
+                width = 410,
+                height = 250,
+                GetRowIndex = function(self, rows, rowData)
+                  for index, loopItem in ipairs(rows) do
+                    if (loopItem.name == rowData.name) then
+                      return index;
+                    end
+                  end
+
+                  return nil;
+                end,
+                CustomizeRowElement = function(self, frame, rowData, helpers)
+                  frame:SetText(rowData.name);
+                  frame:GetFontString():SetTextColor(1, 1, 1);
+                  frame:GetFontString():SetPoint("LEFT", 40, 0);
+                  frame:GetFontString():SetPoint("RIGHT", -6, 0);
+
+                  helpers.CreateCheckbox(self, frame, rowData);
+
+                  return { skipFontStringPoints = true };
+                end
+              },
+            },
+          },
+        },
+        newPresetManualInclusions = {
+          name = function()
+            return string.format("Manual inclusions: %s", #UH.tempPreset.custom);
+          end,
+          type = "group",
+          order = GetNextOrder("mail"),
+          inline = true,
+          args = {
+            presetManualInclusionsList = {
+              type = "input",
+              dialogControl = "ItemList",
+              name = "PresetManualInclusionsList",
+              order = GetNextOrder("mail"),
+              width = "full",
+              set = function(_, val)
+                UH.tempPreset.custom = C_EncodingUtil.DeserializeJSON(val);
+              end,
+              get = function()
+                return C_EncodingUtil.SerializeJSON(UH.tempPreset.custom or {});
+              end,
+              ---@type ItemListArg
+              arg = {
+                widthSizeType = "manual",
+                heightSizeType = "manual",
+                width = 410,
+                height = 250,
+                OnEnterRow = function(self, frame, rowData)
+                  GameTooltip:SetOwner(frame, "ANCHOR_RIGHT");
+                  GameTooltip:SetHyperlink(rowData);
+                  GameTooltip:Show();
+                end,
+                OnLeaveRow = function(self, frame)
+                  if (not GameTooltip:IsOwned(frame)) then
+                    return;
+                  end
+
+                  GameTooltip:Hide();
+                end,
+                CustomizeRowElement = function(self, frame, rowData, helpers)
+                  frame:SetText(rowData);
+                  frame:GetFontString():SetTextColor(1, 1, 1);
+                  frame:GetFontString():SetPoint("LEFT", 6, 0);
+                  frame:GetFontString():SetPoint("RIGHT", -6, 0);
+                  return { skipFontStringPoints = true };
+                end
+              },
+            },
+          },
+        },
+        newPresetManualExclusions = {
+          name = function()
+            return string.format("Manual exclusions: %s", #UH.tempPreset.exclusion);
+          end,
+          type = "group",
+          order = GetNextOrder("mail"),
+          inline = true,
+          args = {
+            presetManualInclusionsList = {
+              type = "input",
+              dialogControl = "ItemList",
+              name = "PresetManualExclusionsList",
+              order = GetNextOrder("mail"),
+              width = "full",
+              set = function(_, val)
+                UH.tempPreset.exclusion = C_EncodingUtil.DeserializeJSON(val);
+              end,
+              get = function()
+                return C_EncodingUtil.SerializeJSON(UH.tempPreset.exclusion or {});
+              end,
+              ---@type ItemListArg
+              arg = {
+                widthSizeType = "manual",
+                heightSizeType = "manual",
+                width = 410,
+                height = 250,
+                OnEnterRow = function(self, frame, rowData)
+                  GameTooltip:SetOwner(frame, "ANCHOR_RIGHT");
+                  GameTooltip:SetHyperlink(rowData);
+                  GameTooltip:Show();
+                end,
+                OnLeaveRow = function(self, frame)
+                  if (not GameTooltip:IsOwned(frame)) then
+                    return;
+                  end
+
+                  GameTooltip:Hide();
+                end,
+                CreateNewRow = function(self, text, OnSuccess, OnError)
+                  UH.Helpers:AsyncGetItemInfo(text, function(itemLink)
+                    if (itemLink) then
+                      OnSuccess(itemLink);
+                    else
+                      OnError();
+                    end
+                  end);
+                end,
+                CustomizeRowElement = function(self, frame, rowData, helpers)
+                  frame:SetText(rowData);
+                  frame:GetFontString():SetTextColor(1, 1, 1);
+                  frame:GetFontString():SetPoint("LEFT", 6, 0);
+                  frame:GetFontString():SetPoint("RIGHT", -6, 0);
+                  return { skipFontStringPoints = true };
+                end
+              },
+            },
+          },
+        },
+        newPresetSave = {
+          type = "execute",
+          name = "Save",
+          order = GetNextOrder("mail"),
+          width = 0.8,
+          disabled = false,
+          func = function(info, value)
+            local itemGroups = {};
+
+            for _, group in ipairs(UH.tempPreset.itemGroups) do
+              itemGroups[group.key] = group.checked;
+            end
+
+            local result = presetModule:SavePreset({
+              name = UH.tempPreset.name,
+              to = UH.tempPreset.to,
+              custom = UH.tempPreset.custom,
+              itemGroups = itemGroups,
+              exclusion = UH.tempPreset.exclusion,
+            }, UH.tempPreset.id);
+
+            if (result) then
+              UH.tempPreset = presetModule:GetNewEmptyPreset();
+              UH.AceConfigDialog:SelectGroup("Mail", "Presets");
+            end
+
+            UH.AceConfigDialog:SelectGroup("Mail", "mailPresetsGroup");
+          end
+        },
+      }
+    };
+  end
+
+  tinsert(UH.Options, {
+    name = "Mail",
+    root = false,
+    group = {
       name = "Mail",
       type = "group",
-      order = GetNextOrder(),
+      order = GetNextOrder("mail"),
       args = {
-        mailGroupTitle = {
-          type = "description",
-          name = "Module: Mail",
-          fontSize = "large",
-          order = GetNextOrder(),
-        },
-        mailGroupSeparator = {
-          type = "header",
-          name = "",
-          order = GetNextOrder(),
-        },
-        mailCharacters = {
-          type = "input",
-          dialogControl = "ItemList",
-          name = "ConfigurableItemList",
-          order = GetNextOrder(),
-          width = "full",
-          set = function(_, val)
-            UH.db.global.characters = C_EncodingUtil.DeserializeJSON(val);
-          end,
-          get = function()
-            return C_EncodingUtil.SerializeJSON(UH.db.global.characters or {});
-          end,
-          ---@type ItemListArg
-          arg = {
-            HideAdd = true,
-            ClearCustomComponents = function(self, frame, helpers)
-              helpers:ReleaseSimpleFrame(frame.DeleteIconButton);
-              helpers:ReleaseSimpleFrame(frame.DropDownGroup);
-            end,
-            CustomizeRowElement = function(self, frame, rowData, helpers)
-              local widget = self;
-
-              function CreateDropDown()
-                frame.DropDownGroup = CreateFrame("Frame", string.format("MailCharacters%sDropDownGroup", rowData.name),
-                  frame,
-                  "UIDropDownMenuTemplate");
-                frame.DropDownGroup:SetPoint("TOPRIGHT", -10, 1);
-
-                local options = {
-                  { text = "Main/alt",  value = UH.Enums.CHARACTER_GROUP.MAIN_ALT },
-                  { text = "Bank",      value = UH.Enums.CHARACTER_GROUP.BANK },
-                  { text = "Ungrouped", value = UH.Enums.CHARACTER_GROUP.UNGROUPED },
-                };
-
-                local function OnSelect(self, arg1)
-                  UIDropDownMenu_SetSelectedValue(frame.DropDownGroup, arg1);
-                  rowData.group = arg1 or UH.Enums.CHARACTER_GROUP.UNGROUPED;
-                  widget:UpdateList();
-                  widget:FireValueChanged();
-                end
-
-                local function Init(self, level)
-                  for _, item in ipairs(options) do
-                    local info = UIDropDownMenu_CreateInfo();
-                    info.text = item.text;
-                    info.value = item.value;
-                    info.arg1 = item.value;
-                    info.func = OnSelect;
-                    UIDropDownMenu_AddButton(info, level);
+        mailCharactersGroup = {
+          name = "Characters",
+          type = "group",
+          order = GetNextOrder("mail"),
+          args = {
+            mailCharactersTitle = {
+              type = "description",
+              name = "Module: Mail - Characters",
+              fontSize = "large",
+              order = GetNextOrder("mail"),
+            },
+            mailCharactersSeparator = GenerateSeparator("mail"),
+            mailCharacters = {
+              type = "input",
+              dialogControl = "ItemList",
+              name = "ConfigurableItemList",
+              order = GetNextOrder("mail"),
+              width = "full",
+              set = function(_, val)
+                UH.db.global.characters = C_EncodingUtil.DeserializeJSON(val);
+              end,
+              get = function()
+                return C_EncodingUtil.SerializeJSON(UH.db.global.characters or {});
+              end,
+              ---@type ItemListArg
+              arg = {
+                hideAdd = true,
+                widthSizeType = "side",
+                heightSizeType = "full",
+                GetRowIndex = function(self, rows, rowData)
+                  for index, loopItem in ipairs(rows) do
+                    if (loopItem.name == rowData.name) then
+                      return index;
+                    end
                   end
-                end
 
-                local selectedValue = rowData.group or UH.Enums.CHARACTER_GROUP.UNGROUPED;
-                local selectedOption = options[1];
+                  return nil;
+                end,
+                CustomizeRowElement = function(self, frame, rowData, helpers)
+                  local widget = self;
+                  local options = {
+                    { text = "Main/alt",  value = UH.Enums.CHARACTER_GROUP.MAIN_ALT },
+                    { text = "Bank",      value = UH.Enums.CHARACTER_GROUP.BANK },
+                    { text = "Ungrouped", value = UH.Enums.CHARACTER_GROUP.UNGROUPED },
+                  };
 
-                for _, option in pairs(options) do
-                  if (option.value == selectedValue) then
-                    selectedOption = option;
+                  function CreateDropDown()
+                    if (not frame.customElements[widget.name].DropDownGroup) then
+                      frame.customElements[widget.name].DropDownGroup = CreateFrame(
+                        "Frame",
+                        string.format("MailCharacters%sDropDownGroup", rowData.name),
+                        frame,
+                        "UIDropDownMenuTemplate"
+                      );
+                      frame.customElements[widget.name].DropDownGroup:SetPoint("TOPRIGHT", -10, 1);
+
+                      local function OnSelect(self, arg1)
+                        widget.items[widget:GetRowIndex(widget.items, rowData)].group = arg1 or
+                            UH.Enums.CHARACTER_GROUP.UNGROUPED;
+                        widget:FireValueChanged();
+                      end
+
+                      local function Init(self, level)
+                        for _, item in ipairs(options) do
+                          local info = UIDropDownMenu_CreateInfo();
+                          info.text = item.text;
+                          info.value = item.value;
+                          info.arg1 = item.value;
+                          info.func = OnSelect;
+                          UIDropDownMenu_AddButton(info, level);
+                        end
+                      end
+
+                      UIDropDownMenu_Initialize(frame.customElements[widget.name].DropDownGroup, Init);
+                      UIDropDownMenu_SetWidth(frame.customElements[widget.name].DropDownGroup, 100);
+                    end
+
+                    local selectedValue = rowData.group or UH.Enums.CHARACTER_GROUP.UNGROUPED;
+                    local selectedOption = options[1];
+
+                    for _, option in pairs(options) do
+                      if (option.value == selectedValue) then
+                        selectedOption = option;
+                      end
+                    end
+
+                    UIDropDownMenu_SetSelectedValue(frame.customElements[widget.name].DropDownGroup, selectedOption
+                      .value);
+                    UIDropDownMenu_SetText(frame.customElements[widget.name].DropDownGroup, selectedOption.text);
                   end
+
+                  frame:SetText(rowData.name);
+                  frame:GetFontString():SetPoint("LEFT", 6, 0);
+                  frame:GetFontString():SetPoint("RIGHT", -20, 0);
+
+                  local color = UH.Helpers:GetRGBFromClassName(rowData.className);
+
+                  frame:GetFontString():SetTextColor(color.r, color.g, color.b);
+
+                  if (rowData.name ~= UnitName("player")) then
+                    helpers.CreateDeleteIconButton(self, frame, rowData);
+                  end
+
+                  CreateDropDown();
+
+                  return { skipFontStringPoints = true };
                 end
+              }
+            },
+          },
+        },
+        mailPresetsGroup = {
+          name = "Presets",
+          type = "group",
+          order = GetNextOrder("mail"),
+          args = {
+            mailPresetsTitle = {
+              type = "description",
+              name = "Module: Mail - Presets",
+              fontSize = "large",
+              order = GetNextOrder("mail"),
+            },
+            mailPresetsSeparator = GenerateSeparator("mail"),
+            presetsList = {
+              type = "input",
+              dialogControl = "ItemList",
+              name = "PresetsList",
+              order = GetNextOrder("mail"),
+              width = "full",
+              set = function(_, val)
+                UH.db.global.presets = C_EncodingUtil.DeserializeJSON(val);
+              end,
+              get = function()
+                return C_EncodingUtil.SerializeJSON(UH.db.global.presets or {});
+              end,
+              ---@type ItemListArg
+              arg = {
+                hideAdd = true,
+                widthSizeType = "side",
+                heightSizeType = "full",
+                CustomizeRowElement = function(self, frame, rowData, helpers)
+                  local widget = self;
 
-                UIDropDownMenu_Initialize(frame.DropDownGroup, Init);
-                UIDropDownMenu_SetWidth(frame.DropDownGroup, 100);
-                UIDropDownMenu_SetSelectedValue(frame.DropDownGroup, selectedOption.value);
-                UIDropDownMenu_SetText(frame.DropDownGroup, selectedOption.text);
-              end
+                  frame:SetText(rowData.name);
+                  frame:GetFontString():SetTextColor(1, 1, 1);
+                  frame:GetFontString():SetPoint("LEFT", 6, 0);
+                  frame:GetFontString():SetPoint("RIGHT", -20, 0);
 
-              frame:SetText(rowData.name);
-              frame:GetFontString():SetPoint("LEFT", 6, 0);
-              frame:GetFontString():SetPoint("RIGHT", -20, 0);
+                  local function CreateEditIconButton()
+                    frame.customElements[widget.name].EditIconButton = CreateFrame("Button", nil, frame);
+                    -- frame.customElements[widget.name].EditIconButton:SetNormalAtlas("common-icon-edit");
+                    -- frame.texture = CreateText
+                    frame.customElements[widget.name].EditIconButton:SetNormalTexture("Interface\\WorldMap\\GEAR_64GREY");
+                    frame.customElements[widget.name].EditIconButton:SetPoint("TOPRIGHT", -28, -4);
+                    frame.customElements[widget.name].EditIconButton:SetSize(18, 18);
+                    frame.customElements[widget.name].EditIconButton:SetScript("OnClick", function()
+                      local index = widget:GetRowIndex(widget.items, rowData);
+                      local data = widget.items[index];
 
-              local color = UH.Helpers:GetRGBFromClassName(rowData.className);
+                      UH.tempPreset = {
+                        id = index,
+                        name = data.name,
+                        to = data.to,
+                        itemGroups = {},
+                        custom = data.custom or {},
+                        exclusion = data.exclusion or {},
+                      };
 
-              frame:GetFontString():SetTextColor(color.r, color.g, color.b);
+                      for itemGroupName, itemGroup in UH.UTILS:OrderedPairs(presetModule.ItemGroupOptions) do
+                        tinsert(
+                          UH.tempPreset.itemGroups,
+                          {
+                            checked = data.itemGroups[itemGroupName] or false,
+                            name = itemGroup.label,
+                            key = itemGroupName,
+                          }
+                        );
+                      end
 
-              if (rowData.name ~= UnitName("player")) then
-                helpers.CreateDeleteIconButton(self, frame, rowData);
-              end
+                      UH.AceConfigDialog:SelectGroup("Mail", "mailPresetsGroup", "newPreset");
+                    end);
+                    frame.customElements[widget.name].EditIconButton:SetScript("OnEnter", function()
+                      local el = frame.customElements[widget.name].EditIconButton;
 
-              CreateDropDown();
+                      if (el) then
+                        GameTooltip:SetOwner(el, "ANCHOR_RIGHT");
+                        GameTooltip:SetText("Edit");
+                        GameTooltip:Show();
+                      end
+                    end);
+                    frame.customElements[widget.name].EditIconButton:SetScript("OnLeave", function()
+                      local el = frame.customElements[widget.name].EditIconButton;
 
-              return { skipFontStringPoints = true };
-            end
-          }
-        }
+                      if (not GameTooltip:IsOwned(el)) then
+                        return;
+                      end
+
+                      GameTooltip:Hide();
+                    end);
+
+                    return frame.customElements[widget.name].EditIconButton;
+                  end
+
+                  helpers.CreateDeleteIconButton(self, frame, rowData);
+                  CreateEditIconButton();
+
+                  return { skipFontStringPoints = true };
+                end
+              },
+            },
+            newPreset = GenerateNewPreset(),
+          },
+        },
       },
     },
-  },
-};
+  });
+end

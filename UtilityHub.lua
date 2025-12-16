@@ -9,11 +9,16 @@ UH.Compatibility = {};
 UH.Helpers = {};
 UH.prefix = "UH";
 UH.Options = {};
+UH.tempPreset = {};
+
+-- Defaults
 UH.defaultOptions = {
   simpleStatsTooltip = true,
   autoBuy = false,
   autoBuyList = {},
 };
+
+-- Enums
 UH.Enums = {};
 UH.Enums.CHARACTER_GROUP = {
   UNGROUPED = 0,
@@ -28,6 +33,7 @@ UH.Enums.CHARACTER_GROUP_TEXT = {
   [UH.Enums.CHARACTER_GROUP.CD] = "CD",
 };
 
+-- Events
 UH.Events = CreateFromMixins(CallbackRegistryMixin);
 UH.Events:OnLoad();
 UH.Events:GenerateCallbackEvents({
@@ -168,8 +174,17 @@ function UH:SetupSlashCommands()
 end
 
 function UH:RegisterOptions()
-  LibStub("AceConfig-3.0"):RegisterOptionsTable(ADDON_NAME, UH.Options);
-  UH.AceConfigDialog:AddToBlizOptions(ADDON_NAME, ADDON_NAME);
+  local parent = nil;
+  addonTable.GenerateOptions();
+
+  for _, option in ipairs(UH.Options) do
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(option.name, option.group);
+    UH.AceConfigDialog:AddToBlizOptions(option.name, option.name, parent);
+
+    if (option.root) then
+      parent = option.name;
+    end
+  end
 end
 
 function UH:OnInitialize()

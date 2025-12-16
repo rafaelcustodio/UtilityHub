@@ -78,7 +78,11 @@
     "PLAYER",
     "UIDropDownMenu_SetSelectedValue",
     "CHARACTER",
-    "BANK"
+    "BANK",
+    "ScrollBoxConstants",
+    "UIDropDownMenu_GetSelectedValue",
+    "StaticPopupDialogs",
+    "StaticPopup_Show"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {

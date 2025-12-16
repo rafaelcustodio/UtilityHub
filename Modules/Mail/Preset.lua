@@ -5,7 +5,6 @@ local moduleName = 'Preset';
 ---@class Preset
 ---@diagnostic disable-next-line: undefined-field
 local Module = UH:NewModule(moduleName);
-Module.MailIconButton = nil;
 Module.ItemGroupOptions = {
   ["GreenEquipment"] = {
     label = "Green Equipment",
@@ -787,53 +786,114 @@ function Module:CreateFormField(name, labelText, parent, y)
   return input, label;
 end
 
-function Module:SavePreset()
-  local preset = {
-    name = Module.NewPresetFrame.NameInput:GetText(),
-    to = Module.NewPresetFrame.ToInput:GetText(),
-    custom = temp.items,
-    itemGroups = {},
-    exclusion = temp.itemsExclusion
-  };
+function Module:ShowFormErrorPopup(text, onHideFn)
+  local popupName = ADDON_NAME .. "NewPresetError";
+  StaticPopupDialogs[popupName] = {
+    text = text,
+    button1 = OKAY,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+    OnHide = function()
+      if (onHideFn) then
+        onHideFn();
+      end
+    end
+  }
+
+  StaticPopup_Show(popupName);
+end
+
+---@return boolean | nil
+function Module:SavePreset(data, dataID)
+  local preset = {};
+
+  if (data) then
+    preset = data;
+  else
+    preset = {
+      name = Module.NewPresetFrame.NameInput:GetText(),
+      to = Module.NewPresetFrame.ToInput:GetText(),
+      custom = temp.items,
+      itemGroups = {},
+      exclusion = temp.itemsExclusion,
+    };
+  end
 
   if (not preset.name or #preset.name < 1) then
-    Module.NewPresetFrame.NameInput:SetFocus();
-    UH.Helpers:ShowNotification("Field Name is required");
+    Module:ShowFormErrorPopup("Field Name is required", function()
+      if (not data) then
+        Module.NewPresetFrame.NameInput:SetFocus();
+      end
+    end);
     return;
   end
 
   if (not preset.to or #preset.to < 1) then
-    Module.NewPresetFrame.ToInput:SetFocus();
-    UH.Helpers:ShowNotification("Field To is required");
+    Module:ShowFormErrorPopup("Field To is required", function()
+      if (not data) then
+        Module.NewPresetFrame.ToInput:SetFocus();
+      end
+    end);
     return;
   end
 
   local atLeastOneCheck = false;
 
-  for key, value in pairs(Module.ItemGroupOptions) do
-    preset.itemGroups[key] = Module.NewPresetFrame.checkboxList[key]:GetChecked();
+  if (data) then
+    for _, value in pairs(preset.itemGroups) do
+      if (value) then
+        atLeastOneCheck = true;
+      end
+    end
+  else
+    for key, value in pairs(Module.ItemGroupOptions) do
+      preset.itemGroups[key] = Module.NewPresetFrame.checkboxList[key]:GetChecked();
 
-    if (preset.itemGroups[key]) then
-      atLeastOneCheck = true;
+      if (preset.itemGroups[key]) then
+        atLeastOneCheck = true;
+      end
     end
   end
 
   if (UH.UTILS:TableLength(preset.custom) == 0 and (not atLeastOneCheck)) then
-    UH.Helpers:ShowNotification("At least one rule is required");
-    -- Warn that at least one config needs to be selected for a preset to be valid
+    Module:ShowFormErrorPopup("At least one item group needs to be checked or one item added to the inclusions");
     return;
   end
 
   -- Save
-  if (id) then
-    UH.db.global.presets[id] = preset;
+  if (id or dataID) then
+    UH.db.global.presets[id or dataID] = preset;
   else
     tinsert(UH.db.global.presets, preset);
   end
 
-  Module:CloseNewPresetFrame();
+  if (not data) then
+    Module:CloseNewPresetFrame();
+  end
+
+  return true;
 end
 
+function Module:GetNewEmptyPreset()
+  local preset = {
+    id = nil,
+    name = "",
+    to = "",
+    itemGroups = {},
+    custom = {},
+    exclusion = {},
+  };
+
+  for itemGroupName, itemGroup in UH.UTILS:OrderedPairs(Module.ItemGroupOptions) do
+    tinsert(preset.itemGroups, { checked = false, name = itemGroup.label, key = itemGroupName });
+  end
+
+  return preset;
+end
+
+-- Execution
 function Module:GetLoadPresetGeneratorFunction()
   local refUH = UH;
 
@@ -892,7 +952,7 @@ function Module:ExecutePreset(preset)
     end
   end
 
-  for bag = 0, 4 do   -- Loops through bags 0 (backpack) to 4 (bags)
+  for bag = 0, 4 do -- Loops through bags 0 (backpack) to 4 (bags)
     for slot = 1, C_Container.GetContainerNumSlots(bag) do
       local itemLink = C_Container.GetContainerItemLink(bag, slot);
 
