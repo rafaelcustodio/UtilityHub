@@ -12,10 +12,14 @@ local PresetModule;
 local CharactersModule;
 
 function Module:CreateMailIconButtons()
-  function CreateNewPresetButton()
+  function CreateNewPresetButton(previousFrame)
     -- New
     MailFrame.NewPresetButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("NewPresetButton"));
-    MailFrame.NewPresetButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
+    if (previousFrame) then
+      MailFrame.NewPresetButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
+    else
+      MailFrame.NewPresetButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
+    end
     MailFrame.NewPresetButton.baseTextureRef:SetTexture("Interface/GuildBankFrame/UI-GuildBankFrame-NewTab");
 
     -- Events
@@ -33,12 +37,18 @@ function Module:CreateMailIconButtons()
         GameTooltip:Hide();
       end
     end);
+
+    return MailFrame.NewPresetButton;
   end
 
-  function CreateLoadPresetButton()
+  function CreateLoadPresetButton(previousFrame)
     -- Load
     MailFrame.LoadPresetButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("LoadPresetButton"));
-    MailFrame.LoadPresetButton:SetPoint("BOTTOM", MailFrame.NewPresetButton, "BOTTOM", 0, -40);
+    if (previousFrame) then
+      MailFrame.LoadPresetButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
+    else
+      MailFrame.LoadPresetButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
+    end
     local iconTexture = MailFrame.LoadPresetButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Calendar\\MoreArrow.blp");
     iconTexture:ClearAllPoints();
@@ -68,12 +78,14 @@ function Module:CreateMailIconButtons()
     end);
 
     MailFrame.LoadPresetButton:SetupMenu(PresetModule:GetLoadPresetGeneratorFunction());
+
+    return MailFrame.LoadPresetButton;
   end
 
-  function CreateManagePresetButton()
+  function CreateManagePresetButton(previousFrame)
     -- Manage
     MailFrame.ManagePresetButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("ManagePresetButton"));
-    MailFrame.ManagePresetButton:SetPoint("BOTTOM", MailFrame.LoadPresetButton, "BOTTOM", 0, -40);
+    MailFrame.ManagePresetButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
     local iconTexture = MailFrame.ManagePresetButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Buttons\\UI-OptionsButton.blp");
     iconTexture:ClearAllPoints();
@@ -103,12 +115,18 @@ function Module:CreateMailIconButtons()
     end);
 
     MailFrame.ManagePresetButton:SetupMenu(PresetModule:GetManagePresetGeneratorFunction());
+
+    return MailFrame.ManagePresetButton;
   end
 
-  function CreateCharactersButton()
+  function CreateCharactersButton(previousFrame)
     -- Characters
     MailFrame.CharactersButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("CharactersButton"));
-    MailFrame.CharactersButton:SetPoint("BOTTOM", MailFrame.ManagePresetButton, "BOTTOM", 0, -40);
+    if (previousFrame) then
+      MailFrame.CharactersButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
+    else
+      MailFrame.CharactersButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
+    end
     local iconTexture = MailFrame.CharactersButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\CHATFRAME\\UI-ChatConversationIcon.blp");
     iconTexture:ClearAllPoints();
@@ -138,12 +156,53 @@ function Module:CreateMailIconButtons()
     end);
 
     MailFrame.CharactersButton:SetupMenu(CharactersModule:GetAccountCharactersGeneratorFunction());
+
+    return MailFrame.CharactersButton;
   end
 
-  CreateNewPresetButton();
-  CreateLoadPresetButton();
-  CreateManagePresetButton();
-  CreateCharactersButton();
+  function CreateConfigEmailButton(previousFrame)
+    -- Manage
+    MailFrame.OpenConfigEmailButton = UH.UTILS:CreateIconButton(MailFrame,
+      UH.Helpers:ApplyPrefix("OpenConfigEmailButton"));
+    MailFrame.OpenConfigEmailButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
+    local iconTexture = MailFrame.OpenConfigEmailButton:CreateTexture(nil, "ARTWORK");
+    iconTexture:SetTexture("Interface\\Buttons\\UI-OptionsButton.blp");
+    iconTexture:ClearAllPoints();
+    iconTexture:SetSize(20, 20);
+    iconTexture:SetPoint("CENTER", MailFrame.OpenConfigEmailButton, "CENTER", 0, 0);
+    MailFrame.OpenConfigEmailButton:SetFrameLevel(MailFrame.OpenConfigEmailButton:GetFrameLevel() + 1);
+
+    -- Events
+    MailFrame.OpenConfigEmailButton:SetScript("OnEnter", function(self)
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+      GameTooltip:AddLine("Open configuration", nil, nil, nil);
+      GameTooltip:Show();
+    end);
+    MailFrame.OpenConfigEmailButton:SetScript("OnLeave", function(self)
+      if (GameTooltip:IsOwned(self)) then
+        GameTooltip:Hide();
+      end
+    end);
+    MailFrame.OpenConfigEmailButton:SetScript("OnClick", function(self)
+      PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+    end);
+
+    MailFrame.OpenConfigEmailButton:SetScript("OnClick", function(self)
+      PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+      -- Settings.OpenToCategory(UH.Options:GetCategoryID(ADDON_NAME .. "_Mail"));
+      UH.AceConfigDialog:Open(ADDON_NAME .. "_Mail");
+    end);
+
+    return MailFrame.OpenConfigEmailButton;
+  end
+
+  local previousFrame = nil;
+
+  -- previousFrame = CreateNewPresetButton();
+  previousFrame = CreateLoadPresetButton(previousFrame);
+  -- CreateManagePresetButton();
+  previousFrame = CreateCharactersButton(previousFrame);
+  previousFrame = CreateConfigEmailButton(previousFrame);
 end
 
 function Module:OnInitialize()

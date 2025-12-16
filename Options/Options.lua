@@ -10,10 +10,10 @@ function addonTable.GenerateOptions()
     return order[key];
   end
 
-  local function GenerateSeparator(key)
+  local function GenerateSeparator(key, name)
     return {
       type = "header",
-      name = "",
+      name = name or "",
       order = GetNextOrder(key),
     };
   end
@@ -27,10 +27,9 @@ function addonTable.GenerateOptions()
     };
   end
 
-  UH.Options = {};
-
   -- Default
   tinsert(UH.Options, {
+    key = ADDON_NAME,
     name = ADDON_NAME,
     root = true,
     group = {
@@ -65,6 +64,7 @@ function addonTable.GenerateOptions()
 
   -- Tooltip
   tinsert(UH.Options, {
+    key = ADDON_NAME .. "_Tooltip",
     name = "Tooltip",
     root = false,
     group = {
@@ -90,6 +90,7 @@ function addonTable.GenerateOptions()
 
   -- AutoBuy
   tinsert(UH.Options, {
+    key = ADDON_NAME .. "_AutoBuy",
     name = "AutoBuy",
     root = false,
     group = {
@@ -204,6 +205,7 @@ function addonTable.GenerateOptions()
             UH.tempPreset.to = value;
           end
         },
+        newPresetSeparator = GenerateSeparator("mail", "Items"),
         newPresetItemGroups = {
           name = function()
             local count = 0;
@@ -214,7 +216,7 @@ function addonTable.GenerateOptions()
               end
             end
 
-            return string.format("Item groups: %s", count);
+            return string.format("Item groups: %s selected", count);
           end,
           type = "group",
           order = GetNextOrder("mail"),
@@ -264,7 +266,7 @@ function addonTable.GenerateOptions()
         },
         newPresetManualInclusions = {
           name = function()
-            return string.format("Manual inclusions: %s", #UH.tempPreset.custom);
+            return string.format("Manual inclusions: %s selected", #UH.tempPreset.custom);
           end,
           type = "group",
           order = GetNextOrder("mail"),
@@ -286,7 +288,7 @@ function addonTable.GenerateOptions()
               arg = {
                 widthSizeType = "manual",
                 heightSizeType = "manual",
-                width = 410,
+                width = 400,
                 height = 250,
                 OnEnterRow = function(self, frame, rowData)
                   GameTooltip:SetOwner(frame, "ANCHOR_RIGHT");
@@ -304,7 +306,10 @@ function addonTable.GenerateOptions()
                   frame:SetText(rowData);
                   frame:GetFontString():SetTextColor(1, 1, 1);
                   frame:GetFontString():SetPoint("LEFT", 6, 0);
-                  frame:GetFontString():SetPoint("RIGHT", -6, 0);
+                  frame:GetFontString():SetPoint("RIGHT", -20, 0);
+
+                  helpers.CreateDeleteIconButton(self, frame, rowData);
+
                   return { skipFontStringPoints = true };
                 end
               },
@@ -313,7 +318,7 @@ function addonTable.GenerateOptions()
         },
         newPresetManualExclusions = {
           name = function()
-            return string.format("Manual exclusions: %s", #UH.tempPreset.exclusion);
+            return string.format("Manual exclusions: %s selected", #UH.tempPreset.exclusion);
           end,
           type = "group",
           order = GetNextOrder("mail"),
@@ -335,7 +340,7 @@ function addonTable.GenerateOptions()
               arg = {
                 widthSizeType = "manual",
                 heightSizeType = "manual",
-                width = 410,
+                width = 400,
                 height = 250,
                 OnEnterRow = function(self, frame, rowData)
                   GameTooltip:SetOwner(frame, "ANCHOR_RIGHT");
@@ -362,7 +367,10 @@ function addonTable.GenerateOptions()
                   frame:SetText(rowData);
                   frame:GetFontString():SetTextColor(1, 1, 1);
                   frame:GetFontString():SetPoint("LEFT", 6, 0);
-                  frame:GetFontString():SetPoint("RIGHT", -6, 0);
+                  frame:GetFontString():SetPoint("RIGHT", -20, 0);
+
+                  helpers.CreateDeleteIconButton(self, frame, rowData);
+
                   return { skipFontStringPoints = true };
                 end
               },
@@ -395,7 +403,7 @@ function addonTable.GenerateOptions()
               UH.AceConfigDialog:SelectGroup("Mail", "Presets");
             end
 
-            UH.AceConfigDialog:SelectGroup("Mail", "mailPresetsGroup");
+            UH.AceConfigDialog:SelectGroup(ADDON_NAME .. "_Mail", "mailPresetsGroup");
           end
         },
       }
@@ -403,6 +411,7 @@ function addonTable.GenerateOptions()
   end
 
   tinsert(UH.Options, {
+    key = ADDON_NAME .. "_Mail",
     name = "Mail",
     root = false,
     group = {
@@ -589,7 +598,7 @@ function addonTable.GenerateOptions()
                         );
                       end
 
-                      UH.AceConfigDialog:SelectGroup("Mail", "mailPresetsGroup", "newPreset");
+                      UH.AceConfigDialog:SelectGroup(ADDON_NAME .. "_Mail", "mailPresetsGroup", "newPreset");
                     end);
                     frame.customElements[widget.name].EditIconButton:SetScript("OnEnter", function()
                       local el = frame.customElements[widget.name].EditIconButton;

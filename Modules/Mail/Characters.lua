@@ -52,14 +52,6 @@ function Module:GetAccountCharactersGeneratorFunction()
         rootDescription:CreateDivider();
       end
     end
-
-    rootDescription:CreateTitle("Options");
-    rootDescription:CreateButton("Open config", function()
-      Settings.OpenToCategory(ADDON_NAME);
-      C_Timer.After(0, function()
-        UH.AceConfigDialog:SelectGroup(ADDON_NAME, "mailGroup", "mailCharactersGroup");
-      end)
-    end);
   end
 end
 

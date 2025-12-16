@@ -8,7 +8,23 @@ UH.AceConfigDialog = LibStub("AceConfigDialog-3.0");
 UH.Compatibility = {};
 UH.Helpers = {};
 UH.prefix = "UH";
-UH.Options = {};
+
+local optionsMetatable = {};
+function optionsMetatable:GetCategoryID(key)
+  for _, value in ipairs(self) do
+    if (value.key == key) then
+      return value.categoryID;
+    end
+  end
+
+  return nil;
+end;
+
+local mt = {
+  __index = optionsMetatable
+};
+
+UH.Options = setmetatable({}, mt);
 UH.tempPreset = {};
 
 -- Defaults
@@ -178,8 +194,9 @@ function UH:RegisterOptions()
   addonTable.GenerateOptions();
 
   for _, option in ipairs(UH.Options) do
-    LibStub("AceConfig-3.0"):RegisterOptionsTable(option.name, option.group);
-    UH.AceConfigDialog:AddToBlizOptions(option.name, option.name, parent);
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(option.key, option.group);
+    local frame, categoryID = UH.AceConfigDialog:AddToBlizOptions(option.key, option.name, parent);
+    option.categoryID = categoryID;
 
     if (option.root) then
       parent = option.name;
