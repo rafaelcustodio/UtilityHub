@@ -1,13 +1,18 @@
 local ADDON_NAME, addonTable = ...;
 ---@class UtilityHub
 local UH = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceComm-3.0");
+local interfaceVersion = select(4, GetBuildInfo())
 
 UH:SetDefaultModuleState(false);
+local LDB = LibStub:GetLibrary("LibDataBroker-1.1");
+UH.LDBIcon = LibStub("LibDBIcon-1.0");
 UH.UTILS = LibStub("Utils-1.0");
 UH.AceConfigDialog = LibStub("AceConfigDialog-3.0");
 UH.Compatibility = {};
 UH.Helpers = {};
 UH.prefix = "UH";
+UH.IsClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) and (interfaceVersion < 20000);
+UH.IsTBC = (interfaceVersion >= 20505) and (interfaceVersion < 30000);
 
 local optionsMetatable = {};
 function optionsMetatable:GetCategoryID(key)
@@ -24,14 +29,18 @@ local mt = {
   __index = optionsMetatable
 };
 
+UH.addonReady = false;
 UH.Options = setmetatable({}, mt);
 UH.tempPreset = {};
+UH.lastCountReadyCooldowns = nil;
 
 -- Defaults
 UH.defaultOptions = {
   simpleStatsTooltip = true,
   autoBuy = false,
   autoBuyList = {},
+  cooldowns = false,
+  cooldowsList = {},
 };
 
 -- Enums
@@ -48,14 +57,10 @@ UH.Enums.CHARACTER_GROUP_TEXT = {
   [UH.Enums.CHARACTER_GROUP.BANK] = "Bank",
   [UH.Enums.CHARACTER_GROUP.CD] = "CD",
 };
-
--- Events
-UH.Events = CreateFromMixins(CallbackRegistryMixin);
-UH.Events:OnLoad();
-UH.Events:GenerateCallbackEvents({
-  "OPTIONS_CHANGED",
-  "CHARACTER_DELETED",
-});
+UH.Enums.MINIMAP_ICON = {
+  NORMAL = "BlizzardInterfaceArt\\Interface\\ICONS\\INV_Enchant_FormulaSuperior_01.blp",
+  NOTIFICATION = "BlizzardInterfaceArt\\Interface\\ICONS\\INV_Enchant_FormulaEpic_01.blp",
+};
 
 function UH:InitVariables()
   local version = C_AddOns.GetAddOnMetadata(ADDON_NAME, "Version");
@@ -75,7 +80,7 @@ function UH:InitVariables()
       options = UH.defaultOptions,
       presets = {},
       whispers = {},
-      ---@type Characters[]
+      ---@type Character[]
       characters = {},
     },
   }, "Default");
@@ -84,8 +89,6 @@ function UH:InitVariables()
   if (oldVersion and oldVersion ~= version) then
     UH:MigrateDB(version, oldVersion);
   end
-
-  UH:AddCharacterToList();
 end
 
 function UH:MigrateDB(version, oldVersion)
@@ -155,14 +158,24 @@ function UH:MigrateDB(version, oldVersion)
       end
     end
   end
+
+  if (not self.db.global.options.cooldowns) then
+    self.db.global.options.cooldowns = false;
+  end
+
+  if (not self.db.global.options.cooldowsList) then
+    self.db.global.options.cooldowsList = {};
+  end
 end
 
 function UH:SetupSlashCommands()
   SLASH_UtilityHub1 = "/UH"
+  SLASH_UtilityHub2 = "/uh"
   SlashCmdList.UtilityHub = function(strParam)
-    local fragments = {}
+    local fragments = {};
+
     for word in string.gmatch(strParam, "%S+") do
-      table.insert(fragments, word)
+      table.insert(fragments, word);
     end
 
     local command = (fragments[1] or ""):trim();
@@ -175,12 +188,16 @@ function UH:SetupSlashCommands()
       print("  Toggle the debug mode");
       print("- |cffddff00options|r");
       print("  Open the options");
+      print("- |cffddff00cd or cds|r");
+      print("  Toggle cooldowns frame");
     elseif (command == "debug") then
       UH.db.global.debugMode = (not UH.db.global.debugMode);
       local debugText = UH.db.global.debugMode and "ON" or "OFF";
       UH.Helpers:ShowNotification("Debug mode " .. debugText);
     elseif (command == "options") then
       Settings.OpenToCategory(ADDON_NAME);
+    elseif (command == "cd" or command == "cds") then
+      UH.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
     elseif (command == "migrate") then
       UH:MigrateDB();
     else
@@ -204,6 +221,59 @@ function UH:RegisterOptions()
   end
 end
 
+function UH:CreateMinimapIcon()
+  LDB:NewDataObject(ADDON_NAME, {
+    type = "data source",
+    text = "0",
+    icon = UH.Enums.MINIMAP_ICON.NORMAL,
+    OnClick = function(self, button)
+      if (button == "LeftButton") then
+        if (IsShiftKeyDown()) then
+          -- UH.Events:TriggerEvent("TOGGLE_DATA_FRAME");
+        else
+          Settings.OpenToCategory(ADDON_NAME);
+        end
+      elseif (button == "RightButton") then
+        if (IsShiftKeyDown()) then
+          -- Settings.OpenToCategory(ADDON_NAME);
+        else
+          UH.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
+        end
+      end
+    end,
+    OnTooltipShow = function(self)
+      self:AddDoubleLine(ADDON_NAME, C_AddOns.GetAddOnMetadata(ADDON_NAME, "Version"));
+
+      if (UH.db.global.options.cooldowns) then
+        local textCount;
+
+        if (UH.lastCountReadyCooldowns > 0) then
+          textCount = UH.Helpers:AddColorToString(
+            UH.lastCountReadyCooldowns .. " cooldown" .. (UH.lastCountReadyCooldowns > 1 and "s" or "") .. " READY",
+            "FF27BD34");
+        else
+          textCount = "No cooldowns ready";
+        end
+
+        self:AddLine(" ");
+        self:AddLine(textCount);
+      end
+
+      self:AddLine(" ");
+      self:AddLine(UH.Helpers:AddColorToString("LeftClick", "FF9CD6DE") ..
+        " " .. UH.Helpers:AddColorToString("to open the options", "FFDDFF00"));
+      self:AddLine(UH.Helpers:AddColorToString("RightClick", "FF9CD6DE") ..
+        " " .. UH.Helpers:AddColorToString("to open/close cooldowns", "FFDDFF00"));
+    end
+  });
+  UH.LDBIcon:Register(ADDON_NAME, LDB:GetDataObjectByName(ADDON_NAME), UH.db.global.minimapIcon);
+
+  local frame = UH.LDBIcon:GetMinimapButton(ADDON_NAME);
+  if (frame) then
+    frame:SetFrameLevel(9);
+  end
+end
+
 function UH:OnInitialize()
   -- Migration code from the old name, should be
   if (MDHdatabase) then
@@ -214,6 +284,7 @@ function UH:OnInitialize()
   UH:InitVariables();
   UH:SetupSlashCommands();
   UH:RegisterOptions();
+  UH:CreateMinimapIcon();
 
   UH.Compatibility.Baganator();
 
@@ -224,30 +295,94 @@ function UH:OnInitialize()
   if (UH.db.global.options.autoBuy) then
     UH:EnableModule("AutoBuy");
   end
+
+  if (UH.db.global.options.cooldowns) then
+    UH:EnableModule("Cooldowns");
+  end
+
+  UH.addonReady = true;
 end
 
-function UH:AddCharacterToList()
-  local name = UnitName("player");
-  local playerTable = {
-    name = name,
-    race = select(2, UnitRace("player")),
-    className = select(2, UnitClass("player")),
-    group = UH.Enums.CHARACTER_GROUP.UNGROUPED,
-  };
-
-  for index, value in pairs(UH.db.global.characters) do
-    if (value.name == name) then
-      playerTable.group = value.group;
-      UH.db.global.characters[index] = playerTable;
-      return;
+function UH:UpdateCharacter()
+  function GetPlayerIndex(name)
+    for index, value in pairs(UH.db.global.characters) do
+      if (value.name == name) then
+        return index;
+      end
     end
   end
 
-  tinsert(UH.db.global.characters, playerTable);
+  local name = UnitName("player");
+  ---@type Character
+  local playerTable = {
+    name = name,
+    race = select(1, UnitRace("player")),
+    className = select(2, UnitClass("player")),
+    group = UH.Enums.CHARACTER_GROUP.UNGROUPED,
+    cooldownGroup = UH:GetModule("Cooldowns"):UpdateCurrentCharacterCooldowns(),
+  };
+
+  local playerIndex = GetPlayerIndex(name);
+
+  if (playerIndex) then
+    playerTable.group = UH.db.global.characters[playerIndex].group;
+    UH.db.global.characters[playerIndex] = playerTable;
+  else
+    tinsert(UH.db.global.characters, playerTable);
+  end
+
+  UH.Events:TriggerEvent("CHARACTER_UPDATED");
 end
+
+function UH:UpdateBrokerIcon(hasNotification)
+  local data = LDB:GetDataObjectByName(ADDON_NAME);
+  data.icon = hasNotification and UH.Enums.MINIMAP_ICON.NOTIFICATION or UH.Enums.MINIMAP_ICON.NORMAL;
+  UH.LDBIcon:Refresh(ADDON_NAME);
+end
+
+-- Events
+UH.Events = CreateFromMixins(CallbackRegistryMixin);
+UH.Events:OnLoad();
+UH.Events:GenerateCallbackEvents({
+  "CHARACTER_UPDATE_NEEDED",
+  "CHARACTER_UPDATED",
+  "OPTIONS_CHANGED",
+  "CHARACTER_DELETED",
+  "SHOW_COOLDOWNS_FRAME",
+  "HIDE_COOLDOWNS_FRAME",
+  "TOGGLE_COOLDOWNS_FRAME",
+  "COUNT_READY_COOLDOWNS_CHANGED",
+});
+
+UH.Events:RegisterCallback("CHARACTER_UPDATE_NEEDED", function(_, name)
+  UH:UpdateCharacter();
+end);
+
+UH.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
+  if (name == "autoBuy") then
+    if (UH.db.global.options.autoBuy) then
+      UH:EnableModule("AutoBuy");
+    else
+      UH:DisableModule("AutoBuy");
+    end
+  end
+
+  if (name == "cooldowns") then
+    if (UH.db.global.options.cooldowns) then
+      UH:EnableModule("Cooldowns");
+    else
+      UH:DisableModule("Cooldowns");
+    end
+  end
+end);
+
+UH.Events:RegisterCallback("COUNT_READY_COOLDOWNS_CHANGED", function(_, count, first)
+  UH:UpdateBrokerIcon(count > 0);
+end);
 
 ---@class Character
 ---@field name string
 ---@field race number
 ---@field className number
 ---@field group number
+---@field cooldownGroup table<string, CurrentCooldown[]>

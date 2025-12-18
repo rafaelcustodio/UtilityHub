@@ -189,7 +189,6 @@ function Module:CreateMailIconButtons()
 
     MailFrame.OpenConfigEmailButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
-      -- Settings.OpenToCategory(UH.Options:GetCategoryID(ADDON_NAME .. "_Mail"));
       UH.AceConfigDialog:Open(ADDON_NAME .. "_Mail");
     end);
 

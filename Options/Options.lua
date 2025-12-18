@@ -400,10 +400,8 @@ function addonTable.GenerateOptions()
 
             if (result) then
               UH.tempPreset = presetModule:GetNewEmptyPreset();
-              UH.AceConfigDialog:SelectGroup("Mail", "Presets");
+              UH.AceConfigDialog:SelectGroup(ADDON_NAME .. "_Mail", "mailPresetsGroup");
             end
-
-            UH.AceConfigDialog:SelectGroup(ADDON_NAME .. "_Mail", "mailPresetsGroup");
           end
         },
       }
@@ -631,6 +629,32 @@ function addonTable.GenerateOptions()
             },
             newPreset = GenerateNewPreset(),
           },
+        },
+      },
+    },
+  });
+
+  -- Cooldowns
+  tinsert(UH.Options, {
+    key = ADDON_NAME .. "_Cooldowns",
+    name = "Cooldowns",
+    root = false,
+    group = {
+      name = "Cooldowns",
+      type = "group",
+      order = GetNextOrder("cooldowns"),
+      args = {
+        cooldowns = {
+          type = "toggle",
+          name = "Enable",
+          desc =
+          "Enable tracking and listing of all character cooldowns (with the addon active)",
+          order = GetNextOrder("cooldowns"),
+          get = function() return UH.db.global.options.cooldowns end,
+          set = function(_, val)
+            UH.db.global.options.cooldowns = val;
+            UH.Events:TriggerEvent("OPTIONS_CHANGED", "cooldowns", val);
+          end,
         },
       },
     },

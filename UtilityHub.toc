@@ -3,7 +3,7 @@
 ## Title: UtilityHub
 ## IconTexture: Interface\Icons\Achievement_Dungeon_UlduarRaid_Archway_01
 ## Author: Cacetinho-Nightslayer 
-## Version: 0.9
+## Version: 0.10
 ## SavedVariables: UHdatabase, MDHdatabase
 
 # XMLs
@@ -22,3 +22,5 @@ Modules/AutoBuy/AutoBuy.lua
 Modules/Compatibility/Compatibility.lua
 Modules/Compatibility/Baganator.lua
 Modules/Tooltip/Tooltip.lua
+Modules/Cooldowns/Cooldowns.lua
+Modules/Cooldowns/Cooldowns.xml

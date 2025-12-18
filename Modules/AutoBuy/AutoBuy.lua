@@ -41,16 +41,3 @@ function Module:OnEnable()
     Module:SearchAndBuyRares();
   end);
 end
-
--- Events
-UH.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
-  if (name ~= "autoBuy") then
-    return;
-  end
-
-  if (UH.db.global.options.autoBuy) then
-    UH:EnableModule("AutoBuy");
-  else
-    UH:DisableModule("AutoBuy");
-  end
-end);

@@ -82,7 +82,17 @@
     "ScrollBoxConstants",
     "UIDropDownMenu_GetSelectedValue",
     "StaticPopupDialogs",
-    "StaticPopup_Show"
+    "StaticPopup_Show",
+    "GetNumSkillLines",
+    "GetSkillLineInfo",
+    "CreateTreeDataProvider",
+    "CreateScrollBoxListTreeListView",
+    "SelectionBehaviorMixin",
+    "HandleModifiedItemClick",
+    "GameFontHighlight_NoShadow",
+    "TextureKitConstants",
+    "AddonCompartmentFrame",
+    "READY"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {

@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "Utils-1.0", 9;
+local MAJOR, MINOR = "Utils-1.0", 10;
 ---@class UTILS
 local UTILS = LibStub:NewLibrary(MAJOR, MINOR);
 
@@ -39,8 +39,9 @@ if not UTILS then
   return
 end -- No upgrade needed
 
-function UTILS:AddMovableToFrame(frameRef)
+function UTILS:AddMovableToFrame(frameRef, stopMovingCb)
   frameRef:SetMovable(true);
+  frameRef:SetClampedToScreen(true);
 
   frameRef.isMoving = false
   frameRef:SetScript("OnMouseDown", function(self, button)
@@ -54,6 +55,17 @@ function UTILS:AddMovableToFrame(frameRef)
     if (button == "MiddleButton" and frameRef.isMoving) then
       frameRef:StopMovingOrSizing();
       frameRef.isMoving = false;
+
+      if (stopMovingCb) then
+        local point, relativeTo, relativePoint, xOfs, yOfs = frameRef:GetPoint(1);
+
+        stopMovingCb({
+          point = point,
+          relativePoint = relativePoint,
+          x = math.floor(xOfs),
+          y = math.floor(yOfs),
+        });
+      end
     end
   end)
 end

@@ -94,3 +94,7 @@ end
 ---@field r number
 ---@field g number
 ---@field b number
+
+function UH.Helpers:AddColorToString(str, color)
+  return string.format("|c%s%s|r", color, str);
+end
