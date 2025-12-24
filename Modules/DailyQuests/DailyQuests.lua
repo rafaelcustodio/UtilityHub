@@ -1,0 +1,941 @@
+local ADDON_NAME = ...;
+---@type UtilityHub
+local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
+local moduleName = 'DailyQuests';
+---@class DailyQuests
+---@diagnostic disable-next-line: undefined-field
+local Module = UH:NewModule(moduleName);
+
+---@class Quest
+---@field questID number
+---@field questName string
+---@field type number
+---@field expansion number
+---@field GetRequirements? fun(): QuestRequirements | nil
+
+---@class QuestRequirements
+---@field questID? number
+---@field profession? string
+---@field factions? QuestRequirementFaction[]
+
+---@class QuestRequirementFaction
+---@field factionID number
+---@field standingID number
+
+Module.QuestDB = setmetatable(
+  {
+    ---@type Quest[]
+    data = {
+      ------------------------------------- TBC -------------------------------------
+      -- Daily - Normal
+      {
+        questID = 11389,
+        questName = "Wanted: Arcatraz Sentinels",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_NORMAL,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11371,
+        questName = "Wanted: Coilfang Myrmidons",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_NORMAL,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11376,
+        questName = "Wanted: Malicious Instructors",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_NORMAL,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11383,
+        questName = "Wanted: Rift Lords",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_NORMAL,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11364,
+        questName = "Wanted: Shattered Hand Centurions",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_NORMAL,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11500,
+        questName = "Wanted: Sisters of Torment",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_NORMAL,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11385,
+        questName = "Wanted: Sunseeker Channelers",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_NORMAL,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11387,
+        questName = "Wanted: Tempest-Forge Destroyers",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_NORMAL,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+
+      -- Daily - Heroic
+      {
+        questID = 11369,
+        questName = "Wanted: A Black Stalker Egg",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11384,
+        questName = "Wanted: A Warp Splinter Clipping",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11382,
+        questName = "Wanted: Aeonus's Hourglass",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11363,
+        questName = "Wanted: Bladefist's Seal",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11362,
+        questName = "Wanted: Keli'dan's Feathered Stave",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11375,
+        questName = "Wanted: Murmur's Whisper",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11354,
+        questName = "Wanted: Nazan's Riding Crop",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11386,
+        questName = "Wanted: Pathaleon's Projector",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11373,
+        questName = "Wanted: Shaffar's Wondrous Pendant",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11378,
+        questName = "Wanted: The Epoch Hunter's Head",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11374,
+        questName = "Wanted: The Exarch's Soul Gem",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11372,
+        questName = "Wanted: The Headfeathers of Ikiss",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11368,
+        questName = "Wanted: The Heart of Quagmirran",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11388,
+        questName = "Wanted: The Scroll of Skyriss",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11499,
+        questName = "Wanted: The Signet Ring of Prince Kael'thas",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11370,
+        questName = "Wanted: The Warlord's Treatise",
+        type = UH.Enums.QUEST_TYPE.DUNGEON_HEROIC,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+
+      -- Professions - Cooking
+      {
+        questID = 11380,
+        questName = "Manalicious",
+        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11377,
+        questName = "Revenge is Tasty",
+        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11381,
+        questName = "Soup for the Soul",
+        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11379,
+        questName = "Super Hot Stew",
+        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+
+      -- Professions - Fishing
+      {
+        questID = 11666,
+        questName = "Bait Bandits",
+        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11665,
+        questName = "Crocolisks in the City",
+        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11669,
+        questName = "Felblood Fillet",
+        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11668,
+        questName = "Shrimpin' Ain't Easy",
+        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11667,
+        questName = "The One That Got Away",
+        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+
+      -- Consortium
+      {
+        questID = 9886,
+        questName = "Membership Benefits",
+        type = UH.Enums.QUEST_TYPE.CONSORTIUM,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 9886,
+        questName = "Membership Benefits",
+        type = UH.Enums.QUEST_TYPE.CONSORTIUM,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 9886,
+        questName = "Membership Benefits",
+        type = UH.Enums.QUEST_TYPE.CONSORTIUM,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+
+      -- Sha'tari Skyguard
+      {
+        questID = 11008,
+        questName = "Fires Over Skettis",
+        type = UH.Enums.QUEST_TYPE.SHATARI_SKYGUARD,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+      {
+        questID = 11085,
+        questName = "Escape from Skettis",
+        type = UH.Enums.QUEST_TYPE.SHATARI_SKYGUARD,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+      },
+
+      -- Ogri'la
+      {
+        questID = 11080,
+        questName = "The Relic's Emanation",
+        type = UH.Enums.QUEST_TYPE.OGRILA,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return { questID = 11058 };
+        end
+      },
+      {
+        questID = 11051,
+        questName = "Banish More Demons",
+        type = UH.Enums.QUEST_TYPE.OGRILA,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return { questID = 11026 };
+        end
+      },
+
+      -- Sha'tari Skyguard and Ogri'la
+      {
+        questID = 11023,
+        questName = "Bomb Them Again!",
+        type = UH.Enums.QUEST_TYPE.OGRILA,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return { questID = 11010 };
+        end
+      },
+      {
+        questID = 11066,
+        questName = "Wrangle More Aether Rays!",
+        type = UH.Enums.QUEST_TYPE.OGRILA,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return { questID = 11065 };
+        end
+      },
+      -- NETHERWING
+      -- NEUTRAL
+      {
+        questID = 11020,
+        questName = "A Slow Death",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.NEUTRAL },
+            },
+          };
+        end
+      },
+      {
+        questID = 11015,
+        questName = "Netherwing Crystals",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.NEUTRAL },
+            },
+          };
+        end
+      },
+      {
+        questID = 11035,
+        questName = "The Not-So-Friendly Skies...",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.NEUTRAL },
+            },
+          };
+        end
+      },
+      {
+        questID = 11018,
+        questName = "Nethercite Ore",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            profession = "Mining:350",
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.NEUTRAL },
+            },
+          };
+        end
+      },
+      {
+        questID = 11017,
+        questName = "Netherdust Pollen",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            profession = "Herbalism:350",
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.NEUTRAL },
+            },
+          };
+        end
+      },
+      {
+        questID = 11016,
+        questName = "Nethermine Flayer Hide",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            profession = "Skinning:350",
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.NEUTRAL },
+            },
+          };
+        end
+      },
+
+      -- Friendly
+      {
+        questID = 11076,
+        questName = "Picking Up The Pieces...",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.FRIENDLY },
+            },
+          };
+        end
+      },
+      {
+        questID = 11077,
+        questName = "Dragons are the Least of Our Problems",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.FRIENDLY },
+            },
+          };
+        end
+      },
+      {
+        questID = 11055,
+        questName = "The Booterang: A Cure For The Common Worthless Peon",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.FRIENDLY },
+            },
+          };
+        end
+      },
+
+      -- Honored
+      {
+        questID = 11086,
+        questName = "Disrupting the Twilight Portal",
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.HONORED },
+            },
+          };
+        end
+      },
+
+      -- Revered
+      {
+        questID = 11101,
+        questName = "The Deadliest Trap Ever Laid", -- Aldor
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.REVERED },
+              { factionID = 932,  standingID = UH.Enums.REPUTATION_STANDING.FRIENDLY },
+            },
+            questID = 11100, -- Commander Arcus
+          };
+        end
+      },
+      {
+        questID = 11097,
+        questName = "The Deadliest Trap Ever Laid", -- Scryer
+        type = UH.Enums.QUEST_TYPE.NETHERWING,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        GetRequirements = function()
+          return {
+            factions = {
+              { factionID = 1015, standingID = UH.Enums.REPUTATION_STANDING.REVERED },
+              { factionID = 934,  standingID = UH.Enums.REPUTATION_STANDING.FRIENDLY },
+            },
+            questID = 11095, -- Commander Hobb
+          };
+        end
+      },
+    },
+    requirementsOK = {},
+    complete = {},
+  },
+  {
+    __index = {
+      GetQuestsByType = function(self, type, expansion)
+        local quests = {};
+
+        for _, quest in ipairs(self.data) do
+          if (quest.type == type and quest.expansion == expansion) then
+            tinsert(quests, quest);
+          end
+        end
+
+        return quests;
+      end,
+      GetQuestByID = function(self, questID)
+        for _, quest in ipairs(self.data) do
+          if (quest.questID == questID) then
+            return quest;
+          end
+        end
+
+        return nil;
+      end,
+      GetQuestRequirements = function(self, questID)
+        local quest = self:GetQuestByID(questID);
+
+        if (not quest) then
+          return nil, nil;
+        end
+
+        if (quest.GetRequirements) then
+          return quest:GetRequirements(), quest;
+        end
+
+        if (quest.expansion == UH.Enums.EXPANSIONS.TBC) then
+          if (quest.type == UH.Enums.QUEST_TYPE.DUNGEON_HEROIC or quest.type == UH.Enums.QUEST_TYPE.DUNGEON_NORMAL) then
+            return { level = 70 }, true;
+          elseif (quest.type == UH.Enums.QUEST_TYPE.PROFESSION_COOKING) then
+            return { level = 70, profession = "Cooking:275" }, true;
+          elseif (quest.type == UH.Enums.QUEST_TYPE.PROFESSION_FISHING) then
+            return { level = 70, profession = "Fishing:1" }, true;
+          elseif (quest.type == UH.Enums.QUEST_TYPE.SHATARI_SKYGUARD) then
+            return { level = 70, questID = 11098 }, true;
+          end
+        end
+
+        return nil, quest;
+      end
+    }
+  }
+);
+
+local DAY_IN_MS = 24 * 60 * 60;
+---@return string "Converted time"
+---@return boolean "If its ready"
+---@return table "RGB"
+local function CooldownToRemainingTime(cooldown)
+  function ToRGB(rgb)
+    return { r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255 };
+  end
+
+  local endTime = cooldown.start + cooldown.maxCooldown;
+  local remaining = endTime - GetTime();
+
+  if (cooldown.start == 0 or remaining < 0) then
+    return "Ready", true, ToRGB({ r = 16, g = 179, b = 16 });
+  end
+
+  if (remaining >= DAY_IN_MS) then
+    local days = math.floor(remaining / DAY_IN_MS);
+    return days .. (days == 1 and " day" or " days"), false, ToRGB({ r = 255, g = 255, b = 255 });
+  end
+
+  local hours = math.floor(remaining / 3600);
+  local minutes = math.floor((remaining % 3600) / 60);
+  local seconds = remaining % 60;
+  local rgb = { r = 252, g = 186, b = 3 };
+
+  if (hours < 12) then
+    rgb = { r = 255, g = 71, b = 71 };
+  end
+
+  return string.format("%02d:%02d:%02d", hours, minutes, seconds), false, ToRGB(rgb);
+end
+
+function Module:UpdateFlags()
+  ---@param requirements QuestRequirements | nil
+  function CheckRequirements(requirements)
+    -- No requirements, so pass
+    if (not requirements) then
+      return true;
+    end
+
+    -- Quest
+    if (requirements.questID and not C_QuestLog.IsQuestFlaggedCompleted(requirements.questID)) then
+      return false;
+    end
+
+    -- Profession
+    if (requirements.profession) then
+      local fragments = {};
+
+      for word in string.gmatch(requirements.profession, ":") do
+        table.insert(fragments, string.trim(word));
+      end
+
+      local professionFound = false;
+
+      for i = 1, GetNumSkillLines() do
+        local skillName, _, _, skillRank = GetSkillLineInfo(i);
+
+        if (skillName == fragments[1]) then
+          professionFound = true;
+
+          if (skillRank < fragments[2]) then
+            return false;
+          end
+        end
+      end
+
+      -- Didnt find the profession
+      if (not professionFound) then
+        return false;
+      end
+    end
+
+    if (requirements.factions and #requirements.factions > 0) then
+      local factionFound = false;
+
+      for _, faction in ipairs(requirements.factions) do
+        for i = 1, GetNumFactions() do
+          local _, _, standingID, _, _, _, _, _, _, _, _, _, _, factionID = GetFactionInfo(i);
+
+          if (factionID == faction.factionID and faction.standingID < standingID) then
+            return false;
+          end
+        end
+      end
+
+      -- Didnt find the faction
+      if (not factionFound) then
+        return false;
+      end
+    end
+
+    return true;
+  end
+
+  Module.QuestDB.flags = {};
+
+  for _, value in ipairs(Module.QuestDB.data) do
+    Module:UpdateFlagsByID(value.questID);
+  end
+end
+
+function Module:UpdateFlagsByID(questID)
+  ---@type QuestRequirements | nil
+  local requirements, questFound = Module.QuestDB:GetQuestRequirements(questID);
+
+  if (questFound) then
+    Module.QuestDB.complete[questID] = C_QuestLog.IsQuestFlaggedCompleted(questID);
+    Module.QuestDB.requirementsOK[questID] = requirements and CheckRequirements(requirements) or true;
+  end
+
+  return questFound;
+end;
+
+function Module:UpdateFlagsByNonDaily(questID)
+  for _, quest in ipairs(Module.QuestDB.data) do
+    local requirements = Module.QuestDB:GetQuestRequirements(quest.questID);
+
+    if (requirements and requirements.questID == questID) then
+      Module:UpdateFlagsByID(quest.questID);
+    end
+  end
+end
+
+function Module:UpdateFlagsByFaction(factionID)
+  function RequirementsIncludeFaction(requirements)
+    if (requirements.factions and #requirements.factions > 0) then
+      for _, faction in ipairs(requirements.factions) do
+        if (faction.factionID == factionID) then
+          return true;
+        end
+      end
+    end
+
+    return false;
+  end
+
+  for _, quest in ipairs(Module.QuestDB.data) do
+    local requirements = Module.QuestDB:GetQuestRequirements(quest.questID);
+
+    if (requirements) then
+      if (RequirementsIncludeFaction(requirements)) then
+        Module:UpdateFlagsByID(quest.questID);
+      end
+    end
+  end
+end
+
+-- Frames
+function Module:CreateCooldownsFrame()
+  local frame = CreateFrame("Frame", nil, UIParent, "SettingsFrameTemplate");
+  Module.Frame = frame;
+  frame:SetSize(350, 350);
+  frame:Hide();
+  local savedPosition = UH.db.global.dailyQuestsFramePosition;
+
+  if (UH.db.global.dailyQuestsFramePosition) then
+    frame:SetPoint(
+      savedPosition.point,
+      frame:GetParent(),
+      savedPosition.relativePoint,
+      savedPosition.x,
+      savedPosition.y
+    );
+  else
+    frame:SetPoint("CENTER");
+  end
+
+  frame.NineSlice.Text:SetText("Repetable quests");
+  UH.UTILS:AddMovableToFrame(frame, function(pos)
+    UH.db.global.dailyQuestsFramePosition = pos;
+  end);
+
+  local content = CreateFrame("Frame", nil, frame);
+  frame.Content = content;
+  content:SetWidth(frame:GetSize());
+  content:SetPoint("TOPLEFT", 15, -25);
+  content:SetPoint("BOTTOMRIGHT", -5, 7);
+
+  frame.ScrollBar = CreateFrame("EventFrame", nil, content, "MinimalScrollBar");
+  frame.ScrollBar:SetPoint("TOPRIGHT", -10, -5);
+  frame.ScrollBar:SetPoint("BOTTOMRIGHT", 0, 5);
+
+  frame.ScrollBox = CreateFrame("Frame", nil, content, "WowScrollBoxList");
+  frame.ScrollBox:SetPoint("TOPLEFT", 2, -4);
+  frame.ScrollBox:SetPoint("BOTTOMRIGHT", frame.ScrollBar, "BOTTOMLEFT", -3, 0);
+
+  local indent = 10;
+  local padLeft = 0;
+  local pad = 5;
+  local spacing = 1;
+  local view = CreateScrollBoxListTreeListView(indent, pad, pad, padLeft, pad, spacing);
+  Module.View = view;
+
+  view:SetElementFactory(function(factory, node)
+    local elementData = node:GetData();
+
+    if (elementData.group) then
+      local function Initializer(button, node)
+        if (not Module.CollapsedGroups[elementData.group]) then
+          Module.CollapsedGroups[elementData.group] = node:IsCollapsed();
+        end
+        button.Label:SetText(elementData.group);
+        button:SetCollapseState(Module.CollapsedGroups[elementData.group]);
+
+        button:SetScript("OnClick", function(button)
+          node:ToggleCollapsed();
+          Module.CollapsedGroups[elementData.group] = node:IsCollapsed();
+          button:SetCollapseState(node:IsCollapsed());
+          PlaySound(SOUNDKIT.IG_MAINMENU_OPTION);
+        end);
+      end
+
+      factory("TreeGroupButtonTemplate", Initializer);
+    elseif (elementData.questName) then
+      local function Initializer(button, node)
+        local width = button:GetWidth();
+
+        button:SetPushedTextOffset(0, 0);
+        button:SetHighlightAtlas("search-highlight");
+        button:SetNormalFontObject(GameFontHighlight);
+        button:SetText(elementData.questName);
+        button.elementData = elementData;
+        button:GetFontString():SetPoint("LEFT", 12, 0);
+        button:GetFontString():SetPoint("RIGHT", -(width / 2), 0);
+        button:GetFontString():SetJustifyH("LEFT");
+
+        if (not button.Timer) then
+          button.Timer = button:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+          button.Timer:SetPoint("LEFT", (width / 2), 0);
+          button.Timer:SetPoint("RIGHT", -6, 0);
+          button.Timer:SetJustifyH("RIGHT");
+
+          function button.Timer:Update()
+            local parent = self:GetParent();
+            local text, ready, rgb = CooldownToRemainingTime(parent.elementData);
+            self:SetText(text);
+            self:SetTextColor(rgb.r, rgb.g, rgb.b);
+          end
+        end
+
+        button.Timer:Update();
+
+        node:SetCollapsed(Module.CollapsedGroups[elementData.group]);
+      end
+      factory("Button", Initializer);
+    else
+      factory("Frame");
+    end
+  end);
+
+  view:SetElementExtentCalculator(function(dataIndex, node)
+    local elementData = node:GetData();
+    local baseElementHeight = 20;
+    local categoryPadding = 5;
+
+    if (elementData.character) then
+      return baseElementHeight;
+    end
+
+    if (elementData.group) then
+      return baseElementHeight + categoryPadding;
+    end
+
+    return 0;
+  end);
+
+  ScrollUtil.InitScrollBoxListWithScrollBar(frame.ScrollBox, frame.ScrollBar, view);
+end
+
+function Module:UpdateCooldownsFrameList()
+  local groups = setmetatable({}, {
+    __index = {
+      InsertGroup = function(self, group)
+        for _, loopGroup in ipairs(self) do
+          if (loopGroup.group == group.group) then
+            return loopGroup;
+          end
+        end
+
+        tinsert(self, group);
+
+        return group;
+      end,
+      ToTreeDataProvider = function(self)
+        local dataProvider = CreateTreeDataProvider();
+
+        for _, groupOrNode in pairs(self) do
+          if (groupOrNode.group) then
+            local groupDataNode = dataProvider:Insert({ group = groupOrNode.group });
+
+            for _, quest in pairs(groupOrNode.quests) do
+              groupDataNode:Insert(quest);
+            end
+          else
+            dataProvider:Insert(groupOrNode);
+          end
+        end
+
+        return dataProvider;
+      end,
+    },
+  });
+
+  for _, quest in pairs(Module.QuestDB.data) do
+    local groupName = "";
+    local questName = "";
+
+    if (quest.type == UH.Enums.QUEST_TYPE.DUNGEON_HEROIC) then
+      questName = "Heroic Dungeon";
+    elseif (quest.type == UH.Enums.QUEST_TYPE.DUNGEON_NORMAL) then
+      questName = "Normal Dungeon";
+    elseif (quest.type == UH.Enums.QUEST_TYPE.PROFESSION_COOKING) then
+      questName = "Cooking";
+    elseif (quest.type == UH.Enums.QUEST_TYPE.PROFESSION_FISHING) then
+      questName = "Fishing";
+    elseif (quest.type == UH.Enums.QUEST_TYPE.CONSORTIUM) then
+      questName = quest.questName + " (monthly)";
+    elseif (quest.type == UH.Enums.QUEST_TYPE.SHATARI_SKYGUARD) then
+      groupName = "Sha'tari Skyguard";
+      questName = quest.questName;
+    elseif (quest.type == UH.Enums.QUEST_TYPE.OGRILA) then
+      groupName = "Ogri'la";
+      questName = quest.questName;
+    elseif (quest.type == UH.Enums.QUEST_TYPE.SHATARI_SKYGUARD_AND_OGRILA) then
+      groupName = "Sha'tari Skyguard and Ogri'la";
+      questName = quest.questName;
+    elseif (quest.type == UH.Enums.QUEST_TYPE.NETHERWING) then
+      groupName = "Ogri'la";
+      questName = quest.questName;
+    end
+
+    local group = groups:InsertGroup({ group = groupName, quests = {} });
+
+    tinsert(group.quests, {
+      groupName = groupName,
+      questName = questName,
+    });
+  end
+
+  Module.Frame.ScrollBox:SetDataProvider(groups:ToTreeDataProvider());
+end
+
+function Module:ShowFrame()
+  if (not Module:IsEnabled()) then
+    UH.Helpers:ShowNotification("Cooldowns module is not enabled");
+    return;
+  end
+
+  if (Module.Frame) then
+    Module.Frame:Show();
+    Module:UpdateCooldownsFrameList();
+  end
+end
+
+function Module:HideFrame()
+  if (Module.Frame) then
+    Module.Frame:Hide();
+  end
+end
+
+function Module:ToggleFrame()
+  if (not Module.Frame) then
+    return;
+  end
+
+  if (Module.Frame:IsShown()) then
+    Module:HideFrame();
+  else
+    Module:ShowFrame();
+  end
+end
+
+-- Events
+EventRegistry:RegisterFrameEventAndCallback("QUEST_TURNED_IN", function(_, questID)
+  if (questID) then
+    local questFound = Module:UpdateFlagsByID(questID);
+
+    if (not questFound) then
+      Module:UpdateFlagsByNonDaily(questID);
+    end
+  end
+end);
+
+EventRegistry:RegisterFrameEventAndCallback("CHAT_MSG_COMBAT_FACTION_CHANGE", function(_, _, msg)
+  local faction = msg:match("Reputation with (.+) increased by (%d+)");
+
+  if (faction) then
+    for i = 1, GetNumFactions() do
+      local name, _, _, _, _, _, _, _, _, _, _, _, _, factionID = GetFactionInfo(i);
+
+      if (name == faction) then
+        Module:UpdateFlagsByFaction(factionID);
+        return;
+      end
+    end
+  end
+end);
+
+EventRegistry:RegisterFrameEventAndCallback("PLAYER_LEVEL_UP", function()
+  Module:UpdateFlags();
+end);
+
+UH.Events:RegisterCallback("TOGGLE_COOLDOWNS_FRAME", function(_, name)
+  Module:ToggleFrame();
+end);

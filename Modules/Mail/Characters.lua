@@ -29,12 +29,19 @@ function Module:GetAccountCharactersGeneratorFunction()
       end
     end
 
+    local indexGroupWithData = 1;
+
     for groupID, group in pairs(groups) do
       table.sort(group, function(a, b)
         return a.name < b.name;
       end);
 
       if (#group > 0) then
+        if (indexGroupWithData ~= 1) then
+          rootDescription:CreateDivider();
+        end
+
+        indexGroupWithData = indexGroupWithData + 1;
         rootDescription:CreateTitle("• " .. UH.Enums.CHARACTER_GROUP_TEXT[groupID]);
 
         for _, character in pairs(group) do
@@ -48,8 +55,6 @@ function Module:GetAccountCharactersGeneratorFunction()
           end);
           characterButton:SetEnabled(character.name ~= UnitName("player"));
         end
-
-        rootDescription:CreateDivider();
       end
     end
   end

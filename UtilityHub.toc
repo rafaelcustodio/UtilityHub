@@ -3,7 +3,7 @@
 ## Title: UtilityHub
 ## IconTexture: Interface\Addons\UtilityHub\Assets\Icons\addon
 ## Author: Cacetinho-Nightslayer 
-## Version: 0.13
+## Version: 0.14
 ## SavedVariables: UHdatabase, MDHdatabase
 
 # XMLs
@@ -14,6 +14,8 @@ UtilityHub.lua
 Helper.lua
 Options/ItemList.lua
 Options/Options.lua
+Layout/TreeGroup/TreeGroup.lua
+Layout/TreeGroup/TreeGroup.xml
 Modules/Mail/Preset.lua
 Modules/Mail/Characters.lua
 Modules/Mail/Mail.lua
@@ -23,4 +25,3 @@ Modules/Compatibility/Compatibility.lua
 Modules/Compatibility/Baganator.lua
 Modules/Tooltip/Tooltip.lua
 Modules/Cooldowns/Cooldowns.lua
-Modules/Cooldowns/Cooldowns.xml

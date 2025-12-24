@@ -95,7 +95,14 @@
     "READY",
     "SettingsPanel",
     "MERCHANT_HIGH_PRICE_COST",
-    "StaticPopup1Button1"
+    "StaticPopup1Button1",
+    "DEFAULT",
+    "DAILY",
+    "WEEKLY",
+    "FRIENDLY",
+    "HOSTILE",
+    "ID",
+    "PLAYER_LEVEL_UP"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {

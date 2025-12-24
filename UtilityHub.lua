@@ -13,6 +13,7 @@ UH.Helpers = {};
 UH.prefix = "UH";
 UH.IsClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) and (interfaceVersion < 20000);
 UH.IsTBC = (interfaceVersion >= 20505) and (interfaceVersion < 30000);
+UH.IsTBCorLater = interfaceVersion >= 20505;
 
 UH.addonReady = false;
 UH.Options = setmetatable({}, {
@@ -42,6 +43,8 @@ UH.defaultOptions = {
   cooldowns = false,
   cooldowsList = {},
   cooldownPlaySound = false,
+  -- DailyQuests
+  dailyQuests = false,
 };
 
 -- Enums
@@ -61,6 +64,31 @@ UH.Enums.CHARACTER_GROUP_TEXT = {
 UH.Enums.MINIMAP_ICON = {
   NORMAL = "Interface\\Addons\\UtilityHub\\Assets\\Icons\\addon.blp",
   NOTIFICATION = "Interface\\ICONS\\INV_Enchant_FormulaEpic_01.blp",
+};
+UH.Enums.QUEST_TYPE = {
+  DUNGEON_NORMAL = 0,
+  DUNGEON_HEROIC = 1,
+  PROFESSION_COOKING = 2,
+  PROFESSION_FISHING = 3,
+  CONSORTIUM = 4,
+  SHATARI_SKYGUARD = 5,
+  OGRILA = 6,
+  SHATARI_SKYGUARD_AND_OGRILA = 7,
+  NETHERWING = 8,
+}
+UH.Enums.EXPANSIONS = {
+  CLASSIC = 0,
+  TBC = 1,
+};
+UH.Enums.REPUTATION_STANDING = {
+  HATED = 1,
+  HOSTILE = 2,
+  UNFRIENDLY = 3,
+  NEUTRAL = 4,
+  FRIENDLY = 5,
+  HONORED = 6,
+  REVERED = 7,
+  EXALTED = 8,
 };
 
 function UH:InitVariables()
@@ -191,6 +219,8 @@ function UH:SetupSlashCommands()
       print("  Open the options");
       print("- |cffddff00cd or cds|r");
       print("  Toggle cooldowns frame");
+      print("- |cffddff00daily or dailies|r");
+      print("  Toggle daily frame");
     elseif (command == "debug") then
       UH.db.global.debugMode = (not UH.db.global.debugMode);
       local debugText = UH.db.global.debugMode and "ON" or "OFF";
@@ -199,6 +229,8 @@ function UH:SetupSlashCommands()
       Settings.OpenToCategory(ADDON_NAME);
     elseif (command == "cd" or command == "cds") then
       UH.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
+    elseif (command == "daily" or command == "dailies") then
+      UH.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
     elseif (command == "migrate") then
       UH:MigrateDB();
     else
@@ -240,7 +272,7 @@ function UH:CreateMinimapIcon()
         end
       elseif (button == "RightButton") then
         if (IsShiftKeyDown()) then
-          -- Settings.OpenToCategory(ADDON_NAME);
+          UH.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
         else
           UH.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
         end
@@ -253,7 +285,7 @@ function UH:CreateMinimapIcon()
       if (UH.db.global.options.cooldowns) then
         local textCount;
 
-        if (UH.lastCountReadyCooldowns > 0) then
+        if (UH.lastCountReadyCooldowns and UH.lastCountReadyCooldowns > 0) then
           textCount = UH.Helpers:AddColorToString(
             UH.lastCountReadyCooldowns .. " cooldown" .. (UH.lastCountReadyCooldowns > 1 and "s" or "") .. " READY",
             "FF27BD34");
@@ -304,6 +336,10 @@ function UH:OnInitialize()
 
   if (UH.db.global.options.cooldowns) then
     UH:EnableModule("Cooldowns");
+  end
+
+  if (UH.db.global.options.dailyQuests) then
+    UH:EnableModule("DailyQuests");
   end
 end
 
@@ -356,6 +392,7 @@ UH.Events:GenerateCallbackEvents({
   "HIDE_COOLDOWNS_FRAME",
   "TOGGLE_COOLDOWNS_FRAME",
   "COUNT_READY_COOLDOWNS_CHANGED",
+  "TOGGLE_DAILY_FRAME",
 });
 
 UH.Events:RegisterCallback("CHARACTER_UPDATE_NEEDED", function(_, name)

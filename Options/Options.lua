@@ -188,7 +188,7 @@ function addonTable.GenerateOptions()
           type = "input",
           name = "Name",
           order = GetNextOrder("mail"),
-          width = "full",
+          width = "double",
           get = function()
             return UH.tempPreset.name;
           end,
@@ -196,11 +196,23 @@ function addonTable.GenerateOptions()
             UH.tempPreset.name = value;
           end
         },
+        newPresetColorInput = {
+          type = "color",
+          name = "Color",
+          order = GetNextOrder("mail"),
+          width = "half",
+          get = function()
+            return UH.tempPreset.color.r, UH.tempPreset.color.g, UH.tempPreset.color.b, UH.tempPreset.color.a;
+          end,
+          set = function(_, r, g, b, a)
+            UH.tempPreset.color = { r = r, g = g, b = b, a = a };
+          end
+        },
         newPresetToInput = {
           type = "input",
           name = "To",
-          width = "full",
           order = GetNextOrder("mail"),
+          width = "double",
           get = function()
             return UH.tempPreset.to;
           end,
@@ -603,6 +615,7 @@ function addonTable.GenerateOptions()
                         itemGroups = {},
                         custom = data.custom or {},
                         exclusion = data.exclusion or {},
+                        color = data.color or presetModule.defaultPresetColor,
                       };
 
                       for itemGroupName, itemGroup in UH.UTILS:OrderedPairs(presetModule.ItemGroupOptions) do
@@ -686,6 +699,33 @@ function addonTable.GenerateOptions()
           set = function(_, val)
             UH.db.global.options.cooldownPlaySound = val;
             UH.Events:TriggerEvent("OPTIONS_CHANGED", "cooldownPlaySound", val);
+          end,
+        },
+      },
+    },
+  });
+
+  -- Cooldowns
+  tinsert(UH.Options, {
+    key = ADDON_NAME .. "_DailyQuests",
+    name = "DailyQuests",
+    root = false,
+    group = {
+      name = "DailyQuests",
+      type = "group",
+      order = GetNextOrder("dailyQuests"),
+      args = {
+        cooldowns = {
+          type = "toggle",
+          name = "Enable",
+          desc =
+          "Enable tracking of the daily quests",
+          order = GetNextOrder("dailyQuests"),
+          width = "full",
+          get = function() return UH.db.global.options.dailyQuests end,
+          set = function(_, val)
+            UH.db.global.options.dailyQuests = val;
+            UH.Events:TriggerEvent("OPTIONS_CHANGED", "dailyQuests", val);
           end,
         },
       },

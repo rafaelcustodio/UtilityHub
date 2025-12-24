@@ -32,7 +32,8 @@
     "NOT_BOUND",
     "RAID_CLASS_COLORS",
     "ChatEdit_InsertLink",
-    "ChatFrameUtil"
+    "ChatFrameUtil",
+    "AddonCompartmentFrame"
   ],
   "Lua.diagnostics.disable": [
     "assign-type-mismatch"

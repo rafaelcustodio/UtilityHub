@@ -68,7 +68,7 @@ local DAY_IN_MS = 24 * 60 * 60;
 ---@return table "RGB"
 local function CooldownToRemainingTime(cooldown)
   function ToRGB(rgb)
-    return { r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255 }
+    return { r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255 };
   end
 
   local endTime = cooldown.start + cooldown.maxCooldown;
@@ -295,7 +295,7 @@ function Module:CreateCooldownsFrame()
         end);
       end
 
-      factory("CooldownGroupButtonTemplate", Initializer);
+      factory("TreeGroupButtonTemplate", Initializer);
     elseif (elementData.character) then
       local function Initializer(button, node)
         local width = button:GetWidth();
@@ -355,15 +355,6 @@ end
 function Module:UpdateCooldownsFrameList()
   local groups = setmetatable({}, {
     __index = {
-      GetGroupIndex = function(self, name)
-        for index, group in ipairs(self) do
-          if (group.name == name) then
-            return index;
-          end
-        end
-
-        return nil;
-      end,
       InsertGroup = function(self, group)
         for index, loopGroup in ipairs(self) do
           if (loopGroup.group == group.group) then
@@ -455,6 +446,7 @@ end
 
 EventRegistry:RegisterFrameEventAndCallback("SKILL_LINES_CHANGED", skillUpdated);
 EventRegistry:RegisterFrameEventAndCallback("TRADE_SKILL_LIST_UPDATE", skillUpdated);
+EventRegistry:RegisterFrameEventAndCallback("TRADE_SKILL_UPDATE", skillUpdated);
 
 UH.Events:RegisterCallback("CHARACTER_UPDATED", function(_, name)
   Module:UpdateCooldownsFrameList();
@@ -471,24 +463,3 @@ end);
 UH.Events:RegisterCallback("TOGGLE_COOLDOWNS_FRAME", function(_, name)
   Module:ToggleFrame();
 end);
-
--- Mixins
-CooldownGroupMixin = {};
-
-function CooldownGroupMixin:OnEnter()
-  self.Label:SetFontObject(GameFontHighlight_NoShadow);
-end
-
-function CooldownGroupMixin:OnLeave()
-  self.Label:SetFontObject(GameFontNormal_NoShadow);
-end
-
-function CooldownGroupMixin:SetCollapseState(collapsed)
-  if (collapsed) then
-    self.CollapseIcon:SetTexCoord(0.302246, 0.312988, 0.0537109, 0.0693359)
-    self.CollapseIconAlphaAdd:SetTexCoord(0.302246, 0.312988, 0.0537109, 0.0693359)
-  else
-    self.CollapseIcon:SetTexCoord(0.270508, 0.28125, 0.0537109, 0.0693359)
-    self.CollapseIconAlphaAdd:SetTexCoord(0.270508, 0.28125, 0.0537109, 0.0693359)
-  end
-end

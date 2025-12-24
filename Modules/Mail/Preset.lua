@@ -5,6 +5,7 @@ local moduleName = 'Preset';
 ---@class Preset
 ---@diagnostic disable-next-line: undefined-field
 local Module = UH:NewModule(moduleName);
+Module.defaultPresetColor = { r = 1, g = 1, b = 1, a = 1 };
 Module.ItemGroupOptions = {
   ["GreenEquipment"] = {
     label = "Green Equipment",
@@ -958,6 +959,7 @@ function Module:SavePreset(data, dataID)
       custom = temp.items,
       itemGroups = {},
       exclusion = temp.itemsExclusion,
+      color = temp.color,
     };
   end
 
@@ -1021,6 +1023,7 @@ function Module:GetNewEmptyPreset()
     id = nil,
     name = "",
     to = "",
+    color = Module.defaultPresetColor,
     itemGroups = {},
     custom = {},
     exclusion = {},
@@ -1042,8 +1045,12 @@ function Module:GetLoadPresetGeneratorFunction()
       "Presets available");
 
     for key, value in pairs(refUH.db.global.presets) do
-      rootDescription:CreateButton(value.name, function(data)
+      local presetButton = rootDescription:CreateButton(value.name, function(data)
         Module:ExecutePreset(value);
+      end);
+      presetButton:AddInitializer(function(button, description, menu)
+        local color = value.color or Module.defaultPresetColor;
+        button.fontString:SetTextColor(color.r, color.g, color.b);
       end);
     end
   end
