@@ -75,6 +75,7 @@ UH.Enums.QUEST_TYPE = {
   OGRILA = 6,
   SHATARI_SKYGUARD_AND_OGRILA = 7,
   NETHERWING = 8,
+  PVP = 9,
 }
 UH.Enums.EXPANSIONS = {
   CLASSIC = 0,
@@ -94,6 +95,10 @@ UH.Enums.PERIODICITY = {
   DAILY = 1,
   WEEKLY = 2,
   MONTHLY = 3,
+};
+UH.Enums.SIDE = {
+  ALLIANCE = "Alliance",
+  HORDE = "Horde",
 };
 
 function UH:InitVariables()
@@ -239,6 +244,8 @@ function UH:SetupSlashCommands()
       UH.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
     elseif (command == "migrate") then
       UH:MigrateDB();
+    elseif (command == "update-quest-flags") then
+      UH.Events:TriggerEvent("FORCE_DAILY_QUESTS_FLAG_UPDATE", fragments[2]);
     else
       UH.Helpers:ShowNotification("Command not found");
     end
@@ -401,6 +408,7 @@ UH.Events:GenerateCallbackEvents({
   "TOGGLE_COOLDOWNS_FRAME",
   "COUNT_READY_COOLDOWNS_CHANGED",
   "TOGGLE_DAILY_FRAME",
+  "FORCE_DAILY_QUESTS_FLAG_UPDATE",
 });
 
 UH.Events:RegisterCallback("CHARACTER_UPDATE_NEEDED", function(_, name)
@@ -425,7 +433,7 @@ UH.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
   end
 
   if (name == "dailyQuests") then
-    if (UH.db.global.options.cooldowns) then
+    if (UH.db.global.options.dailyQuests) then
       UH:EnableModule("DailyQuests");
     else
       UH:DisableModule("DailyQuests");

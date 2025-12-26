@@ -235,35 +235,35 @@ Module.QuestDB = setmetatable(
       {
         questID = 11666,
         questName = "Bait Bandits",
-        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        type = UH.Enums.QUEST_TYPE.PROFESSION_FISHING,
         expansion = UH.Enums.EXPANSIONS.TBC,
         periodicity = UH.Enums.PERIODICITY.DAILY,
       },
       {
         questID = 11665,
         questName = "Crocolisks in the City",
-        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        type = UH.Enums.QUEST_TYPE.PROFESSION_FISHING,
         expansion = UH.Enums.EXPANSIONS.TBC,
         periodicity = UH.Enums.PERIODICITY.DAILY,
       },
       {
         questID = 11669,
         questName = "Felblood Fillet",
-        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        type = UH.Enums.QUEST_TYPE.PROFESSION_FISHING,
         expansion = UH.Enums.EXPANSIONS.TBC,
         periodicity = UH.Enums.PERIODICITY.DAILY,
       },
       {
         questID = 11668,
         questName = "Shrimpin' Ain't Easy",
-        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        type = UH.Enums.QUEST_TYPE.PROFESSION_FISHING,
         expansion = UH.Enums.EXPANSIONS.TBC,
         periodicity = UH.Enums.PERIODICITY.DAILY,
       },
       {
         questID = 11667,
         questName = "The One That Got Away",
-        type = UH.Enums.QUEST_TYPE.PROFESSION_COOKING,
+        type = UH.Enums.QUEST_TYPE.PROFESSION_FISHING,
         expansion = UH.Enums.EXPANSIONS.TBC,
         periodicity = UH.Enums.PERIODICITY.DAILY,
       },
@@ -540,6 +540,94 @@ Module.QuestDB = setmetatable(
           };
         end
       },
+
+      -- PVP
+      {
+        questID = 10110,
+        questName = "Hellfire Fortifications", -- Horde
+        type = UH.Enums.QUEST_TYPE.PVP,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        periodicity = UH.Enums.PERIODICITY.DAILY,
+        GetRequirements = function()
+          return {
+            level = 55,
+            side = UH.Enums.SIDE.HORDE,
+            questID = 10124, -- Forward Base: Reaver's Fall
+          };
+        end
+      },
+      {
+        questID = 10106,
+        questName = "Hellfire Fortifications", -- Alliance
+        type = UH.Enums.QUEST_TYPE.PVP,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        periodicity = UH.Enums.PERIODICITY.DAILY,
+        GetRequirements = function()
+          return {
+            level = 55,
+            side = UH.Enums.SIDE.ALLIANCE,
+            questID = 10483, -- Ill Omens
+          };
+        end
+      },
+      {
+        questID = 11503,
+        questName = "Enemies, Old and New", -- Horde
+        type = UH.Enums.QUEST_TYPE.PVP,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        periodicity = UH.Enums.PERIODICITY.DAILY,
+        GetRequirements = function()
+          return {
+            side = UH.Enums.SIDE.HORDE,
+            level = 64,
+            factions = {
+              { factionID = 941, standingID = UH.Enums.REPUTATION_STANDING.NEUTRAL },
+            },
+          };
+        end,
+      },
+      {
+        questID = 11502,
+        questName = "In Defense of Halaa", -- Alliance
+        type = UH.Enums.QUEST_TYPE.PVP,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        periodicity = UH.Enums.PERIODICITY.DAILY,
+        GetRequirements = function()
+          return {
+            side = UH.Enums.SIDE.ALLIANCE,
+            level = 64,
+            factions = {
+              { factionID = 978, standingID = UH.Enums.REPUTATION_STANDING.NEUTRAL },
+            },
+          };
+        end,
+      },
+      {
+        questID = 11506,
+        questName = "Spirits of Auchindoun", -- Horde
+        type = UH.Enums.QUEST_TYPE.PVP,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        periodicity = UH.Enums.PERIODICITY.DAILY,
+        GetRequirements = function()
+          return {
+            side = UH.Enums.SIDE.HORDE,
+            level = 62,
+          };
+        end,
+      },
+      {
+        questID = 11505,
+        questName = "Spirits of Auchindoun", -- Alliance
+        type = UH.Enums.QUEST_TYPE.PVP,
+        expansion = UH.Enums.EXPANSIONS.TBC,
+        periodicity = UH.Enums.PERIODICITY.DAILY,
+        GetRequirements = function()
+          return {
+            side = UH.Enums.SIDE.ALLIANCE,
+            level = 62,
+          };
+        end,
+      },
     },
     requirementsOK = {},
     complete = {},
@@ -579,13 +667,13 @@ Module.QuestDB = setmetatable(
 
         if (quest.expansion == UH.Enums.EXPANSIONS.TBC) then
           if (quest.type == UH.Enums.QUEST_TYPE.DUNGEON_HEROIC or quest.type == UH.Enums.QUEST_TYPE.DUNGEON_NORMAL) then
-            return { level = 70 }, true;
+            return { level = 70 }, quest;
           elseif (quest.type == UH.Enums.QUEST_TYPE.PROFESSION_COOKING) then
-            return { level = 70, profession = "Cooking:275" }, true;
+            return { level = 70, profession = "Cooking:275" }, quest;
           elseif (quest.type == UH.Enums.QUEST_TYPE.PROFESSION_FISHING) then
-            return { level = 70, profession = "Fishing:1" }, true;
+            return { level = 70, profession = "Fishing:1" }, quest;
           elseif (quest.type == UH.Enums.QUEST_TYPE.SHATARI_SKYGUARD) then
-            return { level = 70, questID = 11098 }, true;
+            return { level = 70, questID = 11098 }, quest;
           end
         end
 
@@ -596,6 +684,7 @@ Module.QuestDB = setmetatable(
 );
 
 local DAY_IN_SECONDS = 24 * 60 * 60;
+local WEEK_IN_SECONDS = 24 * 60 * 60;
 ---@return string "Converted time"
 ---@return boolean "If its ready"
 ---@return table "RGB"
@@ -604,14 +693,36 @@ local function GetRemainingTime(quest)
     return { r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255 };
   end
 
-  local seconds = C_DateAndTime.GetSecondsUntilDailyReset();
-
-  if (quest.type == UH.Enums.QUEST_TYPE.CONSORTIUM) then
-    -- TODO: monthly (1st of the month)
+  local isQuestComplete = false;
+  if (quest.isQuestVariationGroup) then
+    isQuestComplete = Module.QuestDB.complete[quest.quests[1].questID];
+  else
+    isQuestComplete = Module.QuestDB.complete[quest.questID];
   end
 
-  if (seconds <= 0) then
+  if (not isQuestComplete) then
     return "Ready", true, ToRGB({ r = 16, g = 179, b = 16 });
+  end
+
+  local seconds = nil;
+
+  if (quest.type == UH.Enums.QUEST_TYPE.CONSORTIUM) then
+    local now   = GetServerTime();
+    local month = tonumber(date("%m", now));
+    local year  = tonumber(date("%Y", now));
+    local t     = {
+      year = year,
+      month = month + 1,
+      day = 1,
+      hour = 0,
+      min = 0,
+      sec = 0,
+      isdst = false,
+    };
+
+    seconds     = time(t) - GetServerTime();
+  else
+    seconds = C_DateAndTime.GetSecondsUntilDailyReset();
   end
 
   if (seconds >= DAY_IN_SECONDS) then
@@ -629,6 +740,155 @@ local function GetRemainingTime(quest)
   end
 
   return string.format("%02d:%02d:%02d", hours, minutes, seconds), false, ToRGB(rgb);
+end
+
+---@param requirements QuestRequirements | nil
+function ValidateRequirements(requirements)
+  local validators = {
+    quest = function(requirements)
+      if (not requirements.questID) then
+        return true;
+      end
+
+      if (requirements.questID and not C_QuestLog.IsQuestFlaggedCompleted(requirements.questID)) then
+        return false, { questID = requirements.questID };
+      end
+
+      return true;
+    end,
+    profession = function(requirements)
+      if (not requirements.profession) then
+        return true;
+      end
+
+      local skillName = requirements.profession:match("(%a+)");
+      local skillRank = tonumber(requirements.profession:match("(%d+)"));
+      local professionFound = false;
+
+      for i = 1, GetNumSkillLines() do
+        local skillNameLoop, _, _, skillRankLoop = GetSkillLineInfo(i);
+
+        if (skillName == skillNameLoop) then
+          professionFound = true;
+
+          if (skillRankLoop < skillRank) then
+            return false,
+                {
+                  skillName = skillName,
+                  skillRank = skillRank,
+                  notFound = false,
+                  currentSkillRank = skillRankLoop,
+                };
+          end
+        end
+      end
+
+      -- Didnt find the profession
+      if (not professionFound) then
+        return false,
+            {
+              skillName = skillName,
+              skillRank = skillRank,
+              notFound = true,
+              currentSkillRank = nil,
+            };
+      end
+
+      return true;
+    end,
+    reputation = function(requirements)
+      function GetFactionStandingID(factionID)
+        for i = 1, GetNumFactions() do
+          local _, _, standingID, _, _, _, _, _, _, _, _, _, _, factionIDLoop = GetFactionInfo(i);
+
+          if (factionID == factionIDLoop) then
+            return standingID;
+          end
+        end
+
+        return nil;
+      end
+
+      if (not requirements.factions or #requirements.factions == 0) then
+        return true;
+      end
+
+      local errors = {};
+
+      for _, faction in ipairs(requirements.factions) do
+        local standingID = GetFactionStandingID(faction.factionID);
+
+        if (standingID) then
+          if (faction.standingID < standingID) then
+            tinsert(errors, {
+              factionID = faction.factionID,
+              standingID = faction.standingID,
+              currentStandingID = standingID,
+              notFound = false,
+            });
+          end
+        else
+          tinsert(errors, {
+            factionID = faction.factionID,
+            standingID = faction.standingID,
+            notFound = true,
+          });
+        end
+      end
+
+      -- Didnt find the faction
+      if (#errors > 0) then
+        return false, { factions = errors };
+      end
+
+      return true;
+    end,
+    side = function(requirements)
+      if (not requirements.side) then
+        return true;
+      end
+
+      local currentSide = UnitFactionGroup("player");
+
+      if (requirements.side ~= UnitFactionGroup("player")) then
+        return false, { side = requirements.side, currentSide = currentSide };
+      end
+
+      return true;
+    end,
+    level = function(requirements)
+      if (not requirements.level) then
+        return true;
+      end
+
+      local currentLevel = UnitLevel("player");
+
+      if (requirements.level > currentLevel) then
+        return false, { level = requirements.level, currentLevel = currentLevel };
+      end
+
+      return true;
+    end
+  };
+
+  -- No requirements, so pass
+  if (not requirements) then
+    return true;
+  end
+
+  local errors = {};
+  local errorCount = 0;
+
+  for key, fn in pairs(validators) do
+    local pass, validationResult = fn(requirements);
+    tinsert(errors, { pass = pass, error = validationResult });
+
+    if (not pass) then
+      errorCount = errorCount + 1;
+    end
+  end
+
+  return errorCount == 0, errors;
 end
 
 Module.Ticker = C_Timer.NewTicker(1, function()
@@ -649,69 +909,17 @@ Module.Ticker = C_Timer.NewTicker(1, function()
   end
 end);
 
+function Module:SaveFlagChanges()
+  UH.db.char.complete = Module.QuestDB.complete or {};
+  UH.db.char.requirementsOK = Module.QuestDB.requirementsOK or {};
+end
+
+function Module:LoadFlags()
+  Module.QuestDB.complete = UH.db.char.complete or {};
+  Module.QuestDB.requirementsOK = UH.db.char.requirementsOK or {};
+end
+
 function Module:UpdateFlags()
-  ---@param requirements QuestRequirements | nil
-  function CheckRequirements(requirements)
-    -- No requirements, so pass
-    if (not requirements) then
-      return true;
-    end
-
-    -- Quest
-    if (requirements.questID and not C_QuestLog.IsQuestFlaggedCompleted(requirements.questID)) then
-      return false;
-    end
-
-    -- Profession
-    if (requirements.profession) then
-      local fragments = {};
-
-      for word in string.gmatch(requirements.profession, ":") do
-        table.insert(fragments, string.trim(word));
-      end
-
-      local professionFound = false;
-
-      for i = 1, GetNumSkillLines() do
-        local skillName, _, _, skillRank = GetSkillLineInfo(i);
-
-        if (skillName == fragments[1]) then
-          professionFound = true;
-
-          if (skillRank < fragments[2]) then
-            return false;
-          end
-        end
-      end
-
-      -- Didnt find the profession
-      if (not professionFound) then
-        return false;
-      end
-    end
-
-    if (requirements.factions and #requirements.factions > 0) then
-      local factionFound = false;
-
-      for _, faction in ipairs(requirements.factions) do
-        for i = 1, GetNumFactions() do
-          local _, _, standingID, _, _, _, _, _, _, _, _, _, _, factionID = GetFactionInfo(i);
-
-          if (factionID == faction.factionID and faction.standingID < standingID) then
-            return false;
-          end
-        end
-      end
-
-      -- Didnt find the faction
-      if (not factionFound) then
-        return false;
-      end
-    end
-
-    return true;
-  end
-
   UH.db.char.lastDailyQuestCheck = GetServerTime();
   Module.QuestDB.flags = {};
 
@@ -722,14 +930,18 @@ end
 
 function Module:UpdateFlagsByID(questID)
   ---@type QuestRequirements | nil
-  local requirements, questFound = Module.QuestDB:GetQuestRequirements(questID);
+  local requirements, quest = Module.QuestDB:GetQuestRequirements(questID);
 
-  if (questFound) then
+  if (quest) then
+    local pass, errors = ValidateRequirements(requirements);
+
     Module.QuestDB.complete[questID] = C_QuestLog.IsQuestFlaggedCompleted(questID);
-    Module.QuestDB.requirementsOK[questID] = requirements and CheckRequirements(requirements) or true;
+    Module.QuestDB.requirementsOK[questID] = pass;
   end
 
-  return questFound;
+  Module:SaveFlagChanges();
+
+  return quest;
 end;
 
 function Module:UpdateFlagsByNonDaily(questID)
@@ -770,14 +982,39 @@ function Module:CheckIfRefreshIsNeeded()
   local lastCheck = UH.db.char.lastDailyQuestCheck;
 
   if (not lastCheck) then
-    Module:UpdateFlags();
     return true;
   end
 
   local lastReset = GetServerTime() + C_DateAndTime.GetSecondsUntilDailyReset() - DAY_IN_SECONDS;
 
   if (lastReset > lastCheck) then
-    Module:UpdateFlags();
+    return true;
+  end
+
+  lastReset = GetServerTime() + C_DateAndTime.GetSecondsUntilWeeklyReset() - WEEK_IN_SECONDS;
+
+  if (lastReset > lastCheck) then
+    return true;
+  end
+
+  local now   = GetServerTime();
+  local month = tonumber(date("%m", now));
+  local year  = tonumber(date("%Y", now));
+
+  local t     = {
+    year = year,
+    month = month,
+    day = 1,
+    hour = 0,
+    min = 0,
+    sec = 0,
+    isdst = false,
+  };
+
+  -- As the reset is always day 1,
+  lastReset   = time(t);
+
+  if (lastReset > lastCheck) then
     return true;
   end
 
@@ -926,7 +1163,18 @@ function Module:UpdateDailyQuestsFrameList()
         local dataProvider = CreateTreeDataProvider();
 
         for _, groupOrNode in pairs(self) do
-          if (groupOrNode.group and not groupOrNode.isQuestVariationGroup) then
+          if (groupOrNode.isQuestVariationGroup) then
+            -- As it is a QuestVariationGroup, just by checking the first requirement should be enough
+            if (Module.QuestDB.requirementsOK[groupOrNode.quests[1].questID]) then
+              dataProvider:Insert({
+                groupName = nil,
+                questName = groupOrNode.group,
+                type = groupOrNode.type,
+                quests = groupOrNode.quests,
+                isQuestVariationGroup = groupOrNode.isQuestVariationGroup,
+              });
+            end
+          else
             local quests = {};
 
             for _, quest in pairs(groupOrNode.quests) do
@@ -942,15 +1190,6 @@ function Module:UpdateDailyQuestsFrameList()
               for _, quest in ipairs(quests) do
                 groupDataNode:Insert(quest);
               end
-            end
-          else
-            -- As it is a QuestVariationGroup, just by checking the first requirement should be enough
-            if (Module.QuestDB.requirementsOK[groupOrNode.quests[1].questID]) then
-              dataProvider:Insert({
-                groupName = nil,
-                questName = groupOrNode.group,
-                type = groupOrNode.type,
-              });
             end
           end
         end
@@ -992,6 +1231,9 @@ function Module:UpdateDailyQuestsFrameList()
     elseif (quest.type == UH.Enums.QUEST_TYPE.NETHERWING) then
       groupName = "Netherwing";
       questName = quest.questName;
+    elseif (quest.type == UH.Enums.QUEST_TYPE.PVP) then
+      groupName = "PvP";
+      questName = quest.questName;
     end
 
     if (groupName or isQuestVariationGroup) then
@@ -1005,6 +1247,7 @@ function Module:UpdateDailyQuestsFrameList()
       tinsert(group.quests, {
         groupName = groupName,
         questName = questName,
+        questID = quest.questID,
         type = quest.type,
       });
     end
@@ -1024,8 +1267,8 @@ function Module:ShowFrame()
   end
 
   if (Module.Frame) then
-    Module.Frame:Show();
     Module:UpdateDailyQuestsFrameList();
+    Module.Frame:Show();
   end
 end
 
@@ -1049,6 +1292,8 @@ end
 
 -- Life cycle
 function Module:OnInitialize()
+  Module:LoadFlags();
+
   if (not Module.Frame) then
     Module:CreateDailyQuestsFrame();
   end
@@ -1086,4 +1331,14 @@ end);
 
 UH.Events:RegisterCallback("TOGGLE_DAILY_FRAME", function(_, name)
   Module:ToggleFrame();
+end);
+
+UH.Events:RegisterCallback("FORCE_DAILY_QUESTS_FLAG_UPDATE", function(_, questID, ...)
+  questID = questID and tonumber(questID) or nil;
+
+  if (questID) then
+    Module:UpdateFlagsByID(questID);
+  else
+    Module:UpdateFlags();
+  end
 end);

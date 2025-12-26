@@ -283,7 +283,6 @@ local function Constructor()
     frame.ButtonAdd:Disable();
 
     function OnSuccess(row, errorCb)
-      DevTools_Dump(errorCb);
       if (not widget:GetRowIndex(widget.items, row)) then
         tinsert(widget.items, row);
         widget:FireValueChanged();
