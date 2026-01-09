@@ -15,9 +15,7 @@ EventRegistry:RegisterFrameEventAndCallback("CHAT_MSG_WHISPER", function(_, text
 end);
 
 EventRegistry:RegisterFrameEventAndCallback("TRADE_SHOW", function()
-  if (UH:GetModule("Trade"):IsEnabled()) then
-    Module:ShowFrames();
-  else
+  if (not UH:GetModule("Trade"):IsEnabled()) then
     ---@diagnostic disable-next-line: undefined-field
     UH:EnableModule("Trade");
   end
@@ -40,6 +38,10 @@ function Module:OnEnable()
   Module:ShowFrames();
 end
 
+function Module:OnDisable()
+  Module:HideFrames();
+end
+
 function Module:SaveLastWhisper(message, sender)
   UH.db.global.whispers[sender] = message;
   Module:UpdateLastWhisperInFrame();
@@ -54,7 +56,7 @@ function Module:CreateTradeDataFrame()
   server = server or GetRealmName();
 
   local frameWidth = 200;
-  local frame = UH.UTILS.AceGUI:Create("Frame");
+  local frame = UH.UTILS.AceGUI:Create("Frame", TradeFrame);
   Module.TradeDataFrameRef = frame;
   frame:Hide();
   frame:SetTitle("Trading with...");
@@ -187,7 +189,7 @@ function Module:GetItemIDBy(spells, items)
 end
 
 function Module:CreateItemButton(name, parent)
-  local button = CreateFrame("Button", name, parent, "UHTradeItemButtonTemplate");
+  local button = CreateFrame("Button", name, TradeFrame, "UHTradeItemButtonTemplate");
   button.ModuleRef = Module;
   button:RegisterForClicks("AnyUp");
   button:SetSize(36, 36);

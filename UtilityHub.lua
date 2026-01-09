@@ -455,8 +455,10 @@ UH.Events:RegisterCallback("COUNT_READY_COOLDOWNS_CHANGED", function(_, count, f
 end);
 
 EventRegistry:RegisterFrameEventAndCallback("LOADING_SCREEN_DISABLED", function()
-  UH.addonReady = true;
-  UH.Events:TriggerEvent("CHARACTER_UPDATE_NEEDED");
+  C_Timer.After(2, function()
+    UH.addonReady = true;
+    UH.Events:TriggerEvent("CHARACTER_UPDATE_NEEDED");
+  end);
 end);
 
 ---@class Character
