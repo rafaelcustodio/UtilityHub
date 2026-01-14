@@ -18,7 +18,13 @@ Module.ItemGroupOptions = {
           return true;
         end
       else
-        if ((classID == Enum.ItemClass.Armor or classID == Enum.ItemClass.Weapon) and itemQuality == Enum.ItemQuality.Uncommon) then
+        DevTool:AddData({
+          link = itemLink,
+          isArmor = classID == Enum.ItemClass.Armor,
+          isWeapon = classID == Enum.ItemClass.Weapon,
+          isRUncommon = itemQuality == Enum.ItemQuality.Uncommon
+        });
+        if ((classID == Enum.ItemClass.Armor or classID == Enum.ItemClass.Weapon) and itemQuality == Enum.ItemQuality.Good) then
           return true;
         end
       end
