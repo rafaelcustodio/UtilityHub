@@ -366,6 +366,10 @@ function UH:OnInitialize()
   if (UH.db.global.options.dailyQuests) then
     UH:EnableModule("DailyQuests");
   end
+
+  if (UH.db.global.options.tradeExtraInfo) then
+    UH:EnableModule("Trade");
+  end
 end
 
 function UH:UpdateCharacter()
@@ -447,6 +451,14 @@ UH.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
       UH:EnableModule("DailyQuests");
     else
       UH:DisableModule("DailyQuests");
+    end
+  end
+
+  if (name == "tradeExtraInfo") then
+    if (UH.db.global.options.tradeExtraInfo) then
+      UH:EnableModule("Trade");
+    else
+      UH:DisableModule("Trade");
     end
   end
 end);

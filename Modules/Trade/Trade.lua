@@ -21,28 +21,26 @@ EventRegistry:RegisterFrameEventAndCallback("CHAT_MSG_WHISPER", function(_, text
   Module:SaveLastWhisper(text, name);
 end);
 
-EventRegistry:RegisterFrameEventAndCallback("TRADE_SHOW", function()
-  if (not UH:GetModule("Trade"):IsEnabled()) then
-    ---@diagnostic disable-next-line: undefined-field
-    UH:EnableModule("Trade");
+EventRegistry:RegisterFrameEventAndCallback("TRADE_CLOSED", function()
+  if (Module:IsEnabled()) then
+    Module:HideFrames();
   end
 end);
 
-function Module:OnInitialize()
-  EventRegistry:RegisterFrameEventAndCallback("TRADE_CLOSED", function()
-    Module:HideFrames();
-  end);
-end
+EventRegistry:RegisterFrameEventAndCallback("TRADE_SHOW", function()
+  if (Module:IsEnabled()) then
+    Module:ShowFrames();
+  end
+end);
 
 function Module:OnEnable()
+  Module:CreateTradeDataFrame();
+
   if (UnitClass("player") == "Mage") then
     Module.Buttons.Water = Module:CreateItemButton("UHTradeWaterButton");
     Module.Buttons.Food = Module:CreateItemButton("UHTradeFoodButton", Module.Buttons.Water);
     Module:UpdateItemFromButtons();
   end
-
-  Module:CreateTradeDataFrame();
-  Module:ShowFrames();
 end
 
 function Module:OnDisable()
@@ -55,12 +53,9 @@ function Module:SaveLastWhisper(message, sender)
 end
 
 function Module:CreateTradeDataFrame()
-  if (not TradeFrame or not TradeFrame:IsShown()) then
+  if (Module.TradeDataFrameRef) then
     return;
   end
-
-  local name, server = UnitFullName("npc");
-  server = server or GetRealmName();
 
   local frameWidth = 200;
   local frame = UH.UTILS.AceGUI:Create("Frame", TradeFrame);
@@ -73,18 +68,12 @@ function Module:CreateTradeDataFrame()
   frame:EnableResize(false);
   frame:ClearAllPoints();
   frame:SetPoint("TOPRIGHT", TradeFrame, "TOPRIGHT", 10 + frameWidth, 0);
-  frame:SetCallback("OnClose", function(widget)
-    UH.UTILS.AceGUI:Release(widget);
-    Module.TradeDataFrameRef = nil;
-  end);
 
-  local _, englishClass = UnitClass("npc");
-
-  CreateLabel(frame, name);
-  CreateLabel(frame, "|cffffd100Server:|r " .. server);
-  CreateLabel(frame, "|cffffd100Guild:|r " .. (GetGuildInfo("npc") or "-"));
-  CreateLabel(frame, "|cffffd100Level:|r " .. UnitLevel("npc"));
-  CreateLabel(frame, UnitRace("npc") .. " " .. UH.UTILS:GetClassColoredText(UnitClass("npc"), englishClass));
+  frame.NameLabel = CreateLabel(frame);
+  frame.ServerLabel = CreateLabel(frame);
+  frame.GuildLabel = CreateLabel(frame);
+  frame.LevelLabel = CreateLabel(frame);
+  frame.RaceClassLabel = CreateLabel(frame);
 
   local spacer = CreateLabel(frame);
   spacer:SetText(" ");
@@ -106,10 +95,51 @@ function Module:CreateTradeDataFrame()
   label:SetWidth(frameWidth - 60);
   label:SetFullHeight(true);
 
+  function frame:GetNameAndServer()
+    local name, server = UnitFullName("npc");
+    server = server or GetRealmName();
+
+    if (not server) then
+      server = "-";
+    end
+
+    if (not name) then
+      name = "-";
+    end
+
+    return name, server;
+  end
+
   function frame:UpdateWhisper()
+    local name, server = frame:GetNameAndServer();
     label:SetText(UH.db.global.whispers[name .. "-" .. server] or "-");
   end
 
+  function frame:Update()
+    local name, server = frame:GetNameAndServer();
+    local _, englishClass = UnitClass("npc");
+    local level = UnitLevel("npc") or "-";
+    local race = UnitRace("npc") or "-";
+    local class = UnitClass("npc") or "-";
+    local guild = GetGuildInfo("npc") or "-";
+    local raceClass = "-";
+
+    if (name) then
+      raceClass = race .. " " .. UH.UTILS:GetClassColoredText(class);
+    else
+      name = "-";
+      server = "-";
+      englishClass = "-";
+    end
+
+    frame.NameLabel:SetText(name);
+    frame.ServerLabel:SetText("|cffffd100Server:|r " .. server);
+    frame.GuildLabel:SetText("|cffffd100Guild:|r " .. guild);
+    frame.LevelLabel:SetText("|cffffd100Level:|r " .. level);
+    frame.RaceClassLabel:SetText(raceClass, englishClass);
+  end
+
+  frame:Update();
   frame:UpdateWhisper();
 end
 
@@ -117,27 +147,12 @@ function Module:HideFrames()
   if (Module.TradeDataFrameRef) then
     Module.TradeDataFrameRef:Hide();
   end
-
-  if (Module.Buttons.Water) then
-    Module.Buttons.Water:Hide();
-  end
-
-  if (Module.Buttons.Food) then
-    Module.Buttons.Food:Hide();
-  end
 end
 
 function Module:ShowFrames()
   if (Module.TradeDataFrameRef) then
+    Module.TradeDataFrameRef:Update();
     Module.TradeDataFrameRef:Show();
-  end
-
-  if (Module.Buttons.Water) then
-    Module.Buttons.Water:Show();
-  end
-
-  if (Module.Buttons.Food) then
-    Module.Buttons.Food:Show();
   end
 end
 

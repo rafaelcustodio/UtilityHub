@@ -1,10 +1,28 @@
-local ADDON_NAME = ...;
+local ADDON_NAME, addonTable = ...;
 ---@type UtilityHub
 local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 local moduleName = 'Preset';
 ---@class Preset
 ---@diagnostic disable-next-line: undefined-field
 local Module = UH:NewModule(moduleName);
+
+local classicItems = addonTable.classicItems; ---@type ClassicItems
+local tbcItems = addonTable.tbcItems; ---@type TBCItems
+--- @param itemLink string
+--- @param itemList PresetItemsDBItem[]
+--- @return boolean
+local function CheckItemLinkInList(itemLink, itemList)
+  local itemID = UH.UTILS:GetItemIDFromLink(itemLink);
+
+  for _, loopItem in ipairs(itemList) do
+    if (itemID == loopItem.itemID) then
+      return true;
+    end
+  end
+
+  return false;
+end
+
 Module.defaultPresetColor = { r = 1, g = 1, b = 1, a = 1 };
 Module.ItemGroupOptions = {
   ["GreenEquipment"] = {
@@ -14,16 +32,11 @@ Module.ItemGroupOptions = {
 
       if (UH.IsClassic) then
         -- Check if the item is Green (Quality 2) and is an Equipment type
-        if (itemQuality == 2 and (itemType == "Armor" or itemType == "Weapon")) then
-          return true;
-        end
+        return itemQuality == 2 and (itemType == "Armor" or itemType == "Weapon");
       else
-        if ((classID == Enum.ItemClass.Armor or classID == Enum.ItemClass.Weapon) and itemQuality == Enum.ItemQuality.Good) then
-          return true;
-        end
+        return (classID == Enum.ItemClass.Armor or classID == Enum.ItemClass.Weapon) and
+            itemQuality == Enum.ItemQuality.Good;
       end
-
-      return false;
     end
   },
   ["BlueEquipment"] = {
@@ -33,57 +46,23 @@ Module.ItemGroupOptions = {
 
       if (UH.IsClassic) then
         -- Check if the item is Blue (Quality 3) and is an Equipment type
-        if (itemQuality == 3 and (itemType == "Armor" or itemType == "Weapon")) then
-          return true;
-        end
+        return itemQuality == 3 and (itemType == "Armor" or itemType == "Weapon");
       else
-        if ((classID == Enum.ItemClass.Armor or classID == Enum.ItemClass.Weapon) and itemQuality == Enum.ItemQuality.Rare) then
-          return true;
-        end
+        return (classID == Enum.ItemClass.Armor or classID == Enum.ItemClass.Weapon) and
+            itemQuality == Enum.ItemQuality.Rare;
       end
-
-      return false;
     end
   },
   ["EssenceElemental"] = {
     label = "Essence/Elemental",
     checkItemBelongsToGroup = function(itemLink)
-      local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
+      local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
       if (UH.IsClassic) then
-        local essenceList = {
-          -- Water
-          "Elemental Water",
-          "Globe of Water",
-          "Essence of Water",
-          -- Fire
-          "Elemental Fire",
-          "Heart of Fire",
-          "Essence of Fire",
-          -- Wind
-          "Elemental Air",
-          "Breath of Wind",
-          "Essence of Air",
-          -- Earth
-          "Elemental Earth",
-          "Core of Earth",
-          "Essence of Earth",
-          -- Undeath
-          "Ichor of Undeath",
-          "Essence of Undeath",
-          -- Living
-          "Heart of the Wild",
-          "Living Essence"
-        };
-
-        return UH.UTILS:ValueInTable(essenceList, itemName);
+        return CheckItemLinkInList(itemLink, classicItems.elemental);
       else
-        if (classID == Enum.ItemClass.Tradegoods and subclassID == 10) then
-          return true;
-        end
+        return classID == Enum.ItemClass.Tradegoods and subclassID == 10;
       end
-
-      return false;
     end
   },
   ["Stone"] = {
@@ -92,28 +71,18 @@ Module.ItemGroupOptions = {
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
       if (UH.IsClassic) then
-        local itemsList = {
-          "Rough Stone",
-          "Coarse Stone",
-          "Heavy Stone",
-          "Solid Stone",
-          "Dense Stone"
-        };
-
-        return UH.UTILS:ValueInTable(itemsList, itemName);
+        return CheckItemLinkInList(itemLink, classicItems.stone);
       else
-        if (classID == Enum.ItemClass.Tradegoods and subclassID == 7 and string.find(itemName, "Stone")) then
-          return true;
-        end
+        return classID == Enum.ItemClass.Tradegoods
+            and subclassID == 7
+            and CheckItemLinkInList(itemLink, classicItems.stone);
       end
-
-      return false;
     end
   },
   ["Gem"] = {
     label = "Gem",
     checkItemBelongsToGroup = function(itemLink)
-      local itemName, _, itemQuality, _, _, itemType, itemSubType, _, _, _, _, classID = C_Item.GetItemInfo(
+      local _, _, _, _, _, _, _, _, _, _, _, classID = C_Item.GetItemInfo(
         itemLink);
 
       if (UH.IsClassic) then
@@ -121,85 +90,23 @@ Module.ItemGroupOptions = {
           return false;
         end
 
-        local itemsList = {
-          "Malachite",
-          "Tigerseye",
-          "Small Lustrous Pearl",
-          "Shadowgem",
-          "Moss Agate",
-          "Iridescent Pearl",
-          "Lesser Moonstone",
-          "Jade",
-          "Black Pearl",
-          "Golden Pearl",
-          "Citrine",
-          "Aquamarine",
-          "Star Ruby",
-          "Blood of the Mountain",
-          "Souldarite",
-          "Large Opal",
-          "Blue Sapphire",
-          "Azerothian Diamond",
-          "Arcane Crystal",
-          "Huge Emerald"
-        };
-
-        return UH.UTILS:ValueInTable(itemsList, itemName);
+        return CheckItemLinkInList(itemLink, classicItems.gem);
       else
-        if (classID == Enum.ItemClass.Gem) then
-          return true;
-        end
+        return classID == Enum.ItemClass.Gem;
       end
-
-      return false;
     end
   },
   ["Enchant"] = {
     label = "Enchant",
     checkItemBelongsToGroup = function(itemLink)
-      local itemName, _, itemQuality, _, _, itemType, itemSubType, _, _, _, _, classID = C_Item.GetItemInfo(
+      local itemName, _, _, _, _, _, _, _, _, _, _, classID = C_Item.GetItemInfo(
         itemLink);
 
       if (classID ~= 7) then
         return false;
       end
 
-      local itemsList = {
-        -- Dust
-        "Strange Dust",
-        "Soul Dust",
-        "Vision Dust",
-        "Dream Dust",
-        "Illusion Dust",
-
-        -- Lesser essence
-        "Lesser Magic Essence",
-        "Lesser Astral Essence",
-        "Lesser Mystic Essence",
-        "Lesser Nether Essence",
-        "Lesser Eternal Essence",
-
-        -- Greater essence
-        "Greater Magic Essence",
-        "Greater Astral Essence",
-        "Greater Mystic Essence",
-        "Greater Nether Essence",
-        "Greater Eternal Essence",
-
-        -- Shard Small
-        "Small Glimmering Shard",
-        "Small Glowing Shard",
-        "Small Radiant Shard",
-        "Small Brilliant Shard",
-
-        -- Shard large
-        "Large Glimmering Shard",
-        "Large Glowing Shard",
-        "Large Radiant Shard",
-        "Large Brilliant Shard"
-      };
-
-      return UH.UTILS:ValueInTable(itemsList, itemName);
+      return CheckItemLinkInList(itemLink, classicItems.enchant);
     end
   },
   ["Cloth"] = {
@@ -212,79 +119,25 @@ Module.ItemGroupOptions = {
           return false;
         end
 
-        local itemsList = {
-          -- Cloth
-          "Linen Cloth",
-          "Wool Cloth",
-          "Silk Cloth",
-          "Mageweave Cloth",
-          "Runecloth",
-          "Felcloth",
-          "Mooncloth",
-
-          -- Bolt
-          "Bolt of Linen Cloth",
-          "Bolt of Wool Cloth",
-          "Bolt of Silk Cloth",
-          "Bolt of Mageweave",
-          "Bolt of Runecloth"
-        };
-
-        return UH.UTILS:ValueInTable(itemsList, itemName);
+        return CheckItemLinkInList(itemLink, classicItems.cloth);
       else
-        if (classID == Enum.ItemClass.Tradegoods and subclassID == 5) then
-          return true;
-        end
+        return classID == Enum.ItemClass.Tradegoods and subclassID == 5;
       end
     end
   },
   ["Herb"] = {
     label = "Herb",
     checkItemBelongsToGroup = function(itemLink)
-      local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
+      local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
       if (UH.IsClassic) then
         if (classID ~= 7) then
           return false;
         end
 
-        local itemsList = {
-          "Peacebloom",
-          "Silverleaf",
-          "Earthroot",
-          "Mageroyal",
-          "Briarthorn",
-          "Stranglekelp",
-          "Bruiseweed",
-          "Wild Steelbloom",
-          "Grave Moss",
-          "Kingsblood",
-          "Liferoot",
-          "Fadeleaf",
-          "Goldthorn",
-          "Khadgar's Whisker",
-          "Wintersbite",
-          "Wildvine",
-          "Firebloom",
-          "Purple Lotus",
-          "Arthas' Tears",
-          "Sungrass",
-          "Ghost Mushroom",
-          "Blindweed",
-          "Gromsblood",
-          "Dreamfoil",
-          "Mountain Silversage",
-          "Plaguebloom",
-          "Icecap",
-          "Black Lotus",
-          "Bloodvine"
-        };
-
-        return UH.UTILS:ValueInTable(itemsList, itemName);
+        return CheckItemLinkInList(itemLink, classicItems.herb);
       else
-        if (classID == Enum.ItemClass.Tradegoods and subclassID == 9) then
-          return true;
-        end
+        return classID == Enum.ItemClass.Tradegoods and subclassID == 9;
       end
     end
   },
@@ -334,68 +187,36 @@ Module.ItemGroupOptions = {
           return false;
         end
 
-        local itemsList = {
-          -- Normal
-          "Copper Ore",
-          "Tin Ore",
-          "Silver Ore",
-          "Iron Ore",
-          "Gold Ore",
-          "Mithril Ore",
-          "Truesilver Ore",
-          "Thorium Ore",
-          "Dark Iron Ore",
-          "Elementium Ore",
-          -- Misc
-          "Incendite Ore",
-          "Lesser Bloodstone Ore"
-        };
-
-        return UH.UTILS:ValueInTable(itemsList, itemName);
+        return CheckItemLinkInList(itemLink, classicItems.ore);
       else
-        if (classID == Enum.ItemClass.Tradegoods and subclassID == 7 and string.find(itemName, " Ore")) then
-          return true;
-        end
+        return classID == Enum.ItemClass.Tradegoods
+            and subclassID == 7
+            and (
+              CheckItemLinkInList(itemLink, classicItems.ore)
+              or CheckItemLinkInList(itemLink, tbcItems.ore)
+            );
       end
-
-      return false;
     end
   },
   ["Bar"] = {
     label = "Bar",
     checkItemBelongsToGroup = function(itemLink)
-      local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
+      local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
       if (UH.IsClassic) then
         if (classID ~= 7) then
           return false;
         end
 
-        local itemsList = {
-          "Copper Bar",
-          "Tin Bar",
-          "Bronze Bar",
-          "Silver Bar",
-          "Iron Bar",
-          "Steel Bar",
-          "Gold Bar",
-          "Mithril Bar",
-          "Truesilver Bar",
-          "Thorium Bar",
-          "Dark Iron Bar",
-          "Enchanted Thorium Bar",
-          "Arcanite Bar",
-          "Elementium Bar"
-        };
-
-        return UH.UTILS:ValueInTable(itemsList, itemName);
+        return CheckItemLinkInList(itemLink, classicItems.bar);
       else
-        if (classID == Enum.ItemClass.Tradegoods and subclassID == 7 and string.find(itemName, " Bar")) then
-          return true;
-        end
+        return classID == Enum.ItemClass.Tradegoods
+            and subclassID == 7
+            and (
+              CheckItemLinkInList(itemLink, tbcItems.bar)
+              or CheckItemLinkInList(itemLink, tbcItems.bar)
+            );
       end
-
-      return false;
     end
   },
   ["Lockbox"] = {
@@ -408,25 +229,7 @@ Module.ItemGroupOptions = {
           return false;
         end
 
-        local itemsList = {
-          -- Junkbox
-          "Battered Junkbox",
-          "Worn Junkbox",
-          "Sturdy Junkbox",
-          "Heavy Junkbox",
-          -- Lockbox
-          "Ornate Bronze Lockbox",
-          "Heavy Bronze Lockbox",
-          "Iron Lockbox",
-          "Strong Iron Lockbox",
-          "Steel Lockbox",
-          "Reinforced Steel Lockbox",
-          "Mithril Lockbox",
-          "Thorium Lockbox",
-          "Elementium Lockbox"
-        };
-
-        return UH.UTILS:ValueInTable(itemsList, itemName);
+        return CheckItemLinkInList(itemLink, classicItems.lockbox);
       else
         if (classID == Enum.ItemClass.Miscellaneous and subclassID == 0) then
           return string.find(itemName, " Junkbox") or string.find(itemName, " Lockbox");
@@ -439,7 +242,7 @@ Module.ItemGroupOptions = {
   ["Recipe"] = {
     label = "Recipe",
     checkItemBelongsToGroup = function(itemLink)
-      local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
+      local itemName, _, _, _, _, _, _, _, _, _, _, classID, _ = C_Item.GetItemInfo(itemLink);
 
       if (UH.IsClassic) then
         if (classID ~= 9) then
@@ -459,37 +262,13 @@ Module.ItemGroupOptions = {
   ["ZgCurrency"] = {
     label = "ZG Currency",
     checkItemBelongsToGroup = function(itemLink)
-      function IsBijou(itemName)
-        return UH.UTILS:StringEndsWith(itemName, "Hakkari Bijou");
-      end
-
-      function IsCoin(itemName)
-        local itemsList = {
-          "Bloodscalp Coin",
-          "Gurubashi Coin",
-          "Hakkari Coin",
-          "Razzashi Coin",
-          "Sandfury Coin",
-          "Skullsplitter Coin",
-          "Vilebranch Coin",
-          "Witherbark Coin",
-          "Zulian Coin",
-        };
-
-        return UH.UTILS:ValueInTable(itemsList, itemName);
-      end
-
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
-        return IsBijou(itemName) or IsCoin(itemName);
-      else
-        if (classID == Enum.ItemClass.Questitem and subclassID == 0) then
-          return IsBijou(itemName) or IsCoin(itemName);
-        end
+      if (not UH.IsClassic and not (classID == Enum.ItemClass.Questitem and subclassID == 0)) then
+        return false
       end
 
-      return false;
+      return CheckItemLinkInList(itemLink, classicItems.zulGurubCurrency);
     end
   },
   ["PotionsMana"] = {
@@ -498,7 +277,7 @@ Module.ItemGroupOptions = {
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
       if (UH.IsClassic) then
-        return classID == 0 and string.find(itemName, "Mana Potion");
+        return classID == 0 and CheckItemLinkInList(itemLink, classicItems.manaPotion);
       else
         if (classID == Enum.ItemClass.Consumable and subclassID == 1 and string.find(itemName, "Mana Potion")) then
           return true;
@@ -514,7 +293,7 @@ Module.ItemGroupOptions = {
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
       if (UH.IsClassic) then
-        return classID == 0 and string.find(itemName, "Healing Potion");
+        return classID == 0 and CheckItemLinkInList(itemLink, classicItems.healthPotion);
       else
         if (classID == Enum.ItemClass.Consumable and subclassID == 1 and string.find(itemName, "Healing Potion")) then
           return true;
@@ -530,7 +309,7 @@ Module.ItemGroupOptions = {
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
       if (UH.IsClassic) then
-        return classID == 0 and string.find(itemName, "Scroll of ");
+        return classID == 0 and CheckItemLinkInList(itemLink, classicItems.bar);
       else
         if (classID == Enum.ItemClass.Consumable and subclassID == 4) then
           return true;
@@ -538,6 +317,42 @@ Module.ItemGroupOptions = {
       end
 
       return false;
+    end
+  },
+  ["Bombs"] = {
+    label = "Bombs",
+    checkItemBelongsToGroup = function(itemLink)
+      local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
+
+      if (UH.IsClassic) then
+        return CheckItemLinkInList(itemLink, classicItems.explosives);
+      else
+        return classID == Enum.ItemClass.Tradegoods and subclassID == 2;
+      end
+    end
+  },
+  ["Leather"] = {
+    label = "Leather",
+    checkItemBelongsToGroup = function(itemLink)
+      local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
+
+      if (UH.IsClassic) then
+        return CheckItemLinkInList(itemLink, classicItems.leather);
+      else
+        return classID == Enum.ItemClass.Tradegoods and subclassID == 6;
+      end
+    end
+  },
+  ["RawCooking"] = {
+    label = "Raw Cooking Materials",
+    checkItemBelongsToGroup = function(itemLink)
+      local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
+
+      if (UH.IsClassic) then
+        return CheckItemLinkInList(itemLink, classicItems.leather);
+      else
+        return classID == Enum.ItemClass.Tradegoods and subclassID == 8;
+      end
     end
   },
 };

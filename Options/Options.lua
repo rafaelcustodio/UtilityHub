@@ -87,6 +87,32 @@ function addonTable.GenerateOptions()
     },
   });
 
+  -- Trade
+  tinsert(UH.Options, {
+    key = ADDON_NAME .. "_Trade",
+    name = "Trade",
+    root = false,
+    group = {
+      name = "Trade",
+      type = "group",
+      order = GetNextOrder("trade"),
+      args = {
+        tradeGroupSeparator = GenerateSeparator("trade"),
+        tradeExtraInfo = {
+          type = "toggle",
+          name = "Enable",
+          desc = "Show extra frame with more info about the person you are trading",
+          order = GetNextOrder("trade"),
+          get = function() return UH.db.global.options.tradeExtraInfo end,
+          set = function(_, val)
+            UH.db.global.options.tradeExtraInfo = val;
+            UH.Events:TriggerEvent("OPTIONS_CHANGED", "tradeExtraInfo", val);
+          end,
+        },
+      },
+    },
+  });
+
   -- AutoBuy
   tinsert(UH.Options, {
     key = ADDON_NAME .. "_AutoBuy",
