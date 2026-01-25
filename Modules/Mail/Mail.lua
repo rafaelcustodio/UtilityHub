@@ -97,8 +97,8 @@ function Module:CreateMailIconButtons()
     iconTexture:SetPoint("CENTER", MailFrame.ManagePresetButton, "CENTER", 0, 0);
     MailFrame.ManagePresetButton:SetFrameLevel(MailFrame.ManagePresetButton:GetFrameLevel() + 1);
 
-    MailFrame.ManagePresetButton.menuMixin = MenuStyle2Mixin;
     MailFrame.ManagePresetButton.menuRelativePoint = "TOPRIGHT";
+    MailFrame.ManagePresetButton.menuMixin = MenuStyle2Mixin;
     MailFrame.ManagePresetButton:SetMenuAnchor(AnchorUtil.CreateAnchor(MailFrame.ManagePresetButton.menuPoint,
       MailFrame.ManagePresetButton, MailFrame.ManagePresetButton.menuRelativePoint,
       MailFrame.ManagePresetButton.menuPointX, MailFrame.ManagePresetButton.menuPointY));
@@ -137,8 +137,8 @@ function Module:CreateMailIconButtons()
     iconTexture:SetPoint("CENTER", MailFrame.CharactersButton, "CENTER", 0, 0);
     MailFrame.CharactersButton:SetFrameLevel(MailFrame.CharactersButton:GetFrameLevel() + 1);
 
-    MailFrame.CharactersButton.menuMixin = MenuStyle2Mixin;
     MailFrame.CharactersButton.menuRelativePoint = "TOPRIGHT";
+    MailFrame.CharactersButton.menuMixin = MenuStyle2Mixin;
     MailFrame.CharactersButton:SetMenuAnchor(AnchorUtil.CreateAnchor(MailFrame.CharactersButton.menuPoint,
       MailFrame.CharactersButton, MailFrame.CharactersButton.menuRelativePoint,
       MailFrame.CharactersButton.menuPointX, MailFrame.CharactersButton.menuPointY));
