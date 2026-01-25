@@ -112,7 +112,9 @@
     "GetNumFactions",
     "GetFactionInfo",
     "ShoppingTooltip1",
-    "ShoppingTooltip2"
+    "ShoppingTooltip2",
+    "FriendsFrame",
+    "MenuConstants"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {

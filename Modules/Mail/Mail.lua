@@ -120,7 +120,6 @@ function Module:CreateMailIconButtons()
   end
 
   function CreateCharactersButton(previousFrame)
-    -- Characters
     MailFrame.CharactersButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("CharactersButton"));
     if (previousFrame) then
       MailFrame.CharactersButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
@@ -128,9 +127,9 @@ function Module:CreateMailIconButtons()
       MailFrame.CharactersButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
     end
     local iconTexture = MailFrame.CharactersButton:CreateTexture(nil, "ARTWORK");
-    iconTexture:SetTexture("Interface\\CHATFRAME\\UI-ChatConversationIcon.blp");
+    iconTexture:SetAtlas("UI-HUD-MicroMenu-Housing-Mouseover");
     iconTexture:ClearAllPoints();
-    iconTexture:SetSize(20, 20);
+    iconTexture:SetSize(24, 24);
     iconTexture:SetPoint("CENTER", MailFrame.CharactersButton, "CENTER", 0, 0);
     MailFrame.CharactersButton:SetFrameLevel(MailFrame.CharactersButton:GetFrameLevel() + 1);
 
@@ -161,7 +160,6 @@ function Module:CreateMailIconButtons()
   end
 
   function CreateConfigEmailButton(previousFrame)
-    -- Manage
     MailFrame.OpenConfigEmailButton = UH.UTILS:CreateIconButton(MailFrame,
       UH.Helpers:ApplyPrefix("OpenConfigEmailButton"));
     MailFrame.OpenConfigEmailButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
@@ -196,12 +194,53 @@ function Module:CreateMailIconButtons()
     return MailFrame.OpenConfigEmailButton;
   end
 
+  function CreateGuildButton(previousFrame)
+    MailFrame.GuildButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("GuildButton"));
+    if (previousFrame) then
+      MailFrame.GuildButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
+    else
+      MailFrame.GuildButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
+    end
+    local iconTexture = MailFrame.GuildButton:CreateTexture(nil, "ARTWORK");
+    iconTexture:SetTexture("Interface\\CHATFRAME\\UI-ChatConversationIcon.blp");
+    iconTexture:ClearAllPoints();
+    iconTexture:SetSize(20, 20);
+    iconTexture:SetPoint("CENTER", MailFrame.GuildButton, "CENTER", 0, 0);
+    MailFrame.GuildButton:SetFrameLevel(MailFrame.GuildButton:GetFrameLevel() + 1);
+
+    MailFrame.GuildButton.menuMixin = MenuStyle2Mixin;
+    MailFrame.GuildButton.menuRelativePoint = "TOPRIGHT";
+    MailFrame.GuildButton:SetMenuAnchor(AnchorUtil.CreateAnchor(MailFrame.GuildButton.menuPoint,
+      MailFrame.GuildButton, MailFrame.GuildButton.menuRelativePoint,
+      MailFrame.GuildButton.menuPointX, MailFrame.GuildButton.menuPointY));
+
+    -- Events
+    MailFrame.GuildButton:SetScript("OnEnter", function(self)
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+      GameTooltip:AddLine("Guild characters", nil, nil, nil);
+      GameTooltip:Show();
+    end);
+    MailFrame.GuildButton:SetScript("OnLeave", function(self)
+      if (GameTooltip:IsOwned(self)) then
+        GameTooltip:Hide();
+      end
+    end);
+    MailFrame.GuildButton:SetScript("OnClick", function(self)
+      PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+    end);
+
+    MailFrame.GuildButton:SetupMenu(CharactersModule:GetGuildCharactersGeneratorFunction());
+
+    return MailFrame.GuildButton;
+  end
+
   local previousFrame = nil;
 
   -- previousFrame = CreateNewPresetButton();
   previousFrame = CreateLoadPresetButton(previousFrame);
   -- CreateManagePresetButton();
   previousFrame = CreateCharactersButton(previousFrame);
+  previousFrame = CreateGuildButton(previousFrame);
   previousFrame = CreateConfigEmailButton(previousFrame);
 end
 
