@@ -1,0 +1,10 @@
+# Git ignore patterns for UtilityHub WoW AddOn
+
+# Build output
+/out/
+
+# Packaging script
+UtilityHub.zip
+
+# Git related files (though .git is usually implicitly ignored by git)
+.git/
