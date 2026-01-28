@@ -8,7 +8,7 @@ local LDB = LibStub:GetLibrary("LibDataBroker-1.1");
 UH.LDBIcon = LibStub("LibDBIcon-1.0");
 UH.UTILS = LibStub("Utils-1.0");
 UH.AceConfigDialog = LibStub("AceConfigDialog-3.0");
-UH.Compatibility = {};
+UH.Integration = {};
 UH.Helpers = {};
 UH.prefix = "UH";
 UH.IsClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) and (interfaceVersion < 20000);
@@ -349,7 +349,8 @@ function UH:OnInitialize()
   UH:RegisterOptions();
   UH:CreateMinimapIcon();
 
-  UH.Compatibility.Baganator();
+  UH.Integration.Baganator();
+  UH.Integration.Auctionator();
 
   if (UH.db.global.options.simpleStatsTooltip) then
     UH:EnableModule("Tooltip");

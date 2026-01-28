@@ -2,9 +2,9 @@ local ADDON_NAME = ...;
 ---@type UtilityHub
 local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 ---@diagnostic disable-next-line: inject-field
-UH.Compatibility = {};
+UH.Integration = {};
 
-function UH.Compatibility:FuncOrWaitFrame(addon, func)
+function UH.Integration:FuncOrWaitFrame(addon, func)
   local addons = {};
 
   if (type(addon) == "string") then
@@ -34,7 +34,7 @@ function UH.Compatibility:FuncOrWaitFrame(addon, func)
     if (type(addons[addonName]) == "boolean") then
       addons[addonName] = true;
 
-      if (AllAddonsLoaded) then
+      if (AllAddonsLoaded()) then
         func();
       end
     end

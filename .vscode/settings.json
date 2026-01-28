@@ -135,7 +135,8 @@
   ],
   "Lua.diagnostics.disable": [
     "assign-type-mismatch",
-    "undefined-field"
+    "undefined-field",
+    "unused-function"
   ],
   "Lua.type.weakUnionCheck": true
 }

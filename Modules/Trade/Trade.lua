@@ -228,6 +228,7 @@ function Module:CreateItemButton(name, parent)
   local button = CreateFrame("Button", name, TradeFrame, "UHTradeItemButtonTemplate");
   button.ModuleRef = Module;
   button:RegisterForClicks("AnyUp");
+  button:RegisterForClicks("AnyDown");
   button:SetSize(36, 36);
   button:SetAttribute("IsEquipmentset", false);
   button:SetAttribute("IsMount", false);

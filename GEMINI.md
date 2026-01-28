@@ -71,6 +71,8 @@ As a World of Warcraft AddOn, there is no traditional "build" process. To instal
 *   **SavedVariables:** Uses `AceDB-3.0` to persist user settings and data across game sessions.
 *   **Localization (Implied):** While not explicitly covered in the reviewed files, WoW AddOns typically support localization, often managed through separate `.lua` or `.xml` files.
 *   **Lua Type Annotations:** The code includes LuaDoc-style type annotations for better code readability and IDE support.
+*   **If Statements:** Always add parenthesis to if statements.
+*   **Semicolon Usage** Always use semicolon in the end, except if statements.
 
 ## Sources of information
 

@@ -22,8 +22,9 @@ Modules/Mail/Preset.lua
 Modules/Mail/Mail.lua
 Modules/Trade/Trade.xml
 Modules/AutoBuy/AutoBuy.lua
-Modules/Compatibility/Compatibility.lua
-Modules/Compatibility/Baganator.lua
+Modules/Integration/Integration.lua
+Modules/Integration/Baganator.lua
+Modules/Integration/Auctionator.lua
 Modules/Tooltip/Tooltip.lua
 Modules/Cooldowns/Cooldowns.lua
 Modules/DailyQuests/DailyQuests.lua
