@@ -45,7 +45,7 @@ local skills                          = {
 local ATTACK_POWER_CLASSIC            = {
   pattern = "+(%d+) Attack Power.$",
   FormatText = function(self, text)
-    local ap = text:match("(%d+)");
+    local ap = text:match("(%d+) Attack Power");
     return string.format("+%s Attack Power", ap);
   end
 };
@@ -53,7 +53,7 @@ local ATTACK_POWER_CLASSIC            = {
 local ATTACK_POWER                    = {
   pattern = "Increases attack power by (%d+).$",
   FormatText = function(self, text)
-    local ap = text:match("(%d+)");
+    local ap = text:match("Increases attack power by (%d+)");
     return string.format("+%s Attack Power", ap);
   end
 };
