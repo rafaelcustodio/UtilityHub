@@ -213,7 +213,7 @@ Module.ItemGroupOptions = {
         return classID == Enum.ItemClass.Tradegoods
             and subclassID == 7
             and (
-              CheckItemLinkInList(itemLink, tbcItems.bar)
+              CheckItemLinkInList(itemLink, classicItems.bar)
               or CheckItemLinkInList(itemLink, tbcItems.bar)
             );
       end
