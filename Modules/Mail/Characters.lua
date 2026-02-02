@@ -1,10 +1,7 @@
-local ADDON_NAME = ...;
----@type UtilityHub
-local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 local moduleName = 'Characters';
 ---@class Characters
 ---@diagnostic disable-next-line: undefined-field
-local Module = UH:NewModule(moduleName);
+local Module = UtilityHub:NewModule(moduleName);
 
 local charMap = {
   -- Letter A
@@ -144,13 +141,13 @@ function Module:GetAccountCharactersGeneratorFunction()
 
   return function(owner, rootDescription)
     local groups = {
-      [UH.Enums.CHARACTER_GROUP.MAIN_ALT] = {},
-      [UH.Enums.CHARACTER_GROUP.BANK] = {},
-      [UH.Enums.CHARACTER_GROUP.UNGROUPED] = {},
+      [UtilityHub.Enums.CHARACTER_GROUP.MAIN_ALT] = {},
+      [UtilityHub.Enums.CHARACTER_GROUP.BANK] = {},
+      [UtilityHub.Enums.CHARACTER_GROUP.UNGROUPED] = {},
     };
 
-    for i, row in pairs(refUH.db.global.characters) do
-      local group = row.group or UH.Enums.CHARACTER_GROUP.UNGROUPED;
+    for i, row in pairs(refUtilityHub.db.global.characters) do
+      local group = row.group or UtilityHub.Enums.CHARACTER_GROUP.UNGROUPED;
       local groupList = groups[group];
 
       tinsert(groupList, row);
@@ -169,7 +166,7 @@ function Module:GetAccountCharactersGeneratorFunction()
         end
 
         indexGroupWithData = indexGroupWithData + 1;
-        rootDescription:CreateTitle("• " .. UH.Enums.CHARACTER_GROUP_TEXT[groupID]);
+        rootDescription:CreateTitle("• " .. UtilityHub.Enums.CHARACTER_GROUP_TEXT[groupID]);
 
         for _, character in pairs(group) do
           local characterButton = rootDescription:CreateButton(
@@ -179,7 +176,7 @@ function Module:GetAccountCharactersGeneratorFunction()
             end
           );
           characterButton:AddInitializer(function(button, description, menu)
-            local color = UH.Helpers:GetRGBFromClassName(character.className);
+            local color = UtilityHub.Helpers:GetRGBFromClassName(character.className);
             button.fontString:SetTextColor(color.r, color.g, color.b);
           end);
           characterButton:SetEnabled(character.name ~= UnitName("player"));
@@ -224,7 +221,7 @@ function Module:GetGuildCharactersGeneratorFunction()
           end
         );
         characterButton:AddInitializer(function(button, description, menu)
-          local color = UH.Helpers:GetRGBFromClassName(player.class);
+          local color = UtilityHub.Helpers:GetRGBFromClassName(player.class);
           button.fontString:SetTextColor(color.r, color.g, color.b);
         end);
         characterButton:SetEnabled(player.name ~= UnitName("player"));

@@ -1,10 +1,7 @@
-local ADDON_NAME                      = ...;
----@type UtilityHub
-local UH                              = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 local moduleName                      = 'Tooltip';
 ---@class Tooltip
 ---@diagnostic disable-next-line: undefined-field
-local Module                          = UH:NewModule(moduleName);
+local Module                          = UtilityHub:NewModule(moduleName);
 
 local skills                          = {
   -- Professions
@@ -603,7 +600,7 @@ local function OnTooltipSetItemEvent(tooltip)
 end
 
 local function UpdatePatternConfig()
-  if (UH.IsClassic) then
+  if (UtilityHub.IsClassic) then
     tinsert(Module.patternConfigList, ATTACK_POWER_CLASSIC);
     tinsert(Module.patternConfigList, ATTACK_SPEED_INCREASE_CLASSIC);
     tinsert(Module.patternConfigList, PHYSICAL_HIT_CLASSIC);
@@ -683,14 +680,14 @@ function Module:OnEnable()
 end
 
 -- Events
-UH.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
+UtilityHub.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
   if (name ~= "simpleStatsTooltip") then
     return;
   end
 
-  if (UH.db.global.options.simpleStatsTooltip) then
-    UH:EnableModule("Tooltip");
+  if (UtilityHub.db.global.options.simpleStatsTooltip) then
+    UtilityHub:EnableModule("Tooltip");
   else
-    UH:DisableModule("Tooltip");
+    UtilityHub:DisableModule("Tooltip");
   end
 end);

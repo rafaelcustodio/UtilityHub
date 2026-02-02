@@ -1,23 +1,23 @@
 local ADDON_NAME, addonTable = ...;
 ---@class UtilityHub
-local UH = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceComm-3.0");
+UtilityHub = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceComm-3.0");
 local interfaceVersion = select(4, GetBuildInfo());
 
-UH:SetDefaultModuleState(false);
+UtilityHub:SetDefaultModuleState(false);
 local LDB = LibStub:GetLibrary("LibDataBroker-1.1");
-UH.LDBIcon = LibStub("LibDBIcon-1.0");
-UH.UTILS = LibStub("Utils-1.0");
-UH.AceConfigDialog = LibStub("AceConfigDialog-3.0");
-UH.Integration = {};
-UH.Helpers = {};
-UH.prefix = "UH";
-UH.IsClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) and (interfaceVersion < 20000);
-UH.IsTBC = (interfaceVersion >= 20505) and (interfaceVersion < 30000);
-UH.IsTBCorLater = interfaceVersion >= 20505;
+UtilityHub.LDBIcon = LibStub("LibDBIcon-1.0");
+UtilityHub.UTILS = LibStub("Utils-1.0");
+UtilityHub.AceConfigDialog = LibStub("AceConfigDialog-3.0");
+UtilityHub.Integration = {};
+UtilityHub.Helpers = {};
+UtilityHub.prefix = "UH";
+UtilityHub.IsClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) and (interfaceVersion < 20000);
+UtilityHub.IsTBC = (interfaceVersion >= 20505) and (interfaceVersion < 30000);
+UtilityHub.IsTBCorLater = interfaceVersion >= 20505;
 
 ---@type boolean
-UH.addonReady = false;
-UH.Options = setmetatable({}, {
+UtilityHub.addonReady = false;
+UtilityHub.Options = setmetatable({}, {
   __index = {
     GetCategoryID = function(self, key)
       for _, value in ipairs(self) do
@@ -30,11 +30,11 @@ UH.Options = setmetatable({}, {
     end,
   }
 });
-UH.tempPreset = {};
-UH.lastCountReadyCooldowns = nil;
+UtilityHub.tempPreset = {};
+UtilityHub.lastCountReadyCooldowns = nil;
 
 -- Defaults
-UH.defaultOptions = {
+UtilityHub.defaultOptions = {
   -- Tooltip
   simpleStatsTooltip = true,
   -- AutoBuy
@@ -49,26 +49,26 @@ UH.defaultOptions = {
 };
 
 -- Enums
-UH.Enums = {};
-UH.Enums.CHARACTER_GROUP = {
+UtilityHub.Enums = {};
+UtilityHub.Enums.CHARACTER_GROUP = {
   UNGROUPED = 0,
   MAIN_ALT = 1,
   BANK = 2,
   CD = 3,
 };
-UH.Enums.CHARACTER_GROUP_TEXT = {
-  [UH.Enums.CHARACTER_GROUP.UNGROUPED] = "Ungrouped",
-  [UH.Enums.CHARACTER_GROUP.MAIN_ALT] = "Main/alt",
-  [UH.Enums.CHARACTER_GROUP.BANK] = "Bank",
-  [UH.Enums.CHARACTER_GROUP.CD] = "CD",
+UtilityHub.Enums.CHARACTER_GROUP_TEXT = {
+  [UtilityHub.Enums.CHARACTER_GROUP.UNGROUPED] = "Ungrouped",
+  [UtilityHub.Enums.CHARACTER_GROUP.MAIN_ALT] = "Main/alt",
+  [UtilityHub.Enums.CHARACTER_GROUP.BANK] = "Bank",
+  [UtilityHub.Enums.CHARACTER_GROUP.CD] = "CD",
 };
-UH.Enums.MINIMAP_ICON = {
+UtilityHub.Enums.MINIMAP_ICON = {
   NORMAL = "Interface\\Addons\\UtilityHub\\Assets\\Icons\\addon.blp",
   NOTIFICATION = "Interface\\ICONS\\INV_Enchant_FormulaEpic_01.blp",
 };
 
 ---@enum EnumQuestType
-UH.Enums.QUEST_TYPE = {
+UtilityHub.Enums.QUEST_TYPE = {
   DUNGEON_NORMAL = 0,
   DUNGEON_HEROIC = 1,
   PROFESSION_COOKING = 2,
@@ -81,11 +81,11 @@ UH.Enums.QUEST_TYPE = {
   PVP = 9,
 }
 ---@enum EnumExpansion
-UH.Enums.EXPANSIONS = {
+UtilityHub.Enums.EXPANSIONS = {
   CLASSIC = 0,
   TBC = 1,
 };
-UH.Enums.REPUTATION_STANDING = {
+UtilityHub.Enums.REPUTATION_STANDING = {
   HATED = 1,
   HOSTILE = 2,
   UNFRIENDLY = 3,
@@ -95,18 +95,18 @@ UH.Enums.REPUTATION_STANDING = {
   REVERED = 7,
   EXALTED = 8,
 };
-UH.Enums.PERIODICITY = {
+UtilityHub.Enums.PERIODICITY = {
   DAILY = 1,
   WEEKLY = 2,
   MONTHLY = 3,
 };
 ---@enum EnumSide
-UH.Enums.SIDE = {
+UtilityHub.Enums.SIDE = {
   ALLIANCE = "Alliance",
   HORDE = "Horde",
 };
 
-function UH:InitVariables()
+function UtilityHub:InitVariables()
   local version = C_AddOns.GetAddOnMetadata(ADDON_NAME, "Version");
   local oldVersion = nil;
 
@@ -121,7 +121,7 @@ function UH:InitVariables()
       minimapIcon = {
         hide = false,
       },
-      options = UH.defaultOptions,
+      options = UtilityHub.defaultOptions,
       presets = {},
       whispers = {},
       ---@type Character[]
@@ -132,11 +132,11 @@ function UH:InitVariables()
   self.db.global.oldVersion = version;
 
   if (oldVersion and oldVersion ~= version) then
-    UH:MigrateDB(version, oldVersion);
+    UtilityHub:MigrateDB(version, oldVersion);
   end
 end
 
-function UH:MigrateDB(version, oldVersion)
+function UtilityHub:MigrateDB(version, oldVersion)
   if (version and oldVersion) then
     self.Helpers:ShowNotification("Migrating DB version from " .. oldVersion .. " to " .. version);
   else
@@ -170,11 +170,11 @@ function UH:MigrateDB(version, oldVersion)
   end
 
   if (not self.db.global.options) then
-    self.db.global.options = UH.defaultOptions;
+    self.db.global.options = UtilityHub.defaultOptions;
   end
 
   if (not self.db.global.options.autoBuyList) then
-    self.db.global.options.autoBuyList = UH.defaultOptions.autoBuyList;
+    self.db.global.options.autoBuyList = UtilityHub.defaultOptions.autoBuyList;
   end
 
   if (self.db.global.characters) then
@@ -213,7 +213,7 @@ function UH:MigrateDB(version, oldVersion)
   end
 end
 
-function UH:SetupSlashCommands()
+function UtilityHub:SetupSlashCommands()
   SLASH_UtilityHub1 = "/UH"
   SLASH_UtilityHub2 = "/uh"
   SlashCmdList.UtilityHub = function(strParam)
@@ -226,9 +226,9 @@ function UH:SetupSlashCommands()
     local command = (fragments[1] or ""):trim();
 
     if (command == "") then
-      UH.Helpers:ShowNotification("Type /UH help for commands");
+      UtilityHub.Helpers:ShowNotification("Type /UH help for commands");
     elseif (command == "help") then
-      UH.Helpers:ShowNotification("Use the following parameters with /UH");
+      UtilityHub.Helpers:ShowNotification("Use the following parameters with /UH");
       print("- |cffddff00debug|r");
       print("  Toggle the debug mode");
       print("- |cffddff00options|r");
@@ -238,37 +238,37 @@ function UH:SetupSlashCommands()
       print("- |cffddff00daily or dailies|r");
       print("  Toggle daily frame");
     elseif (command == "debug") then
-      UH.db.global.debugMode = (not UH.db.global.debugMode);
-      local debugText = UH.db.global.debugMode and "ON" or "OFF";
-      UH.Helpers:ShowNotification("Debug mode " .. debugText);
+      UtilityHub.db.global.debugMode = (not UtilityHub.db.global.debugMode);
+      local debugText = UtilityHub.db.global.debugMode and "ON" or "OFF";
+      UtilityHub.Helpers:ShowNotification("Debug mode " .. debugText);
     elseif (command == "options") then
       Settings.OpenToCategory(ADDON_NAME);
     elseif (command == "cd" or command == "cds") then
-      UH.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
+      UtilityHub.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
     elseif (command == "daily" or command == "dailies") then
-      UH.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
+      UtilityHub.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
     elseif (command == "migrate") then
-      UH:MigrateDB();
+      UtilityHub:MigrateDB();
     elseif (command == "update-quest-flags") then
-      UH.Events:TriggerEvent("FORCE_DAILY_QUESTS_FLAG_UPDATE", fragments[2]);
+      UtilityHub.Events:TriggerEvent("FORCE_DAILY_QUESTS_FLAG_UPDATE", fragments[2]);
     elseif (command == "execute") then
       local functionName = fragments[3];
       local arg = fragments[4];
-      local module = UH:GetModule(fragments[2]);
+      local module = UtilityHub:GetModule(fragments[2]);
       module[functionName](module, arg);
     else
-      UH.Helpers:ShowNotification("Command not found");
+      UtilityHub.Helpers:ShowNotification("Command not found");
     end
   end
 end
 
-function UH:RegisterOptions()
+function UtilityHub:RegisterOptions()
   local parent = nil;
   addonTable.GenerateOptions();
 
-  for _, option in ipairs(UH.Options) do
+  for _, option in ipairs(UtilityHub.Options) do
     LibStub("AceConfig-3.0"):RegisterOptionsTable(option.key, option.group);
-    local frame, categoryID = UH.AceConfigDialog:AddToBlizOptions(option.key, option.name, parent);
+    local frame, categoryID = UtilityHub.AceConfigDialog:AddToBlizOptions(option.key, option.name, parent);
     option.categoryID = categoryID;
 
     if (option.root) then
@@ -277,15 +277,15 @@ function UH:RegisterOptions()
   end
 end
 
-function UH:CreateMinimapIcon()
+function UtilityHub:CreateMinimapIcon()
   LDB:NewDataObject(ADDON_NAME, {
     type = "data source",
     text = "0",
-    icon = UH.Enums.MINIMAP_ICON.NORMAL,
+    icon = UtilityHub.Enums.MINIMAP_ICON.NORMAL,
     OnClick = function(self, button)
       if (button == "LeftButton") then
         if (IsShiftKeyDown()) then
-          -- UH.Events:TriggerEvent("TOGGLE_DATA_FRAME");
+          -- UtilityHub.Events:TriggerEvent("TOGGLE_DATA_FRAME");
         else
           if (SettingsPanel:IsShown()) then
             HideUIPanel(SettingsPanel);
@@ -295,22 +295,23 @@ function UH:CreateMinimapIcon()
         end
       elseif (button == "RightButton") then
         if (IsShiftKeyDown()) then
-          UH.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
+          UtilityHub.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
         else
-          UH.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
+          UtilityHub.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
         end
       end
     end,
     OnTooltipShow = function(self)
       self:AddDoubleLine(ADDON_NAME,
-        UH.Helpers:AddColorToString("Version " .. C_AddOns.GetAddOnMetadata(ADDON_NAME, "Version"), "FFB1B1B1"));
+        UtilityHub.Helpers:AddColorToString("Version " .. C_AddOns.GetAddOnMetadata(ADDON_NAME, "Version"), "FFB1B1B1"));
 
-      if (UH.db.global.options.cooldowns) then
+      if (UtilityHub.db.global.options.cooldowns) then
         local textCount;
 
-        if (UH.lastCountReadyCooldowns and UH.lastCountReadyCooldowns > 0) then
-          textCount = UH.Helpers:AddColorToString(
-            UH.lastCountReadyCooldowns .. " cooldown" .. (UH.lastCountReadyCooldowns > 1 and "s" or "") .. " READY",
+        if (UtilityHub.lastCountReadyCooldowns and UtilityHub.lastCountReadyCooldowns > 0) then
+          textCount = UtilityHub.Helpers:AddColorToString(
+            UtilityHub.lastCountReadyCooldowns ..
+            " cooldown" .. (UtilityHub.lastCountReadyCooldowns > 1 and "s" or "") .. " READY",
             "FF27BD34");
         else
           textCount = "No cooldowns ready";
@@ -321,61 +322,61 @@ function UH:CreateMinimapIcon()
       end
 
       self:AddLine(" ");
-      self:AddLine(UH.Helpers:AddColorToString("[Left Click]", "FF9CD6DE") ..
-        " " .. UH.Helpers:AddColorToString("to open the options", "FFDDFF00"));
-      self:AddLine(UH.Helpers:AddColorToString("[Right Click]", "FF9CD6DE") ..
-        " " .. UH.Helpers:AddColorToString("to open/close cooldowns", "FFDDFF00"));
-      self:AddLine(UH.Helpers:AddColorToString("[Shift + Right Click]", "FF9CD6DE") ..
-        " " .. UH.Helpers:AddColorToString("to open/close daily quests", "FFDDFF00"));
+      self:AddLine(UtilityHub.Helpers:AddColorToString("[Left Click]", "FF9CD6DE") ..
+        " " .. UtilityHub.Helpers:AddColorToString("to open the options", "FFDDFF00"));
+      self:AddLine(UtilityHub.Helpers:AddColorToString("[Right Click]", "FF9CD6DE") ..
+        " " .. UtilityHub.Helpers:AddColorToString("to open/close cooldowns", "FFDDFF00"));
+      self:AddLine(UtilityHub.Helpers:AddColorToString("[Shift + Right Click]", "FF9CD6DE") ..
+        " " .. UtilityHub.Helpers:AddColorToString("to open/close daily quests", "FFDDFF00"));
     end
   });
-  UH.LDBIcon:Register(ADDON_NAME, LDB:GetDataObjectByName(ADDON_NAME), UH.db.global.minimapIcon);
+  UtilityHub.LDBIcon:Register(ADDON_NAME, LDB:GetDataObjectByName(ADDON_NAME), UtilityHub.db.global.minimapIcon);
 
-  local frame = UH.LDBIcon:GetMinimapButton(ADDON_NAME);
+  local frame = UtilityHub.LDBIcon:GetMinimapButton(ADDON_NAME);
   if (frame) then
     frame:SetFrameLevel(9);
   end
 end
 
-function UH:OnInitialize()
+function UtilityHub:OnInitialize()
   -- Migration code from the old name, should be
   if (MDHdatabase) then
     UHdatabase = MDHdatabase;
     MDHdatabase = nil;
   end
 
-  UH:InitVariables();
-  UH:SetupSlashCommands();
-  UH:RegisterOptions();
-  UH:CreateMinimapIcon();
+  UtilityHub:InitVariables();
+  UtilityHub:SetupSlashCommands();
+  UtilityHub:RegisterOptions();
+  UtilityHub:CreateMinimapIcon();
 
-  UH.Integration.Baganator();
-  UH.Integration.Auctionator();
+  UtilityHub.Integration.Baganator();
+  UtilityHub.Integration.Auctionator();
 
-  if (UH.db.global.options.simpleStatsTooltip) then
-    UH:EnableModule("Tooltip");
+  if (UtilityHub.db.global.options.simpleStatsTooltip) then
+    UtilityHub:EnableModule("Tooltip");
   end
 
-  if (UH.db.global.options.autoBuy) then
-    UH:EnableModule("AutoBuy");
+  if (UtilityHub.db.global.options.autoBuy) then
+    UtilityHub:EnableModule("AutoBuy");
   end
 
-  if (UH.db.global.options.cooldowns) then
-    UH:EnableModule("Cooldowns");
+  if (UtilityHub.db.global.options.cooldowns) then
+    UtilityHub:EnableModule("Cooldowns");
   end
 
-  if (UH.db.global.options.dailyQuests) then
-    UH:EnableModule("DailyQuests");
+  if (UtilityHub.db.global.options.dailyQuests) then
+    UtilityHub:EnableModule("DailyQuests");
   end
 
-  if (UH.db.global.options.tradeExtraInfo) then
-    UH:EnableModule("Trade");
+  if (UtilityHub.db.global.options.tradeExtraInfo) then
+    UtilityHub:EnableModule("Trade");
   end
 end
 
-function UH:UpdateCharacter()
+function UtilityHub:UpdateCharacter()
   function GetPlayerIndex(name)
-    for index, value in pairs(UH.db.global.characters) do
+    for index, value in pairs(UtilityHub.db.global.characters) do
       if (value.name == name) then
         return index;
       end
@@ -388,32 +389,32 @@ function UH:UpdateCharacter()
     name = name,
     race = select(1, UnitRace("player")),
     className = select(2, UnitClass("player")),
-    group = UH.Enums.CHARACTER_GROUP.UNGROUPED,
-    cooldownGroup = UH:GetModule("Cooldowns"):UpdateCurrentCharacterCooldowns(),
+    group = UtilityHub.Enums.CHARACTER_GROUP.UNGROUPED,
+    cooldownGroup = UtilityHub:GetModule("Cooldowns"):UpdateCurrentCharacterCooldowns(),
   };
 
   local playerIndex = GetPlayerIndex(name);
 
   if (playerIndex) then
-    playerTable.group = UH.db.global.characters[playerIndex].group;
-    UH.db.global.characters[playerIndex] = playerTable;
+    playerTable.group = UtilityHub.db.global.characters[playerIndex].group;
+    UtilityHub.db.global.characters[playerIndex] = playerTable;
   else
-    tinsert(UH.db.global.characters, playerTable);
+    tinsert(UtilityHub.db.global.characters, playerTable);
   end
 
-  UH.Events:TriggerEvent("CHARACTER_UPDATED");
+  UtilityHub.Events:TriggerEvent("CHARACTER_UPDATED");
 end
 
-function UH:UpdateMinimapIcon(hasNotification)
+function UtilityHub:UpdateMinimapIcon(hasNotification)
   local data = LDB:GetDataObjectByName(ADDON_NAME);
-  data.icon = hasNotification and UH.Enums.MINIMAP_ICON.NOTIFICATION or UH.Enums.MINIMAP_ICON.NORMAL;
-  UH.LDBIcon:Refresh(ADDON_NAME);
+  data.icon = hasNotification and UtilityHub.Enums.MINIMAP_ICON.NOTIFICATION or UtilityHub.Enums.MINIMAP_ICON.NORMAL;
+  UtilityHub.LDBIcon:Refresh(ADDON_NAME);
 end
 
 -- Events
-UH.Events = CreateFromMixins(CallbackRegistryMixin);
-UH.Events:OnLoad();
-UH.Events:GenerateCallbackEvents({
+UtilityHub.Events = CreateFromMixins(CallbackRegistryMixin);
+UtilityHub.Events:OnLoad();
+UtilityHub.Events:GenerateCallbackEvents({
   "CHARACTER_UPDATE_NEEDED",
   "CHARACTER_UPDATED",
   "OPTIONS_CHANGED",
@@ -426,56 +427,56 @@ UH.Events:GenerateCallbackEvents({
   "FORCE_DAILY_QUESTS_FLAG_UPDATE",
 });
 
-UH.Events:RegisterCallback("CHARACTER_UPDATE_NEEDED", function(_, name)
-  UH:UpdateCharacter();
+UtilityHub.Events:RegisterCallback("CHARACTER_UPDATE_NEEDED", function(_, name)
+  UtilityHub:UpdateCharacter();
 end);
 
-UH.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
+UtilityHub.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
   if (name == "autoBuy") then
-    if (UH.db.global.options.autoBuy) then
-      UH:EnableModule("AutoBuy");
+    if (UtilityHub.db.global.options.autoBuy) then
+      UtilityHub:EnableModule("AutoBuy");
     else
-      UH:DisableModule("AutoBuy");
+      UtilityHub:DisableModule("AutoBuy");
     end
   end
 
   if (name == "cooldowns") then
-    if (UH.db.global.options.cooldowns) then
-      UH:EnableModule("Cooldowns");
+    if (UtilityHub.db.global.options.cooldowns) then
+      UtilityHub:EnableModule("Cooldowns");
     else
-      UH:DisableModule("Cooldowns");
+      UtilityHub:DisableModule("Cooldowns");
     end
   end
 
   if (name == "dailyQuests") then
-    if (UH.db.global.options.dailyQuests) then
-      UH:EnableModule("DailyQuests");
+    if (UtilityHub.db.global.options.dailyQuests) then
+      UtilityHub:EnableModule("DailyQuests");
     else
-      UH:DisableModule("DailyQuests");
+      UtilityHub:DisableModule("DailyQuests");
     end
   end
 
   if (name == "tradeExtraInfo") then
-    if (UH.db.global.options.tradeExtraInfo) then
-      UH:EnableModule("Trade");
+    if (UtilityHub.db.global.options.tradeExtraInfo) then
+      UtilityHub:EnableModule("Trade");
     else
-      UH:DisableModule("Trade");
+      UtilityHub:DisableModule("Trade");
     end
   end
 end);
 
-UH.Events:RegisterCallback("COUNT_READY_COOLDOWNS_CHANGED", function(_, count, first)
-  UH:UpdateMinimapIcon(count > 0);
+UtilityHub.Events:RegisterCallback("COUNT_READY_COOLDOWNS_CHANGED", function(_, count, first)
+  UtilityHub:UpdateMinimapIcon(count > 0);
 
-  if (not first and count > 0 and UH.db.global.options.cooldownPlaySound) then
+  if (not first and count > 0 and UtilityHub.db.global.options.cooldownPlaySound) then
     PlaySoundFile("Interface\\AddOns\\" .. ADDON_NAME .. "\\Assets\\Sounds\\Cooldown_Ready.ogg", "Master");
   end
 end);
 
 EventRegistry:RegisterFrameEventAndCallback("LOADING_SCREEN_DISABLED", function()
   C_Timer.After(2, function()
-    UH.addonReady = true;
-    UH.Events:TriggerEvent("CHARACTER_UPDATE_NEEDED");
+    UtilityHub.addonReady = true;
+    UtilityHub.Events:TriggerEvent("CHARACTER_UPDATE_NEEDED");
   end);
 end);
 

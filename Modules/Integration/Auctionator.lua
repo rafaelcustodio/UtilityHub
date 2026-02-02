@@ -1,6 +1,3 @@
-local ADDON_NAME = ...;
----
-local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 local hooked = false;
 
 ---@param query any
@@ -116,8 +113,8 @@ local function CreateAuctionatorUsableItems()
   end);
 end;
 
-function UH.Integration.Auctionator()
-  UH.Integration:FuncOrWaitFrame({ "Auctionator" }, function()
+function UtilityHub.Integration.Auctionator()
+  UtilityHub.Integration:FuncOrWaitFrame({ "Auctionator" }, function()
     CreateAuctionatorUsableItems();
   end);
 end;

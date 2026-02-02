@@ -1,13 +1,10 @@
-local ADDON_NAME = ...;
----@type UtilityHub
-local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 ---@class Helpers
-UH.Helpers = {};
+UtilityHub.Helpers = {};
 
 --- Return true or false if the player is in the raid or group by his name and his index if in raid
 ---@param playerName string
 ---@return boolean, number | nil
-function UH.Helpers:CheckIfPlayerInTheRaidOrGroupByName(playerName)
+function UtilityHub.Helpers:CheckIfPlayerInTheRaidOrGroupByName(playerName)
   if (not IsInGroup() or not IsInRaid()) then
     return false, nil;
   end
@@ -25,7 +22,7 @@ end
 
 ---@param seconds number
 ---@return string, boolean
-function UH.Helpers:FormatDuration(seconds)
+function UtilityHub.Helpers:FormatDuration(seconds)
   local hours = math.floor(seconds / 3600);
   local minutes = math.floor((seconds % 3600) / 60);
   local secs = seconds % 60;
@@ -34,18 +31,18 @@ function UH.Helpers:FormatDuration(seconds)
 end
 
 ---@param text string
-function UH.Helpers:ShowNotification(text)
-  UH.UTILS:ShowChatNotification(text, UH.prefix);
+function UtilityHub.Helpers:ShowNotification(text)
+  UtilityHub.UTILS:ShowChatNotification(text, UtilityHub.prefix);
 end
 
 ---@param text string
-function UH.Helpers:ApplyPrefix(text)
-  return UH.prefix .. text;
+function UtilityHub.Helpers:ApplyPrefix(text)
+  return UtilityHub.prefix .. text;
 end
 
 ---@param item number | string
 ---@param cb fun(itemLink) | nil
-function UH.Helpers:AsyncGetItemInfo(item, cb)
+function UtilityHub.Helpers:AsyncGetItemInfo(item, cb)
   local function tryCB(value)
     if (cb) then
       cb(value);
@@ -79,7 +76,7 @@ end;
 
 ---@param className string|nil
 ---@return BasicRGB
-function UH.Helpers:GetRGBFromClassName(className)
+function UtilityHub.Helpers:GetRGBFromClassName(className)
   ---@type BasicRGB
   local color = { r = 1, g = 1, b = 1 };
 
@@ -95,6 +92,6 @@ end
 ---@field g number
 ---@field b number
 
-function UH.Helpers:AddColorToString(str, color)
+function UtilityHub.Helpers:AddColorToString(str, color)
   return string.format("|c%s%s|r", color, str);
 end

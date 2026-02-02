@@ -1,10 +1,7 @@
-local ADDON_NAME = ...;
----@type UtilityHub
-local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 ---@diagnostic disable-next-line: inject-field
-UH.Integration = {};
+UtilityHub.Integration = {};
 
-function UH.Integration:FuncOrWaitFrame(addon, func)
+function UtilityHub.Integration:FuncOrWaitFrame(addon, func)
   local addons = {};
 
   if (type(addon) == "string") then

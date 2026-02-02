@@ -1,6 +1,4 @@
 local ADDON_NAME, addonTable = ...;
----@type UtilityHub
-local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 
 function addonTable.GenerateOptions()
   local order = {};
@@ -28,7 +26,7 @@ function addonTable.GenerateOptions()
   end
 
   -- Default
-  tinsert(UH.Options, {
+  tinsert(UtilityHub.Options, {
     key = ADDON_NAME,
     name = ADDON_NAME,
     root = true,
@@ -62,7 +60,7 @@ function addonTable.GenerateOptions()
   });
 
   -- Tooltip
-  tinsert(UH.Options, {
+  tinsert(UtilityHub.Options, {
     key = ADDON_NAME .. "_Tooltip",
     name = "Tooltip",
     root = false,
@@ -77,10 +75,10 @@ function addonTable.GenerateOptions()
           name = "Enable",
           desc = "Change the way most stats are shown in the tooltip",
           order = GetNextOrder("tooltip"),
-          get = function() return UH.db.global.options.simpleStatsTooltip end,
+          get = function() return UtilityHub.db.global.options.simpleStatsTooltip end,
           set = function(_, val)
-            UH.db.global.options.simpleStatsTooltip = val;
-            UH.Events:TriggerEvent("OPTIONS_CHANGED", "simpleStatsTooltip", val);
+            UtilityHub.db.global.options.simpleStatsTooltip = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "simpleStatsTooltip", val);
           end,
         },
       },
@@ -88,7 +86,7 @@ function addonTable.GenerateOptions()
   });
 
   -- Trade
-  tinsert(UH.Options, {
+  tinsert(UtilityHub.Options, {
     key = ADDON_NAME .. "_Trade",
     name = "Trade",
     root = false,
@@ -103,10 +101,10 @@ function addonTable.GenerateOptions()
           name = "Enable",
           desc = "Show extra frame with more info about the person you are trading",
           order = GetNextOrder("trade"),
-          get = function() return UH.db.global.options.tradeExtraInfo end,
+          get = function() return UtilityHub.db.global.options.tradeExtraInfo end,
           set = function(_, val)
-            UH.db.global.options.tradeExtraInfo = val;
-            UH.Events:TriggerEvent("OPTIONS_CHANGED", "tradeExtraInfo", val);
+            UtilityHub.db.global.options.tradeExtraInfo = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "tradeExtraInfo", val);
           end,
         },
       },
@@ -114,7 +112,7 @@ function addonTable.GenerateOptions()
   });
 
   -- AutoBuy
-  tinsert(UH.Options, {
+  tinsert(UtilityHub.Options, {
     key = ADDON_NAME .. "_AutoBuy",
     name = "AutoBuy",
     root = false,
@@ -129,10 +127,10 @@ function addonTable.GenerateOptions()
           desc =
           "Enable the functionality to autobuy specific limited stock items from vendors when the window is opened",
           order = GetNextOrder("autoBuy"),
-          get = function() return UH.db.global.options.autoBuy end,
+          get = function() return UtilityHub.db.global.options.autoBuy end,
           set = function(_, val)
-            UH.db.global.options.autoBuy = val;
-            UH.Events:TriggerEvent("OPTIONS_CHANGED", "autoBuy", val);
+            UtilityHub.db.global.options.autoBuy = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "autoBuy", val);
           end,
         },
         autoBuyList = {
@@ -142,10 +140,10 @@ function addonTable.GenerateOptions()
           order = GetNextOrder("autoBuy"),
           width = "full",
           set = function(_, val)
-            UH.db.global.options.autoBuyList = C_EncodingUtil.DeserializeJSON(val);
+            UtilityHub.db.global.options.autoBuyList = C_EncodingUtil.DeserializeJSON(val);
           end,
           get = function()
-            return C_EncodingUtil.SerializeJSON(UH.db.global.options.autoBuyList or {});
+            return C_EncodingUtil.SerializeJSON(UtilityHub.db.global.options.autoBuyList or {});
           end,
           ---@type ItemListArg
           arg = {
@@ -164,11 +162,11 @@ function addonTable.GenerateOptions()
               GameTooltip:Hide();
             end,
             CreateNewRow = function(self, text, OnSuccess, OnError)
-              UH.Helpers:AsyncGetItemInfo(text, function(itemLink)
+              UtilityHub.Helpers:AsyncGetItemInfo(text, function(itemLink)
                 if (itemLink) then
                   OnSuccess(itemLink, function(error)
                     if (error == "ROW_ALREADY_EXISTS") then
-                      UH.Helpers:ShowNotification("Item already added to the list");
+                      UtilityHub.Helpers:ShowNotification("Item already added to the list");
                     end
                   end);
                 else
@@ -193,13 +191,13 @@ function addonTable.GenerateOptions()
   -- Mail
 
   ---@type Preset
-  local presetModule = UH:GetModule("Preset");
-  UH.tempPreset = presetModule:GetNewEmptyPreset();
+  local presetModule = UtilityHub:GetModule("Preset");
+  UtilityHub.tempPreset = presetModule:GetNewEmptyPreset();
 
   local function GenerateNewPreset()
     return {
       name = function()
-        return UH.tempPreset and UH.tempPreset.id and "Editing preset" or "New preset";
+        return UtilityHub.tempPreset and UtilityHub.tempPreset.id and "Editing preset" or "New preset";
       end,
       type = "group",
       order = GetNextOrder("mail"),
@@ -216,10 +214,10 @@ function addonTable.GenerateOptions()
           order = GetNextOrder("mail"),
           width = "double",
           get = function()
-            return UH.tempPreset.name;
+            return UtilityHub.tempPreset.name;
           end,
           set = function(_, value)
-            UH.tempPreset.name = value;
+            UtilityHub.tempPreset.name = value;
           end
         },
         newPresetColorInput = {
@@ -228,10 +226,10 @@ function addonTable.GenerateOptions()
           order = GetNextOrder("mail"),
           width = "half",
           get = function()
-            return UH.tempPreset.color.r, UH.tempPreset.color.g, UH.tempPreset.color.b, UH.tempPreset.color.a;
+            return UtilityHub.tempPreset.color.r, UtilityHub.tempPreset.color.g, UtilityHub.tempPreset.color.b, UtilityHub.tempPreset.color.a;
           end,
           set = function(_, r, g, b, a)
-            UH.tempPreset.color = { r = r, g = g, b = b, a = a };
+            UtilityHub.tempPreset.color = { r = r, g = g, b = b, a = a };
           end
         },
         newPresetToInput = {
@@ -240,10 +238,10 @@ function addonTable.GenerateOptions()
           order = GetNextOrder("mail"),
           width = "double",
           get = function()
-            return UH.tempPreset.to;
+            return UtilityHub.tempPreset.to;
           end,
           set = function(_, value)
-            UH.tempPreset.to = value;
+            UtilityHub.tempPreset.to = value;
           end
         },
         newPresetSeparator = GenerateSeparator("mail", "Items"),
@@ -251,7 +249,7 @@ function addonTable.GenerateOptions()
           name = function()
             local count = 0;
 
-            for _, group in ipairs(UH.tempPreset.itemGroups) do
+            for _, group in ipairs(UtilityHub.tempPreset.itemGroups) do
               if (group.checked) then
                 count = count + 1;
               end
@@ -270,10 +268,10 @@ function addonTable.GenerateOptions()
               order = GetNextOrder("mail"),
               width = "full",
               set = function(_, val)
-                UH.tempPreset.itemGroups = C_EncodingUtil.DeserializeJSON(val);
+                UtilityHub.tempPreset.itemGroups = C_EncodingUtil.DeserializeJSON(val);
               end,
               get = function()
-                return C_EncodingUtil.SerializeJSON(UH.tempPreset.itemGroups or {});
+                return C_EncodingUtil.SerializeJSON(UtilityHub.tempPreset.itemGroups or {});
               end,
               ---@type ItemListArg
               arg = {
@@ -307,7 +305,7 @@ function addonTable.GenerateOptions()
         },
         newPresetManualInclusions = {
           name = function()
-            return string.format("Manual inclusions: %s selected", #UH.tempPreset.custom);
+            return string.format("Manual inclusions: %s selected", #UtilityHub.tempPreset.custom);
           end,
           type = "group",
           order = GetNextOrder("mail"),
@@ -320,10 +318,10 @@ function addonTable.GenerateOptions()
               order = GetNextOrder("mail"),
               width = "full",
               set = function(_, val)
-                UH.tempPreset.custom = C_EncodingUtil.DeserializeJSON(val);
+                UtilityHub.tempPreset.custom = C_EncodingUtil.DeserializeJSON(val);
               end,
               get = function()
-                return C_EncodingUtil.SerializeJSON(UH.tempPreset.custom or {});
+                return C_EncodingUtil.SerializeJSON(UtilityHub.tempPreset.custom or {});
               end,
               ---@type ItemListArg
               arg = {
@@ -344,11 +342,11 @@ function addonTable.GenerateOptions()
                   GameTooltip:Hide();
                 end,
                 CreateNewRow = function(self, text, OnSuccess, OnError)
-                  UH.Helpers:AsyncGetItemInfo(text, function(itemLink)
+                  UtilityHub.Helpers:AsyncGetItemInfo(text, function(itemLink)
                     if (itemLink) then
                       OnSuccess(itemLink, function(error)
                         if (error == "ROW_ALREADY_EXISTS") then
-                          UH.Helpers:ShowNotification("Item already added to the list");
+                          UtilityHub.Helpers:ShowNotification("Item already added to the list");
                         end
                       end);
                     else
@@ -372,7 +370,7 @@ function addonTable.GenerateOptions()
         },
         newPresetManualExclusions = {
           name = function()
-            return string.format("Manual exclusions: %s selected", #UH.tempPreset.exclusion);
+            return string.format("Manual exclusions: %s selected", #UtilityHub.tempPreset.exclusion);
           end,
           type = "group",
           order = GetNextOrder("mail"),
@@ -385,10 +383,10 @@ function addonTable.GenerateOptions()
               order = GetNextOrder("mail"),
               width = "full",
               set = function(_, val)
-                UH.tempPreset.exclusion = C_EncodingUtil.DeserializeJSON(val);
+                UtilityHub.tempPreset.exclusion = C_EncodingUtil.DeserializeJSON(val);
               end,
               get = function()
-                return C_EncodingUtil.SerializeJSON(UH.tempPreset.exclusion or {});
+                return C_EncodingUtil.SerializeJSON(UtilityHub.tempPreset.exclusion or {});
               end,
               ---@type ItemListArg
               arg = {
@@ -409,11 +407,11 @@ function addonTable.GenerateOptions()
                   GameTooltip:Hide();
                 end,
                 CreateNewRow = function(self, text, OnSuccess, OnError)
-                  UH.Helpers:AsyncGetItemInfo(text, function(itemLink)
+                  UtilityHub.Helpers:AsyncGetItemInfo(text, function(itemLink)
                     if (itemLink) then
                       OnSuccess(itemLink, function(error)
                         if (error == "ROW_ALREADY_EXISTS") then
-                          UH.Helpers:ShowNotification("Item already added to the list");
+                          UtilityHub.Helpers:ShowNotification("Item already added to the list");
                         end
                       end);
                     else
@@ -444,22 +442,22 @@ function addonTable.GenerateOptions()
           func = function(info, value)
             local itemGroups = {};
 
-            for _, group in ipairs(UH.tempPreset.itemGroups) do
+            for _, group in ipairs(UtilityHub.tempPreset.itemGroups) do
               itemGroups[group.key] = group.checked;
             end
 
             local result = presetModule:SavePreset({
-              name = UH.tempPreset.name,
-              to = UH.tempPreset.to,
-              custom = UH.tempPreset.custom,
+              name = UtilityHub.tempPreset.name,
+              to = UtilityHub.tempPreset.to,
+              custom = UtilityHub.tempPreset.custom,
               itemGroups = itemGroups,
-              exclusion = UH.tempPreset.exclusion,
-              color = UH.tempPreset.color,
-            }, UH.tempPreset.id);
+              exclusion = UtilityHub.tempPreset.exclusion,
+              color = UtilityHub.tempPreset.color,
+            }, UtilityHub.tempPreset.id);
 
             if (result) then
-              UH.tempPreset = presetModule:GetNewEmptyPreset();
-              UH.AceConfigDialog:SelectGroup(ADDON_NAME .. "_Mail", "mailPresetsGroup");
+              UtilityHub.tempPreset = presetModule:GetNewEmptyPreset();
+              UtilityHub.AceConfigDialog:SelectGroup(ADDON_NAME .. "_Mail", "mailPresetsGroup");
             end
           end
         },
@@ -467,7 +465,7 @@ function addonTable.GenerateOptions()
     };
   end
 
-  tinsert(UH.Options, {
+  tinsert(UtilityHub.Options, {
     key = ADDON_NAME .. "_Mail",
     name = "Mail",
     root = false,
@@ -495,10 +493,10 @@ function addonTable.GenerateOptions()
               order = GetNextOrder("mail"),
               width = "full",
               set = function(_, val)
-                UH.db.global.characters = C_EncodingUtil.DeserializeJSON(val);
+                UtilityHub.db.global.characters = C_EncodingUtil.DeserializeJSON(val);
               end,
               get = function()
-                return C_EncodingUtil.SerializeJSON(UH.db.global.characters or {});
+                return C_EncodingUtil.SerializeJSON(UtilityHub.db.global.characters or {});
               end,
               ---@type ItemListArg
               arg = {
@@ -517,9 +515,9 @@ function addonTable.GenerateOptions()
                 CustomizeRowElement = function(self, frame, rowData, helpers)
                   local widget = self;
                   local options = {
-                    { text = "Main/alt",  value = UH.Enums.CHARACTER_GROUP.MAIN_ALT },
-                    { text = "Bank",      value = UH.Enums.CHARACTER_GROUP.BANK },
-                    { text = "Ungrouped", value = UH.Enums.CHARACTER_GROUP.UNGROUPED },
+                    { text = "Main/alt",  value = UtilityHub.Enums.CHARACTER_GROUP.MAIN_ALT },
+                    { text = "Bank",      value = UtilityHub.Enums.CHARACTER_GROUP.BANK },
+                    { text = "Ungrouped", value = UtilityHub.Enums.CHARACTER_GROUP.UNGROUPED },
                   };
 
                   function CreateDropDown()
@@ -534,7 +532,7 @@ function addonTable.GenerateOptions()
 
                       local function OnSelect(self, arg1)
                         widget.items[widget:GetRowIndex(widget.items, rowData)].group = arg1 or
-                            UH.Enums.CHARACTER_GROUP.UNGROUPED;
+                            UtilityHub.Enums.CHARACTER_GROUP.UNGROUPED;
                         widget:FireValueChanged();
                       end
 
@@ -553,7 +551,7 @@ function addonTable.GenerateOptions()
                       UIDropDownMenu_SetWidth(frame.customElements[widget.name].DropDownGroup, 100);
                     end
 
-                    local selectedValue = rowData.group or UH.Enums.CHARACTER_GROUP.UNGROUPED;
+                    local selectedValue = rowData.group or UtilityHub.Enums.CHARACTER_GROUP.UNGROUPED;
                     local selectedOption = options[1];
 
                     for _, option in pairs(options) do
@@ -571,7 +569,7 @@ function addonTable.GenerateOptions()
                   frame:GetFontString():SetPoint("LEFT", 6, 0);
                   frame:GetFontString():SetPoint("RIGHT", -20, 0);
 
-                  local color = UH.Helpers:GetRGBFromClassName(rowData.className);
+                  local color = UtilityHub.Helpers:GetRGBFromClassName(rowData.className);
 
                   frame:GetFontString():SetTextColor(color.r, color.g, color.b);
 
@@ -606,10 +604,10 @@ function addonTable.GenerateOptions()
               order = GetNextOrder("mail"),
               width = "full",
               set = function(_, val)
-                UH.db.global.presets = C_EncodingUtil.DeserializeJSON(val);
+                UtilityHub.db.global.presets = C_EncodingUtil.DeserializeJSON(val);
               end,
               get = function()
-                return C_EncodingUtil.SerializeJSON(UH.db.global.presets or {});
+                return C_EncodingUtil.SerializeJSON(UtilityHub.db.global.presets or {});
               end,
               ---@type ItemListArg
               arg = {
@@ -641,7 +639,7 @@ function addonTable.GenerateOptions()
                       local index = widget:GetRowIndex(widget.items, rowData);
                       local data = widget.items[index];
 
-                      UH.tempPreset = {
+                      UtilityHub.tempPreset = {
                         id = index,
                         name = data.name,
                         to = data.to,
@@ -651,9 +649,9 @@ function addonTable.GenerateOptions()
                         color = data.color or presetModule.defaultPresetColor,
                       };
 
-                      for itemGroupName, itemGroup in UH.UTILS:OrderedPairs(presetModule.ItemGroupOptions) do
+                      for itemGroupName, itemGroup in UtilityHub.UTILS:OrderedPairs(presetModule.ItemGroupOptions) do
                         tinsert(
-                          UH.tempPreset.itemGroups,
+                          UtilityHub.tempPreset.itemGroups,
                           {
                             checked = data.itemGroups[itemGroupName] or false,
                             name = itemGroup.label,
@@ -662,7 +660,7 @@ function addonTable.GenerateOptions()
                         );
                       end
 
-                      UH.AceConfigDialog:SelectGroup(ADDON_NAME .. "_Mail", "mailPresetsGroup", "newPreset");
+                      UtilityHub.AceConfigDialog:SelectGroup(ADDON_NAME .. "_Mail", "mailPresetsGroup", "newPreset");
                     end);
                     frame.customElements[widget.name].EditIconButton:SetScript("OnEnter", function()
                       local el = frame.customElements[widget.name].EditIconButton;
@@ -701,7 +699,7 @@ function addonTable.GenerateOptions()
   });
 
   -- Cooldowns
-  tinsert(UH.Options, {
+  tinsert(UtilityHub.Options, {
     key = ADDON_NAME .. "_Cooldowns",
     name = "Cooldowns",
     root = false,
@@ -717,10 +715,10 @@ function addonTable.GenerateOptions()
           "Enable tracking and listing of all character cooldowns (with the addon active)",
           order = GetNextOrder("cooldowns"),
           width = "full",
-          get = function() return UH.db.global.options.cooldowns end,
+          get = function() return UtilityHub.db.global.options.cooldowns end,
           set = function(_, val)
-            UH.db.global.options.cooldowns = val;
-            UH.Events:TriggerEvent("OPTIONS_CHANGED", "cooldowns", val);
+            UtilityHub.db.global.options.cooldowns = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldowns", val);
           end,
         },
         cooldownsPlaySound = {
@@ -728,10 +726,10 @@ function addonTable.GenerateOptions()
           name = "Play sound when a cooldown is ready",
           order = GetNextOrder("cooldowns"),
           width = "full",
-          get = function() return UH.db.global.options.cooldownPlaySound end,
+          get = function() return UtilityHub.db.global.options.cooldownPlaySound end,
           set = function(_, val)
-            UH.db.global.options.cooldownPlaySound = val;
-            UH.Events:TriggerEvent("OPTIONS_CHANGED", "cooldownPlaySound", val);
+            UtilityHub.db.global.options.cooldownPlaySound = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldownPlaySound", val);
           end,
         },
       },
@@ -739,7 +737,7 @@ function addonTable.GenerateOptions()
   });
 
   -- Cooldowns
-  tinsert(UH.Options, {
+  tinsert(UtilityHub.Options, {
     key = ADDON_NAME .. "_DailyQuests",
     name = "DailyQuests",
     root = false,
@@ -755,10 +753,10 @@ function addonTable.GenerateOptions()
           "Enable tracking of the daily quests",
           order = GetNextOrder("dailyQuests"),
           width = "full",
-          get = function() return UH.db.global.options.dailyQuests end,
+          get = function() return UtilityHub.db.global.options.dailyQuests end,
           set = function(_, val)
-            UH.db.global.options.dailyQuests = val;
-            UH.Events:TriggerEvent("OPTIONS_CHANGED", "dailyQuests", val);
+            UtilityHub.db.global.options.dailyQuests = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "dailyQuests", val);
           end,
         },
       },

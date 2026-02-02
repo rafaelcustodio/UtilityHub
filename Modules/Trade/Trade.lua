@@ -1,10 +1,7 @@
-local ADDON_NAME = ...;
----@type UtilityHub
-local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 local moduleName = 'Trade';
 ---@class Trade
 ---@diagnostic disable-next-line: undefined-field
-local Module = UH:NewModule(moduleName);
+local Module = UtilityHub:NewModule(moduleName);
 Module.whispers = {};
 ---@type table|nil
 Module.TradeDataFrameRef = nil;
@@ -48,7 +45,7 @@ function Module:OnDisable()
 end
 
 function Module:SaveLastWhisper(message, sender)
-  UH.db.global.whispers[sender] = message;
+  UtilityHub.db.global.whispers[sender] = message;
   Module:UpdateLastWhisperInFrame();
 end
 
@@ -58,7 +55,7 @@ function Module:CreateTradeDataFrame()
   end
 
   local frameWidth = 200;
-  local frame = UH.UTILS.AceGUI:Create("Frame", TradeFrame);
+  local frame = UtilityHub.UTILS.AceGUI:Create("Frame", TradeFrame);
   Module.TradeDataFrameRef = frame;
   frame:Hide();
   frame:SetTitle("Trading with...");
@@ -79,13 +76,13 @@ function Module:CreateTradeDataFrame()
   spacer:SetText(" ");
   spacer:SetHeight(10);
 
-  local scrollFrameParent = UH.UTILS.AceGUI:Create("InlineGroup");
+  local scrollFrameParent = UtilityHub.UTILS.AceGUI:Create("InlineGroup");
   scrollFrameParent:SetTitle("Last whisper:");
   scrollFrameParent:SetFullWidth(true);
   scrollFrameParent:SetFullHeight(true);
   frame:AddChild(scrollFrameParent);
 
-  local scroll = UH.UTILS.AceGUI:Create("ScrollFrame");
+  local scroll = UtilityHub.UTILS.AceGUI:Create("ScrollFrame");
   scroll:SetFullWidth(true);
   scroll:SetLayout("Flow");
   scrollFrameParent:AddChild(scroll);
@@ -112,7 +109,7 @@ function Module:CreateTradeDataFrame()
 
   function frame:UpdateWhisper()
     local name, server = frame:GetNameAndServer();
-    label:SetText(UH.db.global.whispers[name .. "-" .. server] or "-");
+    label:SetText(UtilityHub.db.global.whispers[name .. "-" .. server] or "-");
   end
 
   function frame:Update()
@@ -125,7 +122,7 @@ function Module:CreateTradeDataFrame()
     local raceClass = "-";
 
     if (name) then
-      raceClass = race .. " " .. UH.UTILS:GetClassColoredText(class);
+      raceClass = race .. " " .. UtilityHub.UTILS:GetClassColoredText(class);
     else
       name = "-";
       server = "-";
@@ -161,7 +158,7 @@ end
 ---@param fontSize number|nil
 ---@return table
 function CreateLabel(frame, text, fontSize)
-  local label = UH.UTILS.AceGUI:Create("Label");
+  local label = UtilityHub.UTILS.AceGUI:Create("Label");
   local fontPath, _, fontFlags = label.label:GetFont();
   label.label:SetFont(fontPath, fontSize or 16, fontFlags);
   label:SetText(text or "");

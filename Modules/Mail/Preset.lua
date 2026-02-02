@@ -1,10 +1,8 @@
 local ADDON_NAME, addonTable = ...;
----@type UtilityHub
-local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 local moduleName = 'Preset';
 ---@class Preset
 ---@diagnostic disable-next-line: undefined-field
-local Module = UH:NewModule(moduleName);
+local Module = UtilityHub:NewModule(moduleName);
 
 local classicItems = addonTable.classicItems; ---@type ClassicItems
 local tbcItems = addonTable.tbcItems; ---@type TBCItems
@@ -12,7 +10,7 @@ local tbcItems = addonTable.tbcItems; ---@type TBCItems
 --- @param itemList PresetItemsDBItem[]
 --- @return boolean
 local function CheckItemLinkInList(itemLink, itemList)
-  local itemID = UH.UTILS:GetItemIDFromLink(itemLink);
+  local itemID = UtilityHub.UTILS:GetItemIDFromLink(itemLink);
 
   for _, loopItem in ipairs(itemList) do
     if (itemID == loopItem.itemID) then
@@ -30,7 +28,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local _, _, itemQuality, _, _, itemType, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         -- Check if the item is Green (Quality 2) and is an Equipment type
         return itemQuality == 2 and (itemType == "Armor" or itemType == "Weapon");
       else
@@ -44,7 +42,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local _, _, itemQuality, _, _, itemType, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         -- Check if the item is Blue (Quality 3) and is an Equipment type
         return itemQuality == 3 and (itemType == "Armor" or itemType == "Weapon");
       else
@@ -58,7 +56,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         return CheckItemLinkInList(itemLink, classicItems.elemental);
       else
         return classID == Enum.ItemClass.Tradegoods and subclassID == 10;
@@ -70,7 +68,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         return CheckItemLinkInList(itemLink, classicItems.stone);
       else
         return classID == Enum.ItemClass.Tradegoods
@@ -85,7 +83,7 @@ Module.ItemGroupOptions = {
       local _, _, _, _, _, _, _, _, _, _, _, classID = C_Item.GetItemInfo(
         itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         if (classID ~= 7) then
           return false;
         end
@@ -101,7 +99,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         if (classID ~= 7) then
           return false;
         end
@@ -117,7 +115,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         if (classID ~= 7) then
           return false;
         end
@@ -133,7 +131,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         if (classID ~= 7) then
           return false;
         end
@@ -149,7 +147,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         -- Consumable
         if (classID == 0) then
           if (string.find(itemName, "Potion") ~= nil and
@@ -185,7 +183,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         if (classID ~= 7) then
           return false;
         end
@@ -206,7 +204,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         if (classID ~= 7) then
           return false;
         end
@@ -227,7 +225,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         if (classID ~= 15) then
           return false;
         end
@@ -247,7 +245,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, _ = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         if (classID ~= 9) then
           return false;
         end
@@ -267,7 +265,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (not UH.IsClassic and not (classID == Enum.ItemClass.Questitem and subclassID == 0)) then
+      if (not UtilityHub.IsClassic and not (classID == Enum.ItemClass.Questitem and subclassID == 0)) then
         return false
       end
 
@@ -279,7 +277,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         return classID == 0 and CheckItemLinkInList(itemLink, classicItems.manaPotion);
       else
         if (classID == Enum.ItemClass.Consumable and subclassID == 1 and string.find(itemName, "Mana Potion")) then
@@ -295,7 +293,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         return classID == 0 and CheckItemLinkInList(itemLink, classicItems.healthPotion);
       else
         if (classID == Enum.ItemClass.Consumable and subclassID == 1 and string.find(itemName, "Healing Potion")) then
@@ -311,7 +309,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local itemName, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         return classID == 0 and CheckItemLinkInList(itemLink, classicItems.bar);
       else
         if (classID == Enum.ItemClass.Consumable and subclassID == 4) then
@@ -327,7 +325,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         return CheckItemLinkInList(itemLink, classicItems.explosives);
       else
         return classID == Enum.ItemClass.Tradegoods and subclassID == 2;
@@ -339,7 +337,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         return CheckItemLinkInList(itemLink, classicItems.leather);
       else
         return classID == Enum.ItemClass.Tradegoods and subclassID == 6;
@@ -351,7 +349,7 @@ Module.ItemGroupOptions = {
     checkItemBelongsToGroup = function(itemLink)
       local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
 
-      if (UH.IsClassic) then
+      if (UtilityHub.IsClassic) then
         return CheckItemLinkInList(itemLink, classicItems.rawFood);
       else
         return classID == Enum.ItemClass.Tradegoods and subclassID == 8;
@@ -367,7 +365,8 @@ local id = nil;
 
 function Module:CreateNewPresetFrame()
   local frameHeight = 350;
-  Module.NewPresetFrame = CreateFrame("Frame", UH.Helpers:ApplyPrefix("NewPresetFrame"), UIParent, "DialogBoxFrame");
+  Module.NewPresetFrame = CreateFrame("Frame", UtilityHub.Helpers:ApplyPrefix("NewPresetFrame"), UIParent,
+    "DialogBoxFrame");
   Module.NewPresetFrame:SetPoint("CENTER", UIParent, "CENTER");
   Module.NewPresetFrame:SetClampedToScreen(true);
   Module.NewPresetFrame:SetSize(350, frameHeight);
@@ -382,7 +381,7 @@ function Module:CreateNewPresetFrame()
     end
   end);
 
-  UH.UTILS:AddMovableToFrame(Module.NewPresetFrame);
+  UtilityHub.UTILS:AddMovableToFrame(Module.NewPresetFrame);
 
   -- Hide original button
   select(1, Module.NewPresetFrame:GetChildren()):Hide();
@@ -447,7 +446,7 @@ function Module:CreateNewPresetFrame()
   local height = 0;
   local previousRef = nil;
 
-  for key, value in UH.UTILS:OrderedPairs(Module.ItemGroupOptions) do
+  for key, value in UtilityHub.UTILS:OrderedPairs(Module.ItemGroupOptions) do
     Module.NewPresetFrame.checkboxList[key] = Module:CreateItemGroupOption(key, value.label, previousRef,
       tabItemGroups.ScrollChildFrame);
     previousRef = Module.NewPresetFrame.checkboxList[key];
@@ -469,13 +468,14 @@ function Module:CreateNewPresetFrame()
   tinsert(Module.NewPresetFrame.ScrollFrameParent.Tabs, tabCustomButton:GetID(), tabCustomButton);
   tinsert(Module.NewPresetFrame.ScrollFrameParent.Tabs, tabItemGroupsButton:GetID(), tabItemGroupsButton);
   tinsert(Module.NewPresetFrame.ScrollFrameParent.Tabs, tabExclusionsButton:GetID(), tabExclusionsButton);
-  Module.NewPresetFrame.ScrollFrameParent.numTabs = UH.UTILS:TableLength(Module.NewPresetFrame.ScrollFrameParent.Tabs);
+  Module.NewPresetFrame.ScrollFrameParent.numTabs = UtilityHub.UTILS:TableLength(Module.NewPresetFrame.ScrollFrameParent
+  .Tabs);
 
   -- After creating all tabs
   Module:OnClickTab(tabCustomButton);
 
   -- Footer
-  Module.NewPresetFrame.CloseButton = CreateFrame("Button", UH.Helpers:ApplyPrefix("NewPresetFrameCloseButton"),
+  Module.NewPresetFrame.CloseButton = CreateFrame("Button", UtilityHub.Helpers:ApplyPrefix("NewPresetFrameCloseButton"),
     Module.NewPresetFrame, "UIPanelButtonTemplate");
   Module.NewPresetFrame.CloseButton:SetPoint("BOTTOMRIGHT", Module.NewPresetFrame, "BOTTOMRIGHT", -10, 10);
   Module.NewPresetFrame.CloseButton:SetWidth(80);
@@ -484,7 +484,7 @@ function Module:CreateNewPresetFrame()
     Module:CloseNewPresetFrame();
   end);
 
-  Module.NewPresetFrame.SaveButton = CreateFrame("Button", UH.Helpers:ApplyPrefix("NewPresetFrameSaveButton"),
+  Module.NewPresetFrame.SaveButton = CreateFrame("Button", UtilityHub.Helpers:ApplyPrefix("NewPresetFrameSaveButton"),
     Module.NewPresetFrame, "UIPanelButtonTemplate");
   Module.NewPresetFrame.SaveButton:SetPoint("RIGHT", Module.NewPresetFrame.CloseButton, "LEFT", -5, 0);
   Module.NewPresetFrame.SaveButton:SetWidth(80);
@@ -498,7 +498,8 @@ function Module:CreateNewPresetFrame()
 end
 
 function Module:CreateItemGroupOption(key, label, previousRef, parent)
-  local checkbox = UH.UTILS:CreateCheckbox(UH.Helpers:ApplyPrefix("Checkbox" .. key), parent, label, false,
+  local checkbox = UtilityHub.UTILS:CreateCheckbox(UtilityHub.Helpers:ApplyPrefix("Checkbox" .. key), parent, label,
+    false,
     function()
     end);
 
@@ -512,7 +513,7 @@ function Module:CreateItemGroupOption(key, label, previousRef, parent)
 end
 
 function Module:CreateNewPresetTab(name, index, label, frameHeight, y, previousTabButton)
-  local tab = CreateFrame("Button", UH.Helpers:ApplyPrefix("NewPresetTab" .. name),
+  local tab = CreateFrame("Button", UtilityHub.Helpers:ApplyPrefix("NewPresetTab" .. name),
     Module.NewPresetFrame.ScrollFrameParent, "CharacterFrameTabButtonTemplate");
   tab:SetID(index);
   tab:SetText(label);
@@ -576,7 +577,7 @@ function Module:UpdateNewPresetItemRows(tab, tempKey)
   end
 
   for i, itemLink in ipairs(rows) do
-    local itemId = UH.UTILS:GetItemIDFromLink(itemLink);
+    local itemId = UtilityHub.UTILS:GetItemIDFromLink(itemLink);
 
     if (itemId) then
       local rowRef = scrollChildFrame.ItemRows[itemId];
@@ -622,7 +623,7 @@ function Module:UpdateNewPresetItemRows(tab, tempKey)
     end
   end
 
-  if (UH.UTILS:TableLength(temp[tempKey]) == 0) then
+  if (UtilityHub.UTILS:TableLength(temp[tempKey]) == 0) then
     tab.EmptyText:Show();
   else
     tab.EmptyText:Hide();
@@ -642,7 +643,7 @@ function Module:AddListToTab(tab, tempKey)
   tab:SetScript("OnMouseUp", function()
     local _, _, itemLink = GetCursorInfo();
 
-    if (itemLink and not UH.UTILS:ValueInTable(temp[tempKey], itemLink)) then
+    if (itemLink and not UtilityHub.UTILS:ValueInTable(temp[tempKey], itemLink)) then
       tinsert(temp[tempKey], itemLink);
       Module:UpdateNewPresetItemRows(tab, tempKey);
       C_Timer.After(0.01, function()
@@ -676,8 +677,8 @@ function Module:UpdateWithRegister(register, registerID)
 
   Module.NewPresetFrame.NameInput:SetText(register.name or "");
   Module.NewPresetFrame.ToInput:SetText(register.to or "");
-  temp.items = UH.UTILS:ShallowCopyTable(register.custom or {});
-  temp.itemsExclusion = UH.UTILS:ShallowCopyTable(register.exclusion or {});
+  temp.items = UtilityHub.UTILS:ShallowCopyTable(register.custom or {});
+  temp.itemsExclusion = UtilityHub.UTILS:ShallowCopyTable(register.exclusion or {});
 
   -- Clear all previous checked
   for key, value in pairs(Module.ItemGroupOptions) do
@@ -741,7 +742,7 @@ function Module:CreateFormField(name, labelText, parent, y)
   label:SetText(labelText);
   label:SetJustifyH("LEFT");
 
-  local input = CreateFrame("EditBox", UH.Helpers:ApplyPrefix(name), parent, "InputBoxTemplate");
+  local input = CreateFrame("EditBox", UtilityHub.Helpers:ApplyPrefix(name), parent, "InputBoxTemplate");
   input:SetSize(180, 30);
   input:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -20, y);
   input:SetAutoFocus(false);
@@ -829,16 +830,16 @@ function Module:SavePreset(data, dataID)
     end
   end
 
-  if (UH.UTILS:TableLength(preset.custom) == 0 and (not atLeastOneCheck)) then
+  if (UtilityHub.UTILS:TableLength(preset.custom) == 0 and (not atLeastOneCheck)) then
     Module:ShowFormErrorPopup("At least one item group needs to be checked or one item added to the inclusions");
     return false;
   end
 
   -- Save
   if (id or dataID) then
-    UH.db.global.presets[id or dataID] = preset;
+    UtilityHub.db.global.presets[id or dataID] = preset;
   else
-    tinsert(UH.db.global.presets, preset);
+    tinsert(UtilityHub.db.global.presets, preset);
   end
 
   if (not data) then
@@ -859,7 +860,7 @@ function Module:GetNewEmptyPreset()
     exclusion = {},
   };
 
-  for itemGroupName, itemGroup in UH.UTILS:OrderedPairs(Module.ItemGroupOptions) do
+  for itemGroupName, itemGroup in UtilityHub.UTILS:OrderedPairs(Module.ItemGroupOptions) do
     tinsert(preset.itemGroups, { checked = false, name = itemGroup.label, key = itemGroupName });
   end
 
@@ -871,10 +872,11 @@ function Module:GetLoadPresetGeneratorFunction()
   local refUH = UH;
 
   return function(owner, rootDescription)
-    rootDescription:CreateTitle(refUH.UTILS:TableLength(refUH.db.global.presets) == 0 and "No presets available" or
+    rootDescription:CreateTitle(refUtilityHub.UTILS:TableLength(refUtilityHub.db.global.presets) == 0 and
+      "No presets available" or
       "Presets available");
 
-    for key, value in pairs(refUH.db.global.presets) do
+    for key, value in pairs(refUtilityHub.db.global.presets) do
       local presetButton = rootDescription:CreateButton(value.name, function(data)
         Module:ExecutePreset(value);
       end);
@@ -890,10 +892,11 @@ function Module:GetManagePresetGeneratorFunction()
   local refUH = UH;
 
   return function(owner, rootDescription)
-    rootDescription:CreateTitle(refUH.UTILS:TableLength(refUH.db.global.presets) == 0 and "No presets available" or
+    rootDescription:CreateTitle(refUtilityHub.UTILS:TableLength(refUtilityHub.db.global.presets) == 0 and
+      "No presets available" or
       "Presets available");
 
-    for i, value in pairs(refUH.db.global.presets) do
+    for i, value in pairs(refUtilityHub.db.global.presets) do
       local button = rootDescription:CreateButton(value.name);
 
       button:CreateButton("Edit", function()
@@ -903,13 +906,13 @@ function Module:GetManagePresetGeneratorFunction()
       button:CreateButton("Remove", function()
         local newPresets = {};
 
-        for j, value in pairs(refUH.db.global.presets) do
+        for j, value in pairs(refUtilityHub.db.global.presets) do
           if (i ~= j) then
             tinsert(newPresets, value);
           end
         end
 
-        refUH.db.global.presets = newPresets;
+        refUtilityHub.db.global.presets = newPresets;
       end);
     end
   end
@@ -935,7 +938,7 @@ function Module:ExecutePreset(preset)
 
       if (itemLink) then
         local isSoulbound = C_Item.IsBound(ItemLocation:CreateFromBagAndSlot(bag, slot));
-        local isConjured = UH.UTILS:IsItemConjured(itemLink);
+        local isConjured = UtilityHub.UTILS:IsItemConjured(itemLink);
 
         if (not isSoulbound and not isConjured and Module:ItemShouldBeAdded(itemLink, itemGroupFunctions, preset.custom, preset.exclusion)) then
           Module:AddItemToNextEmptyMailSlot(bag, slot);

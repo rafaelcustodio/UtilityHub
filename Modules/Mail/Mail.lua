@@ -1,24 +1,21 @@
-local ADDON_NAME = ...;
----@type UtilityHub
-local UH = LibStub('AceAddon-3.0'):GetAddon(ADDON_NAME);
 local moduleName = 'Mail';
 ---@class Mail
 ---@diagnostic disable-next-line: undefined-field
-local Module = UH:NewModule(moduleName);
+local Module = UtilityHub:NewModule(moduleName);
 ---@diagnostic disable-next-line: undefined-field
 ---@type Preset
 local PresetModule;
 ---@type Characters
 local CharactersModule;
 
-UH.Events:RegisterCallback("PLAYER_GUILD_UPDATE", function(_, name)
+UtilityHub.Events:RegisterCallback("PLAYER_GUILD_UPDATE", function(_, name)
   Module:UpdateMailButtons();
 end);
 
 function Module:CreateMailIconButtons()
   function CreateNewPresetButton(previousFrame)
     -- New
-    MailFrame.NewPresetButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("NewPresetButton"));
+    MailFrame.NewPresetButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("NewPresetButton"));
     if (previousFrame) then
       MailFrame.NewPresetButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
     else
@@ -47,7 +44,7 @@ function Module:CreateMailIconButtons()
 
   function CreateLoadPresetButton(previousFrame)
     -- Load
-    MailFrame.LoadPresetButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("LoadPresetButton"));
+    MailFrame.LoadPresetButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("LoadPresetButton"));
     if (previousFrame) then
       MailFrame.LoadPresetButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
     else
@@ -88,7 +85,7 @@ function Module:CreateMailIconButtons()
 
   function CreateManagePresetButton(previousFrame)
     -- Manage
-    MailFrame.ManagePresetButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("ManagePresetButton"));
+    MailFrame.ManagePresetButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("ManagePresetButton"));
     MailFrame.ManagePresetButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
     local iconTexture = MailFrame.ManagePresetButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Buttons\\UI-OptionsButton.blp");
@@ -124,7 +121,7 @@ function Module:CreateMailIconButtons()
   end
 
   function CreateCharactersButton(previousFrame)
-    MailFrame.CharactersButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("CharactersButton"));
+    MailFrame.CharactersButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("CharactersButton"));
     if (previousFrame) then
       MailFrame.CharactersButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
     else
@@ -164,8 +161,8 @@ function Module:CreateMailIconButtons()
   end
 
   function CreateConfigEmailButton(previousFrame)
-    MailFrame.OpenConfigEmailButton = UH.UTILS:CreateIconButton(MailFrame,
-      UH.Helpers:ApplyPrefix("OpenConfigEmailButton"));
+    MailFrame.OpenConfigEmailButton = UtilityHub.UTILS:CreateIconButton(MailFrame,
+      UtilityHub.Helpers:ApplyPrefix("OpenConfigEmailButton"));
     MailFrame.OpenConfigEmailButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
     local iconTexture = MailFrame.OpenConfigEmailButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Buttons\\UI-OptionsButton.blp");
@@ -188,10 +185,10 @@ function Module:CreateMailIconButtons()
     MailFrame.OpenConfigEmailButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 
-      if (UH.AceConfigDialog.OpenFrames[ADDON_NAME .. "_Mail"]) then
-        UH.AceConfigDialog:Close(ADDON_NAME .. "_Mail");
+      if (UtilityHub.AceConfigDialog.OpenFrames[ADDON_NAME .. "_Mail"]) then
+        UtilityHub.AceConfigDialog:Close(ADDON_NAME .. "_Mail");
       else
-        UH.AceConfigDialog:Open(ADDON_NAME .. "_Mail");
+        UtilityHub.AceConfigDialog:Open(ADDON_NAME .. "_Mail");
       end
     end);
 
@@ -199,7 +196,7 @@ function Module:CreateMailIconButtons()
   end
 
   function CreateGuildButton(previousFrame)
-    MailFrame.GuildButton = UH.UTILS:CreateIconButton(MailFrame, UH.Helpers:ApplyPrefix("GuildButton"));
+    MailFrame.GuildButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("GuildButton"));
     if (previousFrame) then
       MailFrame.GuildButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
     else
@@ -260,15 +257,15 @@ end
 
 function Module:OnInitialize()
   EventRegistry:RegisterFrameEventAndCallback("MAIL_SHOW", function()
-    if (not UH:GetModule("Mail"):IsEnabled()) then
+    if (not UtilityHub:GetModule("Mail"):IsEnabled()) then
       ---@diagnostic disable-next-line: undefined-field
-      UH:EnableModule("Mail");
+      UtilityHub:EnableModule("Mail");
     end
   end);
 end
 
 function Module:OnEnable()
-  PresetModule = UH:GetModule("Preset");
-  CharactersModule = UH:GetModule("Characters");
+  PresetModule = UtilityHub:GetModule("Preset");
+  CharactersModule = UtilityHub:GetModule("Characters");
   Module:CreateMailIconButtons();
 end
