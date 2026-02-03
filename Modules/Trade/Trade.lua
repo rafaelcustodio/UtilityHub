@@ -1,213 +1,11 @@
 local moduleName = 'Trade';
----@class Trade
----@diagnostic disable-next-line: undefined-field
-local Module = UtilityHub:NewModule(moduleName);
-Module.whispers = {};
----@type table|nil
-Module.TradeDataFrameRef = nil;
----@class TradeButtons
-Module.Buttons = {
-  ---@type table|nil
-  Water = nil,
-  ---@type table|nil
-  Food = nil,
-};
-
--- Need to be outside of OnInitialize to catch whispers while trade frame is not opened before
-EventRegistry:RegisterFrameEventAndCallback("CHAT_MSG_WHISPER", function(_, text, name)
-  Module:SaveLastWhisper(text, name);
-end);
-
-EventRegistry:RegisterFrameEventAndCallback("TRADE_CLOSED", function()
-  if (Module:IsEnabled()) then
-    Module:HideFrames();
-  end
-end);
-
-EventRegistry:RegisterFrameEventAndCallback("TRADE_SHOW", function()
-  if (Module:IsEnabled()) then
-    Module:ShowFrames();
-  end
-end);
-
-function Module:OnEnable()
-  Module:CreateTradeDataFrame();
-
-  if (UnitClass("player") == "Mage") then
-    Module.Buttons.Water = Module:CreateItemButton("UHTradeWaterButton");
-    Module.Buttons.Food = Module:CreateItemButton("UHTradeFoodButton", Module.Buttons.Water);
-    Module:UpdateItemFromButtons();
-  end
-end
-
-function Module:OnDisable()
-  Module:HideFrames();
-end
-
-function Module:SaveLastWhisper(message, sender)
-  UtilityHub.db.global.whispers[sender] = message;
-  Module:UpdateLastWhisperInFrame();
-end
-
-function Module:CreateTradeDataFrame()
-  if (Module.TradeDataFrameRef) then
-    return;
-  end
-
-  local frameWidth = 200;
-  local frame = UtilityHub.UTILS.AceGUI:Create("Frame", TradeFrame);
-  Module.TradeDataFrameRef = frame;
-  frame:Hide();
-  frame:SetTitle("Trading with...");
-  frame:SetLayout("Flow");
-  frame:SetWidth(frameWidth);
-  frame:SetHeight(330);
-  frame:EnableResize(false);
-  frame:ClearAllPoints();
-  frame:SetPoint("TOPRIGHT", TradeFrame, "TOPRIGHT", 10 + frameWidth, 0);
-
-  frame.NameLabel = CreateLabel(frame);
-  frame.ServerLabel = CreateLabel(frame);
-  frame.GuildLabel = CreateLabel(frame);
-  frame.LevelLabel = CreateLabel(frame);
-  frame.RaceClassLabel = CreateLabel(frame);
-
-  local spacer = CreateLabel(frame);
-  spacer:SetText(" ");
-  spacer:SetHeight(10);
-
-  local scrollFrameParent = UtilityHub.UTILS.AceGUI:Create("InlineGroup");
-  scrollFrameParent:SetTitle("Last whisper:");
-  scrollFrameParent:SetFullWidth(true);
-  scrollFrameParent:SetFullHeight(true);
-  frame:AddChild(scrollFrameParent);
-
-  local scroll = UtilityHub.UTILS.AceGUI:Create("ScrollFrame");
-  scroll:SetFullWidth(true);
-  scroll:SetLayout("Flow");
-  scrollFrameParent:AddChild(scroll);
-  frame.LastWhisperScrollableRef = scroll;
-
-  local label = CreateLabel(scroll, "-", 14);
-  label:SetWidth(frameWidth - 60);
-  label:SetFullHeight(true);
-
-  function frame:GetNameAndServer()
-    local name, server = UnitFullName("npc");
-    server = server or GetRealmName();
-
-    if (not server) then
-      server = "-";
-    end
-
-    if (not name) then
-      name = "-";
-    end
-
-    return name, server;
-  end
-
-  function frame:UpdateWhisper()
-    local name, server = frame:GetNameAndServer();
-    label:SetText(UtilityHub.db.global.whispers[name .. "-" .. server] or "-");
-  end
-
-  function frame:Update()
-    local name, server = frame:GetNameAndServer();
-    local _, englishClass = UnitClass("npc");
-    local level = UnitLevel("npc") or "-";
-    local race = UnitRace("npc") or "-";
-    local class = UnitClass("npc") or "-";
-    local guild = GetGuildInfo("npc") or "-";
-    local raceClass = "-";
-
-    if (name) then
-      raceClass = race .. " " .. UtilityHub.UTILS:GetClassColoredText(class);
-    else
-      name = "-";
-      server = "-";
-      englishClass = "-";
-    end
-
-    frame.NameLabel:SetText(name);
-    frame.ServerLabel:SetText("|cffffd100Server:|r " .. server);
-    frame.GuildLabel:SetText("|cffffd100Guild:|r " .. guild);
-    frame.LevelLabel:SetText("|cffffd100Level:|r " .. level);
-    frame.RaceClassLabel:SetText(raceClass, englishClass);
-  end
-
-  frame:Update();
-  frame:UpdateWhisper();
-end
-
-function Module:HideFrames()
-  if (Module.TradeDataFrameRef) then
-    Module.TradeDataFrameRef:Hide();
-  end
-end
-
-function Module:ShowFrames()
-  if (Module.TradeDataFrameRef) then
-    Module.TradeDataFrameRef:Update();
-    Module.TradeDataFrameRef:Show();
-  end
-end
-
----@param frame table
----@param text string|nil
----@param fontSize number|nil
----@return table
-function CreateLabel(frame, text, fontSize)
-  local label = UtilityHub.UTILS.AceGUI:Create("Label");
-  local fontPath, _, fontFlags = label.label:GetFont();
-  label.label:SetFont(fontPath, fontSize or 16, fontFlags);
-  label:SetText(text or "");
-  label.label:SetWordWrap(true);
-  label:SetFullWidth(true);
-  frame:AddChild(label);
-
-  return label;
-end
-
-function Module:UpdateLastWhisperInFrame()
-  if (Module.TradeDataFrameRef) then
-    Module.TradeDataFrameRef:UpdateWhisper();
-  end
-end
-
-function Module:UpdateItemFromButtons()
-  -- All lists are ordered by rank, descending sort
-  local waterSpellIDs = { 10140, 10139, 10138, 6127, 5506, 5505, 5504 };
-  local foodSpellIDs = { 28612, 10145, 10144, 6129, 990, 597, 587 };
-  local waterItemIDs = { 8079, 8078, 8077, 3772, 2136, 2288, 5350 };
-  local foodItemIDs = { 22895, 8076, 8075, 1487, 1114, 1113, 5349 };
-
-  ---@param type "Water" | "Food"
-  ---@param spellIDs number[]
-  ---@param itemIDs number[]
-  function UpdateItem(type, spellIDs, itemIDs)
-    if (not Module.Buttons[type]) then
-      return;
-    end
-
-    local itemID, spellID = Module:GetItemIDBy(spellIDs, itemIDs);
-
-    if (not itemID or not spellID) then
-      return;
-    end
-
-    Module.Buttons[type]:UpdateItem(itemID, spellID);
-  end
-
-  UpdateItem("Water", waterSpellIDs, waterItemIDs);
-  UpdateItem("Food", foodSpellIDs, foodItemIDs);
-end
+local module = UtilityHub.Addon:NewModule(moduleName);
 
 ---@param spells number[]
 ---@param items number[]
 ---@return number|nil
 ---@return number|nil
-function Module:GetItemIDBy(spells, items)
+local function GetItemIDBy(spells, items)
   for index, spellID in ipairs(spells) do
     ---@diagnostic disable-next-line: deprecated
     if (IsSpellKnown(spellID, false)) then
@@ -218,206 +16,233 @@ function Module:GetItemIDBy(spells, items)
   return nil, nil;
 end
 
----@param name string
----@param parent table|nil
----@return table|Button|UHTradeItemButtonTemplate
-function Module:CreateItemButton(name, parent)
-  local button = CreateFrame("Button", name, TradeFrame, "UHTradeItemButtonTemplate");
-  button.ModuleRef = Module;
-  button:RegisterForClicks("AnyUp");
-  button:RegisterForClicks("AnyDown");
-  button:SetSize(36, 36);
-  button:SetAttribute("IsEquipmentset", false);
-  button:SetAttribute("IsMount", false);
-  button:SetAttribute("shift-type1", "spell");
+local function CreateModule()
+  local frameWidth = 200;
 
-  if (parent) then
-    button:SetPoint("TOPLEFT", parent, "TOPRIGHT", 10, 0);
-  else
-    button:SetPoint("BOTTOMLEFT", TradeFrame, "BOTTOMRIGHT", 10, 3);
+  ---@param frame table
+  ---@param text string|nil
+  ---@param fontSize number|nil
+  ---@return table
+  local function CreateLabel(frame, text, fontSize)
+    local label = UtilityHub.Libs.Utils.AceGUI:Create("Label");
+    local fontPath, _, fontFlags = label.label:GetFont();
+    label.label:SetFont(fontPath, fontSize or 16, fontFlags);
+    label:SetText(text or "");
+    label.label:SetWordWrap(true);
+    label:SetFullWidth(true);
+    frame:AddChild(label);
+
+    return label;
   end
 
-  function button:UpdateItem(itemID, spellID)
-    button:SetAttribute("shift-spell1", spellID);
-    button:SetAttribute("itemID", itemID);
-    button:SetAttribute("spellID", spellID);
-    self:UpdateState();
-  end
+  local function CreateTradeFrame()
+    local frame = UtilityHub.Libs.Utils.AceGUI:Create("Frame", TradeFrame);
 
-  button:HookScript('OnClick', function()
-    if (not IsShiftKeyDown()) then
-      button:OnClickNotShift();
-    end
-  end);
+    frame:Hide();
+    frame:SetTitle("Trading with...");
+    frame:SetLayout("Flow");
+    frame:SetWidth(frameWidth);
+    frame:SetHeight(330);
+    frame:EnableResize(false);
+    frame:ClearAllPoints();
+    frame:SetPoint("TOPRIGHT", TradeFrame, "TOPRIGHT", 10 + frameWidth, 0);
 
-  return button;
-end
+    frame.NameLabel = CreateLabel(frame);
+    frame.ServerLabel = CreateLabel(frame);
+    frame.GuildLabel = CreateLabel(frame);
+    frame.LevelLabel = CreateLabel(frame);
+    frame.RaceClassLabel = CreateLabel(frame);
 
--- Mixins
-UHTradeItemButtonMixin = {};
+    local spacer = CreateLabel(frame);
+    spacer:SetText(" ");
+    spacer:SetHeight(10);
 
-function UHTradeItemButtonMixin:OnLoad()
-  self:RegisterEvent("ACTIONBAR_UPDATE_USABLE");
-  self:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN"); -- not updating cooldown from lua anymore, see SetActionUIButton
-  self:RegisterEvent("SPELL_UPDATE_CHARGES");
-  self:RegisterEvent("UPDATE_INVENTORY_ALERTS");
-  self:RegisterEvent("PLAYER_TARGET_CHANGED");
-  self:RegisterEvent("TRADE_SKILL_SHOW");
-  self:RegisterEvent("TRADE_SKILL_CLOSE");
-  self:RegisterEvent("PLAYER_ENTER_COMBAT");
-  self:RegisterEvent("PLAYER_LEAVE_COMBAT");
-  self:RegisterEvent("START_AUTOREPEAT_SPELL");
-  self:RegisterEvent("STOP_AUTOREPEAT_SPELL");
-  self:RegisterEvent("UNIT_INVENTORY_CHANGED");
-  self:RegisterEvent("SPELLS_CHANGED");
-  self:RegisterEvent("PET_STABLE_UPDATE");
-  self:RegisterEvent("PET_STABLE_SHOW");
-  self:RegisterUnitEvent("LOSS_OF_CONTROL_ADDED", "player");
-  self:RegisterUnitEvent("LOSS_OF_CONTROL_UPDATE", "player");
-  self:RegisterEvent("SPELL_UPDATE_ICON");
-  self:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW");
-  self:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE");
-end
+    local scrollFrameParent = UtilityHub.Libs.Utils.AceGUI:Create("InlineGroup");
+    scrollFrameParent:SetTitle("Last whisper:");
+    scrollFrameParent:SetFullWidth(true);
+    scrollFrameParent:SetFullHeight(true);
+    frame:AddChild(scrollFrameParent);
 
-function UHTradeItemButtonMixin:OnEvent(event, ...)
-  self:UpdateState();
-end
+    local scroll = UtilityHub.Libs.Utils.AceGUI:Create("ScrollFrame");
+    scroll:SetFullWidth(true);
+    scroll:SetLayout("Flow");
+    scrollFrameParent:AddChild(scroll);
+    frame.LastWhisperScrollableRef = scroll;
 
-function UHTradeItemButtonMixin:UpdateState()
-  local Item = self:GetAttribute('itemID');
+    local label = CreateLabel(scroll, "-", 14);
+    label:SetWidth(frameWidth - 60);
+    label:SetFullHeight(true);
 
-  local itemTexture = select(10, C_Item.GetItemInfo(Item));
-  self.icon:SetTexture(itemTexture);
+    function frame:GetNameAndServer()
+      local name, server = UnitFullName("npc");
+      server = server or GetRealmName();
 
-  local count = C_Item.GetItemCount(Item, false, true)
-  if (count > 999) then
-    self.Count:SetText("*");
-  else
-    self.Count:SetText(count);
-  end
-
-  if (count > 0) then
-    self.icon:SetVertexColor(1.0, 1.0, 1.0);
-  else
-    self.icon:SetVertexColor(0.4, 0.4, 0.4);
-  end
-
-  self.Name:SetText('');
-  self:UpdateCooldown();
-end
-
-function UHTradeItemButtonMixin:UpdateCooldown()
-  ---@type number
-  local start, duration, enable;
-  local modRate = 1.0;
-
-  local Item = self:GetAttribute('itemID');
-
-  start, duration, enable = C_Container.GetItemCooldown(Item);
-
-  if (self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_NORMAL) then
-    self.cooldown:SetEdgeTexture("Interface\\Cooldown\\edge");
-    self.cooldown:SetSwipeColor(0, 0, 0);
-    self.cooldown:SetHideCountdownNumbers(false);
-    self.cooldown.currentCooldownType = COOLDOWN_TYPE_NORMAL;
-  end
-
-  CooldownFrame_Set(self.cooldown, start, duration, enable, false, modRate);
-end
-
-function UHTradeItemButtonMixin:OnEnter()
-  if (IsShiftKeyDown()) then
-    local spell = self:GetAttribute('spellID');
-
-    if (not spell) then
-      return;
-    end
-
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-    GameTooltip:SetSpellByID(spell);
-  else
-    local item = self:GetAttribute('itemID');
-    local itemLink = select(2, C_Item.GetItemInfo(item));
-
-    if (not itemLink) then
-      return;
-    end
-
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-    GameTooltip:SetHyperlink(itemLink);
-  end
-
-  GameTooltip:Show();
-end
-
-function UHTradeItemButtonMixin:OnLeave()
-  GameTooltip:Hide();
-end
-
-function UHTradeItemButtonMixin:OnClickNotShift(...)
-  if (not IsShiftKeyDown()) then
-    local itemID = self:GetAttribute('itemID');
-
-    if (not itemID) then
-      return;
-    end
-
-    local emptyTradeSlot = nil;
-    -- -1 to prevent the "Will not be traded" slot
-    for tradeSlot = 1, (MAX_TRADE_ITEMS - 1) do
-      if (not GetTradePlayerItemLink(tradeSlot)) then
-        emptyTradeSlot = tradeSlot;
-        break;
+      if (not server) then
+        server = "-";
       end
+
+      if (not name) then
+        name = "-";
+      end
+
+      return name, server;
     end
 
-    if (emptyTradeSlot == nil) then
-      return;
+    function frame:UpdateWhisper()
+      local name, server = frame:GetNameAndServer();
+      label:SetText(UtilityHub.Database.global.whispers[name .. "-" .. server] or "-");
     end
 
-    ---@type integer|nil
-    local bagFromBiggerStack = nil;
-    ---@type integer|nil
-    local slotFromBiggerStack = nil;
-    ---@type integer
-    local stackSize = 0;
+    function frame:Update()
+      local name, server = frame:GetNameAndServer();
+      local _, englishClass = UnitClass("npc");
+      local level = UnitLevel("npc") or "-";
+      local race = UnitRace("npc") or "-";
+      local class = UnitClass("npc") or "-";
+      local guild = GetGuildInfo("npc") or "-";
+      local raceClass = "-";
 
-    for bag = 0, NUM_BAG_SLOTS do
-      for slot = 1, C_Container.GetContainerNumSlots(bag) do
-        local id = C_Container.GetContainerItemID(bag, slot);
-        local containerInfo = C_Container.GetContainerItemInfo(bag, slot);
+      if (name) then
+        raceClass = race .. " " .. UtilityHub.Libs.Utils:GetClassColoredText(class);
+      else
+        name = "-";
+        server = "-";
+        englishClass = "-";
+      end
 
-        if (containerInfo and id == itemID and not containerInfo.isLocked) then
-          if (containerInfo.stackCount == 20) then
-            C_Container.PickupContainerItem(bag, slot);
-            ClickTradeButton(emptyTradeSlot);
-            ClearCursor();
-            return;
-          elseif (containerInfo.stackCount > stackSize) then
-            stackSize = containerInfo.stackCount;
-            bagFromBiggerStack = bag;
-            slotFromBiggerStack = slot;
-          end
+      frame.NameLabel:SetText(name);
+      frame.ServerLabel:SetText("|cffffd100Server:|r " .. server);
+      frame.GuildLabel:SetText("|cffffd100Guild:|r " .. guild);
+      frame.LevelLabel:SetText("|cffffd100Level:|r " .. level);
+      frame.RaceClassLabel:SetText(raceClass, englishClass);
+    end
+
+    return frame;
+  end
+
+  ---@param name string
+  ---@param parent table|nil
+  ---@return table|Button|UHTradeItemButtonTemplate
+  local function CreateItemButton(name, parent)
+    local button = CreateFrame("Button", name, TradeFrame, "UHTradeItemButtonTemplate");
+    button:RegisterForClicks("AnyUp");
+    button:RegisterForClicks("AnyDown");
+    button:SetSize(36, 36);
+    button:SetAttribute("IsEquipmentset", false);
+    button:SetAttribute("IsMount", false);
+    button:SetAttribute("shift-type1", "spell");
+
+    if (parent) then
+      button:SetPoint("TOPLEFT", parent, "TOPRIGHT", 10, 0);
+    else
+      button:SetPoint("BOTTOMLEFT", TradeFrame, "BOTTOMRIGHT", 10, 3);
+    end
+
+    function button:UpdateItem(itemID, spellID)
+      button:SetAttribute("shift-spell1", spellID);
+      button:SetAttribute("itemID", itemID);
+      button:SetAttribute("spellID", spellID);
+      self:UpdateState();
+    end
+
+    button:HookScript('OnClick', function()
+      if (not IsShiftKeyDown()) then
+        button:OnClickNotShift();
+      end
+    end);
+
+    return button;
+  end
+
+  local frame = CreateTradeFrame();
+  ---@class MageButtons
+  local buttons = {};
+
+  buttons.water = CreateItemButton("UHTradeWaterButton");
+  buttons.food = CreateItemButton("UHTradeFoodButton", buttons.water);
+
+  return {
+    frame = frame,
+    Hide = function()
+      frame:Hide();
+    end,
+    Show = function()
+      frame:Update();
+      frame:Show();
+    end,
+    UpdateParent = function()
+      frame:ClearAllPoints();
+      frame:SetPoint(
+        "TOPRIGHT",
+        CharacterFrame:IsShown() and CharacterFrame or TradeFrame,
+        "TOPRIGHT",
+        10 + frameWidth,
+        0
+      );
+    end,
+    UpdateLastWhisperInFrame = function()
+      frame:UpdateWhisper();
+    end,
+    UpdateItemFromButtons = function()
+      -- All lists are ordered by rank, descending sort
+      local waterSpellIDs = { 10140, 10139, 10138, 6127, 5506, 5505, 5504 };
+      local foodSpellIDs = { 28612, 10145, 10144, 6129, 990, 597, 587 };
+      local waterItemIDs = { 8079, 8078, 8077, 3772, 2136, 2288, 5350 };
+      local foodItemIDs = { 22895, 8076, 8075, 1487, 1114, 1113, 5349 };
+
+      ---@param type "Water" | "Food"
+      ---@param spellIDs number[]
+      ---@param itemIDs number[]
+      function UpdateItem(type, spellIDs, itemIDs)
+        if (not buttons[type]) then
+          return;
         end
+
+        local itemID, spellID = GetItemIDBy(spellIDs, itemIDs);
+
+        if (not itemID or not spellID) then
+          return;
+        end
+
+        buttons[type]:UpdateItem(itemID, spellID);
       end
-    end
 
-    if (bagFromBiggerStack and slotFromBiggerStack) then
-      C_Container.PickupContainerItem(bagFromBiggerStack, slotFromBiggerStack);
-      ClickTradeButton(emptyTradeSlot);
-      ClearCursor();
-    end
-  end
+      UpdateItem("Water", waterSpellIDs, waterItemIDs);
+      UpdateItem("Food", foodSpellIDs, foodItemIDs);
+    end,
+  };
 end
 
-function UHTradeItemButtonMixin:OnUpdate()
-  if (GameTooltip:IsOwned(self)) then
-    local showSpell = IsShiftKeyDown() and self:GetAttribute("spellID");
+local moduleData = CreateModule();
 
-    if (self._lastShowSpell ~= showSpell) then
-      self._lastShowSpell = showSpell;
-      GameTooltip:Hide();
-      self:GetScript("OnEnter")(self);
-    end
-  end
+-- Lifecycle
+function module:OnEnable()
+  moduleData.Show();
 end
+
+function module:OnDisable()
+  moduleData.Hide();
+end
+
+--- Events
+UtilityHub.Events:RegisterCallback("WHISPER_LIST_UPDATED", function(_, name, message)
+  moduleData.UpdateLastWhisperInFrame();
+end);
+
+EventRegistry:RegisterFrameEventAndCallback("TRADE_CLOSED", function()
+  moduleData.Hide();
+end);
+
+EventRegistry:RegisterFrameEventAndCallback("TRADE_SHOW", function()
+  if (module:IsEnabled()) then
+    moduleData.Show();
+  end
+end);
+
+hooksecurefunc(CharacterFrame, "Show", function()
+  moduleData.UpdateParent();
+end);
+
+hooksecurefunc(CharacterFrame, "Hide", function()
+  moduleData.UpdateParent();
+end);

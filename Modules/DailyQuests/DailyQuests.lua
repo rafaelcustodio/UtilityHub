@@ -1,7 +1,6 @@
 local moduleName = 'DailyQuests';
 ---@class DailyQuests
----@diagnostic disable-next-line: undefined-field
-local Module = UtilityHub:NewModule(moduleName);
+local Module = UtilityHub.Addon:NewModule(moduleName);
 
 ---@class Quest
 ---@field questID number
@@ -58,294 +57,294 @@ local questDBTable = {
     {
       questID = 11389,
       questName = "Wanted: Arcatraz Sentinels",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_NORMAL,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11371,
       questName = "Wanted: Coilfang Myrmidons",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_NORMAL,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11376,
       questName = "Wanted: Malicious Instructors",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_NORMAL,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11383,
       questName = "Wanted: Rift Lords",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_NORMAL,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11364,
       questName = "Wanted: Shattered Hand Centurions",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_NORMAL,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11500,
       questName = "Wanted: Sisters of Torment",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_NORMAL,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11385,
       questName = "Wanted: Sunseeker Channelers",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_NORMAL,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11387,
       questName = "Wanted: Tempest-Forge Destroyers",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_NORMAL,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
 
     -- Daily - Heroic
     {
       questID = 11369,
       questName = "Wanted: A Black Stalker Egg",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11384,
       questName = "Wanted: A Warp Splinter Clipping",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11382,
       questName = "Wanted: Aeonus's Hourglass",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11363,
       questName = "Wanted: Bladefist's Seal",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11362,
       questName = "Wanted: Keli'dan's Feathered Stave",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11375,
       questName = "Wanted: Murmur's Whisper",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11354,
       questName = "Wanted: Nazan's Riding Crop",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11386,
       questName = "Wanted: Pathaleon's Projector",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11373,
       questName = "Wanted: Shaffar's Wondrous Pendant",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11378,
       questName = "Wanted: The Epoch Hunter's Head",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11374,
       questName = "Wanted: The Exarch's Soul Gem",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11372,
       questName = "Wanted: The Headfeathers of Ikiss",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11368,
       questName = "Wanted: The Heart of Quagmirran",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11388,
       questName = "Wanted: The Scroll of Skyriss",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11499,
       questName = "Wanted: The Signet Ring of Prince Kael'thas",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11370,
       questName = "Wanted: The Warlord's Treatise",
-      type = UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.DUNGEON_HEROIC,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
 
     -- Professions - Cooking
     {
       questID = 11380,
       questName = "Manalicious",
-      type = UtilityHub.Enums.QUEST_TYPE.PROFESSION_COOKING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PROFESSION_COOKING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11377,
       questName = "Revenge is Tasty",
-      type = UtilityHub.Enums.QUEST_TYPE.PROFESSION_COOKING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PROFESSION_COOKING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11381,
       questName = "Soup for the Soul",
-      type = UtilityHub.Enums.QUEST_TYPE.PROFESSION_COOKING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PROFESSION_COOKING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11379,
       questName = "Super Hot Stew",
-      type = UtilityHub.Enums.QUEST_TYPE.PROFESSION_COOKING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PROFESSION_COOKING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
 
     -- Professions - Fishing
     {
       questID = 11666,
       questName = "Bait Bandits",
-      type = UtilityHub.Enums.QUEST_TYPE.PROFESSION_FISHING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PROFESSION_FISHING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11665,
       questName = "Crocolisks in the City",
-      type = UtilityHub.Enums.QUEST_TYPE.PROFESSION_FISHING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PROFESSION_FISHING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11669,
       questName = "Felblood Fillet",
-      type = UtilityHub.Enums.QUEST_TYPE.PROFESSION_FISHING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PROFESSION_FISHING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11668,
       questName = "Shrimpin' Ain't Easy",
-      type = UtilityHub.Enums.QUEST_TYPE.PROFESSION_FISHING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PROFESSION_FISHING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11667,
       questName = "The One That Got Away",
-      type = UtilityHub.Enums.QUEST_TYPE.PROFESSION_FISHING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PROFESSION_FISHING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
 
     -- Consortium
     {
       questID = 9884,
       questName = "Membership Benefits",
-      type = UtilityHub.Enums.QUEST_TYPE.CONSORTIUM,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.MONTHLY,
+      type = UtilityHub.Enums.QuestType.CONSORTIUM,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.MONTHLY,
     },
     {
       questID = 9885,
       questName = "Membership Benefits",
-      type = UtilityHub.Enums.QUEST_TYPE.CONSORTIUM,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.MONTHLY,
+      type = UtilityHub.Enums.QuestType.CONSORTIUM,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.MONTHLY,
     },
     {
       questID = 9886,
       questName = "Membership Benefits",
-      type = UtilityHub.Enums.QUEST_TYPE.CONSORTIUM,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.MONTHLY,
+      type = UtilityHub.Enums.QuestType.CONSORTIUM,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.MONTHLY,
     },
     {
       questID = 9887,
       questName = "Membership Benefits",
-      type = UtilityHub.Enums.QUEST_TYPE.CONSORTIUM,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.MONTHLY,
+      type = UtilityHub.Enums.QuestType.CONSORTIUM,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.MONTHLY,
     },
 
     -- Sha'tari Skyguard
     {
       questID = 11008,
       questName = "Fires Over Skettis",
-      type = UtilityHub.Enums.QUEST_TYPE.SHATARI_SKYGUARD,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.SHATARI_SKYGUARD,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
     {
       questID = 11085,
       questName = "Escape from Skettis",
-      type = UtilityHub.Enums.QUEST_TYPE.SHATARI_SKYGUARD,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.SHATARI_SKYGUARD,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
     },
 
     -- Ogri'la
     {
       questID = 11080,
       questName = "The Relic's Emanation",
-      type = UtilityHub.Enums.QUEST_TYPE.OGRILA,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.OGRILA,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return { questID = 11058 };
       end
@@ -353,9 +352,9 @@ local questDBTable = {
     {
       questID = 11051,
       questName = "Banish More Demons",
-      type = UtilityHub.Enums.QUEST_TYPE.OGRILA,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.OGRILA,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return { questID = 11026 };
       end
@@ -365,9 +364,9 @@ local questDBTable = {
     {
       questID = 11023,
       questName = "Bomb Them Again!",
-      type = UtilityHub.Enums.QUEST_TYPE.OGRILA,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.OGRILA,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return { questID = 11010 };
       end
@@ -375,9 +374,9 @@ local questDBTable = {
     {
       questID = 11066,
       questName = "Wrangle More Aether Rays!",
-      type = UtilityHub.Enums.QUEST_TYPE.OGRILA,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.OGRILA,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return { questID = 11065 };
       end
@@ -387,13 +386,13 @@ local questDBTable = {
     {
       questID = 11020,
       questName = "A Slow Death",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.NEUTRAL },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.NEUTRAL },
           },
         };
       end
@@ -401,13 +400,13 @@ local questDBTable = {
     {
       questID = 11015,
       questName = "Netherwing Crystals",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.NEUTRAL },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.NEUTRAL },
           },
         };
       end
@@ -415,13 +414,13 @@ local questDBTable = {
     {
       questID = 11035,
       questName = "The Not-So-Friendly Skies...",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.NEUTRAL },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.NEUTRAL },
           },
         };
       end
@@ -429,14 +428,14 @@ local questDBTable = {
     {
       questID = 11018,
       questName = "Nethercite Ore",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           profession = "Mining:350",
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.NEUTRAL },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.NEUTRAL },
           },
         };
       end
@@ -444,14 +443,14 @@ local questDBTable = {
     {
       questID = 11017,
       questName = "Netherdust Pollen",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           profession = "Herbalism:350",
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.NEUTRAL },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.NEUTRAL },
           },
         };
       end
@@ -459,14 +458,14 @@ local questDBTable = {
     {
       questID = 11016,
       questName = "Nethermine Flayer Hide",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           profession = "Skinning:350",
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.NEUTRAL },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.NEUTRAL },
           },
         };
       end
@@ -476,13 +475,13 @@ local questDBTable = {
     {
       questID = 11076,
       questName = "Picking Up The Pieces...",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.FRIENDLY },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.FRIENDLY },
           },
         };
       end
@@ -490,13 +489,13 @@ local questDBTable = {
     {
       questID = 11077,
       questName = "Dragons are the Least of Our Problems",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.FRIENDLY },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.FRIENDLY },
           },
         };
       end
@@ -504,13 +503,13 @@ local questDBTable = {
     {
       questID = 11055,
       questName = "The Booterang: A Cure For The Common Worthless Peon",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.FRIENDLY },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.FRIENDLY },
           },
         };
       end
@@ -520,13 +519,13 @@ local questDBTable = {
     {
       questID = 11086,
       questName = "Disrupting the Twilight Portal",
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.HONORED },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.HONORED },
           },
         };
       end
@@ -536,14 +535,14 @@ local questDBTable = {
     {
       questID = 11101,
       questName = "The Deadliest Trap Ever Laid", -- Aldor
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.REVERED },
-            { factionID = 932,  standingID = UtilityHub.Enums.REPUTATION_STANDING.FRIENDLY },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.REVERED },
+            { factionID = 932,  standingID = UtilityHub.Enums.ReputationStanding.FRIENDLY },
           },
           questID = 11100, -- Commander Arcus
         };
@@ -552,14 +551,14 @@ local questDBTable = {
     {
       questID = 11097,
       questName = "The Deadliest Trap Ever Laid", -- Scryer
-      type = UtilityHub.Enums.QUEST_TYPE.NETHERWING,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.NETHERWING,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           factions = {
-            { factionID = 1015, standingID = UtilityHub.Enums.REPUTATION_STANDING.REVERED },
-            { factionID = 934,  standingID = UtilityHub.Enums.REPUTATION_STANDING.FRIENDLY },
+            { factionID = 1015, standingID = UtilityHub.Enums.ReputationStanding.REVERED },
+            { factionID = 934,  standingID = UtilityHub.Enums.ReputationStanding.FRIENDLY },
           },
           questID = 11095, -- Commander Hobb
         };
@@ -570,13 +569,13 @@ local questDBTable = {
     {
       questID = 10110,
       questName = "Hellfire Fortifications", -- Horde
-      type = UtilityHub.Enums.QUEST_TYPE.PVP,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PVP,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           level = 55,
-          side = UtilityHub.Enums.SIDE.HORDE,
+          side = UtilityHub.Enums.Side.HORDE,
           questID = 10124, -- Forward Base: Reaver's Fall
         };
       end
@@ -584,13 +583,13 @@ local questDBTable = {
     {
       questID = 10106,
       questName = "Hellfire Fortifications", -- Alliance
-      type = UtilityHub.Enums.QUEST_TYPE.PVP,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PVP,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
           level = 55,
-          side = UtilityHub.Enums.SIDE.ALLIANCE,
+          side = UtilityHub.Enums.Side.ALLIANCE,
           questID = 10483, -- Ill Omens
         };
       end
@@ -598,15 +597,15 @@ local questDBTable = {
     {
       questID = 11503,
       questName = "Enemies, Old and New", -- Horde
-      type = UtilityHub.Enums.QUEST_TYPE.PVP,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PVP,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
-          side = UtilityHub.Enums.SIDE.HORDE,
+          side = UtilityHub.Enums.Side.HORDE,
           level = 64,
           factions = {
-            { factionID = 941, standingID = UtilityHub.Enums.REPUTATION_STANDING.NEUTRAL },
+            { factionID = 941, standingID = UtilityHub.Enums.ReputationStanding.NEUTRAL },
           },
         };
       end,
@@ -614,15 +613,15 @@ local questDBTable = {
     {
       questID = 11502,
       questName = "In Defense of Halaa", -- Alliance
-      type = UtilityHub.Enums.QUEST_TYPE.PVP,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PVP,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
-          side = UtilityHub.Enums.SIDE.ALLIANCE,
+          side = UtilityHub.Enums.Side.ALLIANCE,
           level = 64,
           factions = {
-            { factionID = 978, standingID = UtilityHub.Enums.REPUTATION_STANDING.NEUTRAL },
+            { factionID = 978, standingID = UtilityHub.Enums.ReputationStanding.NEUTRAL },
           },
         };
       end,
@@ -630,12 +629,12 @@ local questDBTable = {
     {
       questID = 11506,
       questName = "Spirits of Auchindoun", -- Horde
-      type = UtilityHub.Enums.QUEST_TYPE.PVP,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PVP,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
-          side = UtilityHub.Enums.SIDE.HORDE,
+          side = UtilityHub.Enums.Side.HORDE,
           level = 62,
         };
       end,
@@ -643,12 +642,12 @@ local questDBTable = {
     {
       questID = 11505,
       questName = "Spirits of Auchindoun", -- Alliance
-      type = UtilityHub.Enums.QUEST_TYPE.PVP,
-      expansion = UtilityHub.Enums.EXPANSIONS.TBC,
-      periodicity = UtilityHub.Enums.PERIODICITY.DAILY,
+      type = UtilityHub.Enums.QuestType.PVP,
+      expansion = UtilityHub.Enums.Expansions.TBC,
+      periodicity = UtilityHub.Enums.Periodicity.DAILY,
       GetRequirements = function()
         return {
-          side = UtilityHub.Enums.SIDE.ALLIANCE,
+          side = UtilityHub.Enums.Side.ALLIANCE,
           level = 62,
         };
       end,
@@ -693,14 +692,14 @@ Module.QuestDB = setmetatable(
           return quest:GetRequirements(), quest;
         end
 
-        if (quest.expansion == UtilityHub.Enums.EXPANSIONS.TBC) then
-          if (quest.type == UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC or quest.type == UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL) then
+        if (quest.expansion == UtilityHub.Enums.Expansions.TBC) then
+          if (quest.type == UtilityHub.Enums.QuestType.DUNGEON_HEROIC or quest.type == UtilityHub.Enums.QuestType.DUNGEON_NORMAL) then
             return { level = 70 }, quest;
-          elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.PROFESSION_COOKING) then
+          elseif (quest.type == UtilityHub.Enums.QuestType.PROFESSION_COOKING) then
             return { level = 70, profession = "Cooking:275" }, quest;
-          elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.PROFESSION_FISHING) then
+          elseif (quest.type == UtilityHub.Enums.QuestType.PROFESSION_FISHING) then
             return { level = 70, profession = "Fishing:1" }, quest;
-          elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.SHATARI_SKYGUARD) then
+          elseif (quest.type == UtilityHub.Enums.QuestType.SHATARI_SKYGUARD) then
             return { level = 70, questID = 11098 }, quest;
           end
         end
@@ -739,7 +738,7 @@ local function GetRemainingTime(quest)
 
   local seconds = nil;
 
-  if (quest.type == UtilityHub.Enums.QUEST_TYPE.CONSORTIUM) then
+  if (quest.type == UtilityHub.Enums.QuestType.CONSORTIUM) then
     local now   = GetServerTime();
     local month = tonumber(date("%m", now)) or 0;
     local year  = tonumber(date("%Y", now));
@@ -945,17 +944,17 @@ Module.Ticker = C_Timer.NewTicker(1, function()
 end);
 
 function Module:SaveFlagChanges()
-  UtilityHub.db.char.complete = Module.QuestDB.complete or {};
-  UtilityHub.db.char.requirementsOK = Module.QuestDB.requirementsOK or {};
+  UtilityHub.Database.char.complete = Module.QuestDB.complete or {};
+  UtilityHub.Database.char.requirementsOK = Module.QuestDB.requirementsOK or {};
 end
 
 function Module:LoadFlags()
-  Module.QuestDB.complete = UtilityHub.db.char.complete or {};
-  Module.QuestDB.requirementsOK = UtilityHub.db.char.requirementsOK or {};
+  Module.QuestDB.complete = UtilityHub.Database.char.complete or {};
+  Module.QuestDB.requirementsOK = UtilityHub.Database.char.requirementsOK or {};
 end
 
 function Module:UpdateFlags()
-  UtilityHub.db.char.lastDailyQuestCheck = GetServerTime();
+  UtilityHub.Database.char.lastDailyQuestCheck = GetServerTime();
 
   for _, value in ipairs(Module.QuestDB.data) do
     Module:UpdateFlagsByID(value.questID);
@@ -1025,7 +1024,7 @@ function Module:UpdateFlagsByFaction(factionID)
 end
 
 function Module:CheckIfRefreshIsNeeded()
-  local lastCheck = UtilityHub.db.char.lastDailyQuestCheck;
+  local lastCheck = UtilityHub.Database.char.lastDailyQuestCheck;
 
   if (not lastCheck) then
     return true;
@@ -1073,9 +1072,9 @@ function Module:CreateDailyQuestsFrame()
   Module.Frame = frame;
   frame:SetSize(350, 350);
   frame:Hide();
-  local savedPosition = UtilityHub.db.global.dailyQuestsFramePosition;
+  local savedPosition = UtilityHub.Database.global.dailyQuestsFramePosition;
 
-  if (UtilityHub.db.global.dailyQuestsFramePosition) then
+  if (UtilityHub.Database.global.dailyQuestsFramePosition) then
     frame:SetPoint(
       savedPosition.point,
       frame:GetParent(),
@@ -1088,8 +1087,8 @@ function Module:CreateDailyQuestsFrame()
   end
 
   frame.NineSlice.Text:SetText("Repetable Quests");
-  UtilityHub.UTILS:AddMovableToFrame(frame, function(pos)
-    UtilityHub.db.global.dailyQuestsFramePosition = pos;
+  UtilityHub.Libs.Utils:AddMovableToFrame(frame, function(pos)
+    UtilityHub.Database.global.dailyQuestsFramePosition = pos;
   end);
 
   local content = CreateFrame("Frame", nil, frame);
@@ -1273,34 +1272,34 @@ function Module:UpdateDailyQuestsFrameList()
     local questName = "";
     local isQuestVariationGroup = false;
 
-    if (quest.type == UtilityHub.Enums.QUEST_TYPE.DUNGEON_HEROIC) then
+    if (quest.type == UtilityHub.Enums.QuestType.DUNGEON_HEROIC) then
       questName = "Heroic Dungeon";
       isQuestVariationGroup = true;
-    elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.DUNGEON_NORMAL) then
+    elseif (quest.type == UtilityHub.Enums.QuestType.DUNGEON_NORMAL) then
       questName = "Normal Dungeon";
       isQuestVariationGroup = true;
-    elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.PROFESSION_COOKING) then
+    elseif (quest.type == UtilityHub.Enums.QuestType.PROFESSION_COOKING) then
       questName = "Cooking";
       isQuestVariationGroup = true;
-    elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.PROFESSION_FISHING) then
+    elseif (quest.type == UtilityHub.Enums.QuestType.PROFESSION_FISHING) then
       questName = "Fishing";
       isQuestVariationGroup = true;
-    elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.CONSORTIUM) then
+    elseif (quest.type == UtilityHub.Enums.QuestType.CONSORTIUM) then
       questName = quest.questName .. " (monthly)";
       isQuestVariationGroup = true;
-    elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.SHATARI_SKYGUARD) then
+    elseif (quest.type == UtilityHub.Enums.QuestType.SHATARI_SKYGUARD) then
       groupName = "Sha'tari Skyguard";
       questName = quest.questName;
-    elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.OGRILA) then
+    elseif (quest.type == UtilityHub.Enums.QuestType.OGRILA) then
       groupName = "Ogri'la";
       questName = quest.questName;
-    elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.SHATARI_SKYGUARD_AND_OGRILA) then
+    elseif (quest.type == UtilityHub.Enums.QuestType.SHATARI_SKYGUARD_AND_OGRILA) then
       groupName = "Sha'tari Skyguard and Ogri'la";
       questName = quest.questName;
-    elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.NETHERWING) then
+    elseif (quest.type == UtilityHub.Enums.QuestType.NETHERWING) then
       groupName = "Netherwing";
       questName = quest.questName;
-    elseif (quest.type == UtilityHub.Enums.QUEST_TYPE.PVP) then
+    elseif (quest.type == UtilityHub.Enums.QuestType.PVP) then
       groupName = "PvP";
       questName = quest.questName;
     end
@@ -1327,7 +1326,7 @@ end
 
 function Module:ShowFrame()
   if (not Module:IsEnabled()) then
-    UtilityHub.Helpers:ShowNotification(moduleName .. " module is not enabled");
+    UtilityHub.Helpers.Notification:ShowNotification(moduleName .. " module is not enabled");
     return;
   end
 

@@ -1,17 +1,16 @@
 local moduleName = 'AutoBuy';
 ---@class AutoBuy
----@diagnostic disable-next-line: undefined-field
-local Module = UtilityHub:NewModule(moduleName);
+local Module = UtilityHub.Addon:NewModule(moduleName);
 
 ---@type boolean
 Module.eventRegistered = false;
 
 function Module:SearchAndBuyRares()
-  local autoBuyList = UtilityHub.db.global.options.autoBuyList or {};
+  local autoBuyList = UtilityHub.Database.global.options.autoBuyList or {};
 
   for i = 1, GetMerchantNumItems() do
     local itemID = GetMerchantItemID(i);
-    local searchResult = UtilityHub.UTILS:ValueInTable(autoBuyList, function(value)
+    local searchResult = UtilityHub.Libs.Utils:ValueInTable(autoBuyList, function(value)
       return itemID == tonumber(string.match(value, "item:(%d+):"));
     end);
 
@@ -22,15 +21,15 @@ function Module:SearchAndBuyRares()
       local priceTooHigh = unitPrice >= MERCHANT_HIGH_PRICE_COST;
 
       if (not canAfford) then
-        UtilityHub.Helpers:ShowNotification("Doesn't have enough money for " .. searchResult);
+        UtilityHub.Helpers.Notification:ShowNotification("Doesn't have enough money for " .. searchResult);
       elseif (not priceTooHigh) then
-        UtilityHub.Helpers:ShowNotification("The price of " ..
+        UtilityHub.Helpers.Notification:ShowNotification("The price of " ..
           searchResult .. " is too high (would give a high price popup warn)");
       end
 
       if (canAfford and not priceTooHigh) then
         BuyMerchantItem(i, 1);
-        UtilityHub.Helpers:ShowNotification("Bought: " .. searchResult);
+        UtilityHub.Helpers.Notification:ShowNotification("Bought: " .. searchResult);
       end
     end
   end
@@ -42,7 +41,7 @@ function Module:OnEnable()
   end
 
   Module.eventRegistered = EventRegistry:RegisterFrameEventAndCallback("MERCHANT_SHOW", function()
-    if (not UtilityHub:GetModule("AutoBuy"):IsEnabled()) then
+    if (not UtilityHub.Addon:GetModule("AutoBuy"):IsEnabled()) then
       return;
     end
 

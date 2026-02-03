@@ -1,7 +1,6 @@
 local moduleName                      = 'Tooltip';
 ---@class Tooltip
----@diagnostic disable-next-line: undefined-field
-local Module                          = UtilityHub:NewModule(moduleName);
+local Module                          = UtilityHub.Addon:NewModule(moduleName);
 
 local skills                          = {
   -- Professions
@@ -600,7 +599,7 @@ local function OnTooltipSetItemEvent(tooltip)
 end
 
 local function UpdatePatternConfig()
-  if (UtilityHub.IsClassic) then
+  if (UtilityHub.Constants.IsClassic) then
     tinsert(Module.patternConfigList, ATTACK_POWER_CLASSIC);
     tinsert(Module.patternConfigList, ATTACK_SPEED_INCREASE_CLASSIC);
     tinsert(Module.patternConfigList, PHYSICAL_HIT_CLASSIC);
@@ -685,9 +684,9 @@ UtilityHub.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
     return;
   end
 
-  if (UtilityHub.db.global.options.simpleStatsTooltip) then
-    UtilityHub:EnableModule("Tooltip");
+  if (UtilityHub.Database.global.options.simpleStatsTooltip) then
+    UtilityHub.Addon:EnableModule("Tooltip");
   else
-    UtilityHub:DisableModule("Tooltip");
+    UtilityHub.Addon:DisableModule("Tooltip");
   end
 end);

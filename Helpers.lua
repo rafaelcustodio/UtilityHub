@@ -1,28 +1,18 @@
 ---@class Helpers
-UtilityHub.Helpers = {};
+UtilityHub.Helpers = {
+  String = {},
+  Time = {},
+  Notification = {},
+  Item = {},
+  Color = {},
+  Mail = {},
+};
 
---- Return true or false if the player is in the raid or group by his name and his index if in raid
----@param playerName string
----@return boolean, number | nil
-function UtilityHub.Helpers:CheckIfPlayerInTheRaidOrGroupByName(playerName)
-  if (not IsInGroup() or not IsInRaid()) then
-    return false, nil;
-  end
-
-  for i = 1, GetNumGroupMembers() do
-    local name = GetRaidRosterInfo(i);
-
-    if (name == playerName) then
-      return true, i;
-    end
-  end
-
-  return false, nil;
-end
+-- Time
 
 ---@param seconds number
 ---@return string, boolean
-function UtilityHub.Helpers:FormatDuration(seconds)
+function UtilityHub.Helpers.Time:FormatDuration(seconds)
   local hours = math.floor(seconds / 3600);
   local minutes = math.floor((seconds % 3600) / 60);
   local secs = seconds % 60;
@@ -30,19 +20,25 @@ function UtilityHub.Helpers:FormatDuration(seconds)
       (hours > 24 or (hours == 24 and minutes > 0 and seconds > 0));
 end
 
----@param text string
-function UtilityHub.Helpers:ShowNotification(text)
-  UtilityHub.UTILS:ShowChatNotification(text, UtilityHub.prefix);
-end
+-- Notification
 
 ---@param text string
-function UtilityHub.Helpers:ApplyPrefix(text)
-  return UtilityHub.prefix .. text;
+function UtilityHub.Helpers.Notification:ShowNotification(text)
+  UtilityHub.Libs.Utils:ShowChatNotification(text, UtilityHub.Constants.AddonPrefix);
 end
+
+-- String
+
+---@param text string
+function UtilityHub.Helpers.String:ApplyPrefix(text)
+  return UtilityHub.Constants.AddonPrefix .. text;
+end
+
+-- Item
 
 ---@param item number | string
 ---@param cb fun(itemLink) | nil
-function UtilityHub.Helpers:AsyncGetItemInfo(item, cb)
+function UtilityHub.Helpers.Item:AsyncGetItemInfo(item, cb)
   local function tryCB(value)
     if (cb) then
       cb(value);
@@ -74,9 +70,11 @@ function UtilityHub.Helpers:AsyncGetItemInfo(item, cb)
   return tryCB(nil);
 end;
 
+-- Color
+
 ---@param className string|nil
 ---@return BasicRGB
-function UtilityHub.Helpers:GetRGBFromClassName(className)
+function UtilityHub.Helpers.Color:GetRGBFromClassName(className)
   ---@type BasicRGB
   local color = { r = 1, g = 1, b = 1 };
 
@@ -92,6 +90,27 @@ end
 ---@field g number
 ---@field b number
 
-function UtilityHub.Helpers:AddColorToString(str, color)
+function UtilityHub.Helpers.Color:AddColorToString(str, color)
   return string.format("|c%s%s|r", color, str);
+end
+
+-- Mail
+
+function UtilityHub.Helpers.Mail:AddItemToNextEmptyMailSlot(bag, slot)
+  for mailSlot = 1, ATTACHMENTS_MAX_SEND do
+    if (not HasSendMailItem(mailSlot)) then
+      C_Container.PickupContainerItem(bag, slot);
+      ClickSendMailItemButton(mailSlot);
+
+      return true;
+    end
+  end
+
+  return false;
+end
+
+function UtilityHub.Helpers.Mail:ClearAllMailSlots()
+  for i = 1, ATTACHMENTS_MAX_SEND do
+    ClickSendMailItemButton(i, true);
+  end
 end

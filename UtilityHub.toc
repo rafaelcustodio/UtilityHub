@@ -11,7 +11,10 @@ embeds.xml
 
 # LUAs
 UtilityHub.lua
-Helper.lua
+Constants.lua
+Enums.lua
+Helpers.lua
+Main.lua
 Options/ItemList.lua
 Options/Options.lua
 Layout/TreeGroup/TreeGroup.lua
@@ -19,8 +22,10 @@ Layout/TreeGroup/TreeGroup.xml
 Modules/Mail/PresetItemsDB.lua
 Modules/Mail/Characters.lua
 Modules/Mail/Preset.lua
+Modules/Mail/Item.lua
 Modules/Mail/Mail.lua
-Modules/Trade/Trade.xml
+Modules/Trade/TradeItemButton.xml
+Modules/Trade/Trade.lua
 Modules/AutoBuy/AutoBuy.lua
 Modules/Integration/Integration.lua
 Modules/Integration/Baganator.lua

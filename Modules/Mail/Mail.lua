@@ -1,55 +1,36 @@
+local ADDON_NAME = ...;
 local moduleName = 'Mail';
----@class Mail
----@diagnostic disable-next-line: undefined-field
-local Module = UtilityHub:NewModule(moduleName);
----@diagnostic disable-next-line: undefined-field
+local Module = UtilityHub.Addon:NewModule(moduleName);
 ---@type Preset
 local PresetModule;
 ---@type Characters
 local CharactersModule;
+---@type Item
+local ItemModule;
 
 UtilityHub.Events:RegisterCallback("PLAYER_GUILD_UPDATE", function(_, name)
   Module:UpdateMailButtons();
 end);
 
 function Module:CreateMailIconButtons()
-  function CreateNewPresetButton(previousFrame)
-    -- New
-    MailFrame.NewPresetButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("NewPresetButton"));
+  local previousFrame = nil;
+
+  local function SetPosition(frame)
     if (previousFrame) then
-      MailFrame.NewPresetButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
+      frame:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
     else
-      MailFrame.NewPresetButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
+      frame:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
     end
-    MailFrame.NewPresetButton.baseTextureRef:SetTexture("Interface/GuildBankFrame/UI-GuildBankFrame-NewTab");
 
-    -- Events
-    MailFrame.NewPresetButton:SetScript("OnClick", function(self)
-      PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
-      PresetModule:ToggleNewPresetFrame();
-    end);
-    MailFrame.NewPresetButton:SetScript("OnEnter", function(self)
-      GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-      GameTooltip:AddLine("New preset", nil, nil, nil);
-      GameTooltip:Show();
-    end);
-    MailFrame.NewPresetButton:SetScript("OnLeave", function(self)
-      if (GameTooltip:IsOwned(self)) then
-        GameTooltip:Hide();
-      end
-    end);
-
-    return MailFrame.NewPresetButton;
+    previousFrame = frame;
   end
 
-  function CreateLoadPresetButton(previousFrame)
+  local function CreateLoadPresetButton()
     -- Load
-    MailFrame.LoadPresetButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("LoadPresetButton"));
-    if (previousFrame) then
-      MailFrame.LoadPresetButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
-    else
-      MailFrame.LoadPresetButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
-    end
+    MailFrame.LoadPresetButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+      UtilityHub.Helpers.String:ApplyPrefix("LoadPresetButton"));
+    SetPosition(MailFrame.LoadPresetButton);
+
     local iconTexture = MailFrame.LoadPresetButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Calendar\\MoreArrow.blp");
     iconTexture:ClearAllPoints();
@@ -83,50 +64,11 @@ function Module:CreateMailIconButtons()
     return MailFrame.LoadPresetButton;
   end
 
-  function CreateManagePresetButton(previousFrame)
-    -- Manage
-    MailFrame.ManagePresetButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("ManagePresetButton"));
-    MailFrame.ManagePresetButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
-    local iconTexture = MailFrame.ManagePresetButton:CreateTexture(nil, "ARTWORK");
-    iconTexture:SetTexture("Interface\\Buttons\\UI-OptionsButton.blp");
-    iconTexture:ClearAllPoints();
-    iconTexture:SetSize(20, 20);
-    iconTexture:SetPoint("CENTER", MailFrame.ManagePresetButton, "CENTER", 0, 0);
-    MailFrame.ManagePresetButton:SetFrameLevel(MailFrame.ManagePresetButton:GetFrameLevel() + 1);
+  local function CreateCharactersButton()
+    MailFrame.CharactersButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+      UtilityHub.Helpers.String:ApplyPrefix("CharactersButton"));
+    SetPosition(MailFrame.CharactersButton);
 
-    MailFrame.ManagePresetButton.menuRelativePoint = "TOPRIGHT";
-    MailFrame.ManagePresetButton.menuMixin = MenuStyle2Mixin;
-    MailFrame.ManagePresetButton:SetMenuAnchor(AnchorUtil.CreateAnchor(MailFrame.ManagePresetButton.menuPoint,
-      MailFrame.ManagePresetButton, MailFrame.ManagePresetButton.menuRelativePoint,
-      MailFrame.ManagePresetButton.menuPointX, MailFrame.ManagePresetButton.menuPointY));
-
-    -- Events
-    MailFrame.ManagePresetButton:SetScript("OnEnter", function(self)
-      GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-      GameTooltip:AddLine("Manage preset", nil, nil, nil);
-      GameTooltip:Show();
-    end);
-    MailFrame.ManagePresetButton:SetScript("OnLeave", function(self)
-      if (GameTooltip:IsOwned(self)) then
-        GameTooltip:Hide();
-      end
-    end);
-    MailFrame.ManagePresetButton:SetScript("OnClick", function(self)
-      PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
-    end);
-
-    MailFrame.ManagePresetButton:SetupMenu(PresetModule:GetManagePresetGeneratorFunction());
-
-    return MailFrame.ManagePresetButton;
-  end
-
-  function CreateCharactersButton(previousFrame)
-    MailFrame.CharactersButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("CharactersButton"));
-    if (previousFrame) then
-      MailFrame.CharactersButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
-    else
-      MailFrame.CharactersButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
-    end
     local iconTexture = MailFrame.CharactersButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetAtlas("UI-HUD-MicroMenu-Housing-Mouseover");
     iconTexture:ClearAllPoints();
@@ -160,10 +102,11 @@ function Module:CreateMailIconButtons()
     return MailFrame.CharactersButton;
   end
 
-  function CreateConfigEmailButton(previousFrame)
-    MailFrame.OpenConfigEmailButton = UtilityHub.UTILS:CreateIconButton(MailFrame,
-      UtilityHub.Helpers:ApplyPrefix("OpenConfigEmailButton"));
-    MailFrame.OpenConfigEmailButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
+  local function CreateConfigEmailButton()
+    MailFrame.OpenConfigEmailButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+      UtilityHub.Helpers.String:ApplyPrefix("OpenConfigEmailButton"));
+    SetPosition(MailFrame.OpenConfigEmailButton);
+
     local iconTexture = MailFrame.OpenConfigEmailButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Buttons\\UI-OptionsButton.blp");
     iconTexture:ClearAllPoints();
@@ -185,23 +128,21 @@ function Module:CreateMailIconButtons()
     MailFrame.OpenConfigEmailButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 
-      if (UtilityHub.AceConfigDialog.OpenFrames[ADDON_NAME .. "_Mail"]) then
-        UtilityHub.AceConfigDialog:Close(ADDON_NAME .. "_Mail");
+      if (UtilityHub.Libs.AceConfigDialog.OpenFrames[ADDON_NAME .. "_Mail"]) then
+        UtilityHub.Libs.AceConfigDialog:Close(ADDON_NAME .. "_Mail");
       else
-        UtilityHub.AceConfigDialog:Open(ADDON_NAME .. "_Mail");
+        UtilityHub.Libs.AceConfigDialog:Open(ADDON_NAME .. "_Mail");
       end
     end);
 
     return MailFrame.OpenConfigEmailButton;
   end
 
-  function CreateGuildButton(previousFrame)
-    MailFrame.GuildButton = UtilityHub.UTILS:CreateIconButton(MailFrame, UtilityHub.Helpers:ApplyPrefix("GuildButton"));
-    if (previousFrame) then
-      MailFrame.GuildButton:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
-    else
-      MailFrame.GuildButton:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
-    end
+  local function CreateGuildButton()
+    MailFrame.GuildButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+      UtilityHub.Helpers.String:ApplyPrefix("GuildButton"));
+    SetPosition(MailFrame.GuildButton);
+
     local iconTexture = MailFrame.GuildButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\CHATFRAME\\UI-ChatConversationIcon.blp");
     iconTexture:ClearAllPoints();
@@ -235,12 +176,56 @@ function Module:CreateMailIconButtons()
     return MailFrame.GuildButton;
   end
 
-  local previousFrame = nil;
+  local function CreateItemClassButton()
+    -- Load
+    MailFrame.ItemTypesButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+      UtilityHub.Helpers.String:ApplyPrefix("ItemTypesButton"));
+    SetPosition(MailFrame.ItemTypesButton);
 
-  previousFrame = CreateLoadPresetButton(previousFrame);
-  previousFrame = CreateCharactersButton(previousFrame);
-  previousFrame = CreateGuildButton(previousFrame);
-  previousFrame = CreateConfigEmailButton(previousFrame);
+    local iconTexture = MailFrame.ItemTypesButton:CreateTexture(nil, "ARTWORK");
+    iconTexture:SetAtlas("legionmission-icon-currency");
+    iconTexture:ClearAllPoints();
+    iconTexture:SetSize(30, 30);
+    iconTexture:SetPoint("CENTER", MailFrame.ItemTypesButton, "CENTER", 1, 0);
+    MailFrame.ItemTypesButton:SetFrameLevel(MailFrame.ItemTypesButton:GetFrameLevel() + 1);
+
+    MailFrame.ItemTypesButton.menuRelativePoint = "TOPRIGHT";
+    MailFrame.ItemTypesButton.menuMixin = MenuStyle2Mixin;
+    MailFrame.ItemTypesButton:SetMenuAnchor(
+      AnchorUtil.CreateAnchor(
+        MailFrame.ItemTypesButton.menuPoint,
+        MailFrame.ItemTypesButton,
+        MailFrame.ItemTypesButton.menuRelativePoint,
+        MailFrame.ItemTypesButton.menuPointX,
+        MailFrame.ItemTypesButton.menuPointY
+      )
+    );
+
+    -- Events
+    MailFrame.ItemTypesButton:SetScript("OnEnter", function(self)
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+      GameTooltip:AddLine("Item class/subclass", nil, nil, nil);
+      GameTooltip:Show();
+    end);
+    MailFrame.ItemTypesButton:SetScript("OnLeave", function(self)
+      if (GameTooltip:IsOwned(self)) then
+        GameTooltip:Hide();
+      end
+    end);
+    MailFrame.ItemTypesButton:SetScript("OnClick", function(self)
+      PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+    end);
+
+    MailFrame.ItemTypesButton:SetupMenu(ItemModule:GetLoadItemGeneratorFunction());
+
+    return MailFrame.ItemTypesButton;
+  end
+
+  CreateLoadPresetButton();
+  CreateItemClassButton();
+  CreateCharactersButton();
+  CreateGuildButton();
+  CreateConfigEmailButton();
 
   Module:UpdateMailButtons();
 end
@@ -257,15 +242,15 @@ end
 
 function Module:OnInitialize()
   EventRegistry:RegisterFrameEventAndCallback("MAIL_SHOW", function()
-    if (not UtilityHub:GetModule("Mail"):IsEnabled()) then
-      ---@diagnostic disable-next-line: undefined-field
-      UtilityHub:EnableModule("Mail");
+    if (not UtilityHub.Addon:GetModule("Mail"):IsEnabled()) then
+      UtilityHub.Addon:EnableModule("Mail");
     end
   end);
 end
 
 function Module:OnEnable()
-  PresetModule = UtilityHub:GetModule("Preset");
-  CharactersModule = UtilityHub:GetModule("Characters");
+  PresetModule = UtilityHub.Addon:GetModule("Preset");
+  CharactersModule = UtilityHub.Addon:GetModule("Characters");
+  ItemModule = UtilityHub.Addon:GetModule("Item");
   Module:CreateMailIconButtons();
 end

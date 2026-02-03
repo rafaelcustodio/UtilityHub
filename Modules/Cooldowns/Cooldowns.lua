@@ -1,7 +1,6 @@
 local moduleName = 'Cooldowns';
 ---@class Cooldowns
----@diagnostic disable-next-line: undefined-field
-local Module = UtilityHub:NewModule(moduleName);
+local Module = UtilityHub.Addon:NewModule(moduleName);
 Module.frame = nil;
 
 ---@class NormalizedCooldown
@@ -37,7 +36,7 @@ local baseCooldowns = {
 -- Still a cooldown in the tbc pre patch
 tinsert(baseCooldowns.Leatherworking, { name = "Refined Deeprock Salt", itemID = 15846 });
 
-if (UtilityHub.IsClassic) then
+if (UtilityHub.Constants.IsClassic) then
   tinsert(baseCooldowns.Tailoring, { name = "Mooncloth", spellID = 18560 });
 
   local transmutes = baseCooldowns.Alchemy[1];
@@ -55,7 +54,7 @@ if (UtilityHub.IsClassic) then
     tinsert(transmutes.spellList, { name = "Mithril to Truesilver", spellID = 11480 });
     tinsert(transmutes.spellList, { name = "Iron to Gold", spellID = 11479 });
   end
-elseif (UtilityHub.IsTBC) then
+elseif (UtilityHub.Constants.IsTBC) then
   tinsert(baseCooldowns.Tailoring, { name = "Shadowcloth", spellID = 36686 });
   tinsert(baseCooldowns.Tailoring, { name = "Spellcloth", spellID = 31373 });
   tinsert(baseCooldowns.Tailoring, { name = "Primal Mooncloth", spellID = 26751 });
@@ -115,7 +114,7 @@ local function CooldownToRemainingTime(cooldown)
 end
 
 Module.Ticker = C_Timer.NewTicker(1, function()
-  if (UtilityHub.addonReady) then
+  if (UtilityHub.Flags.addonReady) then
     Module:UpdateCountReadyCooldowns();
   end
 
@@ -250,7 +249,7 @@ end
 function Module:UpdateCountReadyCooldowns()
   local currentCount = 0;
 
-  for _, character in pairs(UtilityHub.db.global.characters) do
+  for _, character in pairs(UtilityHub.Database.global.characters) do
     for _, cooldownGroup in pairs(character.cooldownGroup or {}) do
       for _, cooldown in pairs(cooldownGroup) do
         local endTime = cooldown.start + cooldown.maxCooldown;
@@ -264,8 +263,11 @@ function Module:UpdateCountReadyCooldowns()
   end
 
   if (currentCount ~= UtilityHub.lastCountReadyCooldowns) then
-    UtilityHub.Events:TriggerEvent("COUNT_READY_COOLDOWNS_CHANGED", currentCount,
-    UtilityHub.lastCountReadyCooldowns == nil);
+    UtilityHub.Events:TriggerEvent(
+      "COUNT_READY_COOLDOWNS_CHANGED",
+      currentCount,
+      UtilityHub.lastCountReadyCooldowns == nil
+    );
   end
 
   UtilityHub.lastCountReadyCooldowns = currentCount;
@@ -277,9 +279,9 @@ function Module:CreateCooldownsFrame()
   Module.Frame = frame;
   frame:SetSize(250, 350);
   frame:Hide();
-  local savedPosition = UtilityHub.db.global.cooldownFramePosition;
+  local savedPosition = UtilityHub.Database.global.cooldownFramePosition;
 
-  if (UtilityHub.db.global.cooldownFramePosition) then
+  if (UtilityHub.Database.global.cooldownFramePosition) then
     frame:SetPoint(
       savedPosition.point,
       frame:GetParent(),
@@ -292,8 +294,8 @@ function Module:CreateCooldownsFrame()
   end
 
   frame.NineSlice.Text:SetText("Cooldowns");
-  UtilityHub.UTILS:AddMovableToFrame(frame, function(pos)
-    UtilityHub.db.global.cooldownFramePosition = pos;
+  UtilityHub.Libs.Utils:AddMovableToFrame(frame, function(pos)
+    UtilityHub.Database.global.cooldownFramePosition = pos;
   end);
 
   local content = CreateFrame("Frame", nil, frame);
@@ -423,7 +425,7 @@ function Module:UpdateCooldownsFrameList()
     },
   });
 
-  for _, character in pairs(UtilityHub.db.global.characters) do
+  for _, character in pairs(UtilityHub.Database.global.characters) do
     for _, cooldownGroup in pairs(character.cooldownGroup or {}) do
       for _, cooldown in pairs(cooldownGroup) do
         local group = groups:InsertGroup({ group = cooldown.name, cooldowns = {} });
@@ -443,7 +445,7 @@ end
 
 function Module:ShowFrame()
   if (not Module:IsEnabled()) then
-    UtilityHub.Helpers:ShowNotification(moduleName .. " module is not enabled");
+    UtilityHub.Helpers.Notification:ShowNotification(moduleName .. " module is not enabled");
     return;
   end
 
@@ -480,7 +482,7 @@ end
 
 -- Events
 local function skillUpdated(...)
-  if (UtilityHub.addonReady and GetNumSkillLines() > 0) then
+  if (UtilityHub.Flags.addonReady and GetNumSkillLines() > 0) then
     UtilityHub.Events:TriggerEvent("CHARACTER_UPDATE_NEEDED");
   end
 end

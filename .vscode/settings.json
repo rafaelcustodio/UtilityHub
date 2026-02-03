@@ -116,7 +116,10 @@
     "FriendsFrame",
     "MenuConstants",
     "CUSTOM_CLASS_COLORS",
-    "MouseIsOver"
+    "MouseIsOver",
+    "UHdatabase",
+    "CharacterFrame",
+    "MenuResponse"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {
@@ -136,7 +139,8 @@
   "Lua.diagnostics.disable": [
     "assign-type-mismatch",
     "undefined-field",
-    "unused-function"
+    "unused-function",
+    "inject-field"
   ],
   "Lua.type.weakUnionCheck": true
 }
