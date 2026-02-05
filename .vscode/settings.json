@@ -119,7 +119,12 @@
     "MouseIsOver",
     "UHdatabase",
     "CharacterFrame",
-    "MenuResponse"
+    "MenuResponse",
+    "SettingsControlMixin",
+    "GameTooltip_AddHighlightLine",
+    "GameTooltip_AddNormalLine",
+    "CLASS_ICON_TCOORDS",
+    "DataProviderMixin"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {

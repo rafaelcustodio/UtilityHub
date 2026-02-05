@@ -27,9 +27,21 @@ UtilityHub = {
       cooldownPlaySound = false,
       -- DailyQuests
       dailyQuests = false,
+      -- Trade
+      tradeExtraInfo = false,
     },
     ---@type Option[]
     options = {},
+    category = nil,
+    subcategories = {},
+    Register = function() end,
+    OpenConfig = function()
+      if (UtilityHub.GameOptions.category == nil) then
+        return;
+      end
+
+      Settings.OpenToCategory(UtilityHub.GameOptions.category:GetID());
+    end,
   },
   Integration = {},
   ---@type Helpers

@@ -227,7 +227,7 @@ function addonTable.GenerateOptions()
           width = "half",
           get = function()
             return UtilityHub.tempPreset.color.r, UtilityHub.tempPreset.color.g, UtilityHub.tempPreset.color.b,
-            UtilityHub.tempPreset.color.a;
+                UtilityHub.tempPreset.color.a;
           end,
           set = function(_, r, g, b, a)
             UtilityHub.tempPreset.color = { r = r, g = g, b = b, a = a };
@@ -763,4 +763,242 @@ function addonTable.GenerateOptions()
       },
     },
   });
+end
+
+-------------------------------------
+
+UtilityHub.GameOptions.Register = function()
+  local function OnSettingChanged(setting, value)
+    UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", setting.variableKey, value);
+  end
+
+  ---@param category any
+  ---@param name string
+  ---@param var string
+  ---@param varKey string
+  ---@param varTable table
+  ---@param defaultValue any
+  ---@param tooltip string|nil
+  local function CreateCheckbox(
+      category,
+      name,
+      var,
+      varKey,
+      varTable,
+      defaultValue,
+      tooltip
+  )
+    local setting = Settings.RegisterAddOnSetting(
+      category,
+      var,
+      varKey,
+      varTable,
+      type(defaultValue),
+      name,
+      defaultValue
+    );
+    setting:SetValueChangedCallback(OnSettingChanged);
+
+    Settings.CreateCheckbox(category, setting, tooltip);
+  end
+
+  ---@param category any
+  ---@param name string
+  ---@param var string
+  ---@param varKey string
+  ---@param varTable table
+  ---@param defaultValue any
+  ---@param configuration OptionListConfiguration
+  local function CreateList(
+      category,
+      name,
+      var,
+      varKey,
+      varTable,
+      defaultValue,
+      configuration
+  )
+    local layout = SettingsPanel:GetLayout(category);
+    local setting = Settings.RegisterAddOnSetting(
+      category,
+      var,
+      varKey,
+      varTable,
+      Settings.VarType.String,
+      name,
+      defaultValue
+    );
+    local data = Settings.CreateSettingInitializerData(setting, nil);
+    data.configuration = configuration;
+    local initializer = Settings.CreateSettingInitializer("UtilityHub_OptionListControlTemplate", data);
+    layout:AddInitializer(initializer);
+    setting:SetValueChangedCallback(OnSettingChanged);
+  end
+
+  UtilityHub.GameOptions.category = Settings.RegisterVerticalLayoutCategory(ADDON_NAME);
+
+  do -- Tooltip
+    UtilityHub.GameOptions.subcategories.tooltip = Settings.RegisterVerticalLayoutSubcategory(
+      UtilityHub.GameOptions.category,
+      "Tooltip"
+    );
+
+    CreateCheckbox(
+      UtilityHub.GameOptions.subcategories.tooltip,
+      "Enabled",
+      "UtilityHub_Tooltip_simpleStatsTooltip",
+      "simpleStatsTooltip",
+      UtilityHub.Database.global.options,
+      UtilityHub.GameOptions.defaults.simpleStatsTooltip,
+      "Change the way most stats are shown in the tooltip"
+    );
+  end
+
+  do -- AutoBuy
+    UtilityHub.GameOptions.subcategories.autoBuy = Settings.RegisterVerticalLayoutSubcategory(
+      UtilityHub.GameOptions.category,
+      "AutoBuy"
+    );
+
+    CreateCheckbox(
+      UtilityHub.GameOptions.subcategories.autoBuy,
+      "Enabled",
+      "UtilityHub_AutoBuy_autoBuy",
+      "autoBuy",
+      UtilityHub.Database.global.options,
+      UtilityHub.GameOptions.defaults.autoBuy,
+      "Enable the functionality to autobuy specific limited stock items from vendors when the window is opened"
+    );
+
+    CreateList(
+      UtilityHub.GameOptions.subcategories.autoBuy,
+      "Items",
+      "UtilityHub_AutoBuy_autoBuyList",
+      "autoBuyList",
+      UtilityHub.Database.global.options,
+      {},
+      {
+        SortComparator = function(a, b)
+          local itemNameA = select(3, strfind(a, "|H(.+)|h"));
+          local itemNameB = select(3, strfind(b, "|H(.+)|h"));
+
+          return itemNameA < itemNameB;
+        end,
+        Predicate = function(rowData)
+          return rowData;
+        end,
+        GetHyperlink = function(rowData)
+          return rowData;
+        end,
+        showRemoveIcon = true,
+        hasHyperlink = true,
+        showInput = true,
+      }
+    );
+  end
+
+  do -- Trade
+    UtilityHub.GameOptions.subcategories.trade = Settings.RegisterVerticalLayoutSubcategory(
+      UtilityHub.GameOptions.category,
+      "Trade"
+    );
+
+    CreateCheckbox(
+      UtilityHub.GameOptions.subcategories.trade,
+      "Enabled",
+      "UtilityHub_Trade_tradeExtraInfo",
+      "tradeExtraInfo",
+      UtilityHub.Database.global.options,
+      UtilityHub.GameOptions.defaults.tradeExtraInfo,
+      "Show extra frame with more info about the person you are trading"
+    );
+  end
+
+  do -- DailyQuests
+    UtilityHub.GameOptions.subcategories.dailyQuests = Settings.RegisterVerticalLayoutSubcategory(
+      UtilityHub.GameOptions.category,
+      "DailyQuests"
+    );
+
+    CreateCheckbox(
+      UtilityHub.GameOptions.subcategories.dailyQuests,
+      "Enabled",
+      "UtilityHub_DailyQuests_dailyQuests",
+      "dailyQuests",
+      UtilityHub.Database.global.options,
+      UtilityHub.GameOptions.defaults.dailyQuests,
+      "Enable tracking of the daily quests"
+    );
+  end
+
+  do -- Cooldowns
+    UtilityHub.GameOptions.subcategories.cooldowns = Settings.RegisterVerticalLayoutSubcategory(
+      UtilityHub.GameOptions.category,
+      "Cooldowns"
+    );
+
+    CreateCheckbox(
+      UtilityHub.GameOptions.subcategories.cooldowns,
+      "Enabled",
+      "UtilityHub_Cooldowns_cooldowns",
+      "cooldowns",
+      UtilityHub.Database.global.options,
+      UtilityHub.GameOptions.defaults.cooldowns,
+      "Enable tracking and listing of all character cooldowns (with the addon active)"
+    );
+
+    CreateCheckbox(
+      UtilityHub.GameOptions.subcategories.cooldowns,
+      "Enabled",
+      "UtilityHub_Cooldowns_cooldownPlaySound",
+      "cooldownPlaySound",
+      UtilityHub.Database.global.options,
+      UtilityHub.GameOptions.defaults.cooldownPlaySound,
+      "Enable tracking of the daily quests"
+    );
+  end
+
+  do -- Mail
+    UtilityHub.GameOptions.subcategories.mail = Settings.RegisterVerticalLayoutSubcategory(
+      UtilityHub.GameOptions.category,
+      "Mail"
+    );
+
+    CreateList(
+      UtilityHub.GameOptions.subcategories.mail,
+      "Presets",
+      "UtilityHub_Mail_presets",
+      "presets",
+      UtilityHub.Database.global,
+      {},
+      {
+        SortComparator = function(a, b)
+          return a.name < b.name;
+        end,
+        Predicate = function(rowData)
+          return rowData.name;
+        end,
+        CustomizeRow = function(frame, rowData, helpers)
+          local color = rowData.color;
+          local fontString = frame:GetFontString();
+
+          fontString:SetTextColor(
+            color and color.r or 1,
+            color and color.g or 1,
+            color and color.b or 1
+          );
+        end,
+        GetText = function(rowData)
+          return rowData.name;
+        end,
+        OnEditClicked = function(rowData)
+          -- TODO
+        end,
+        showRemoveIcon = true,
+        showEditIcon = true,
+      }
+    );
+  end
+
+  Settings.RegisterAddOnCategory(UtilityHub.GameOptions.category);
 end

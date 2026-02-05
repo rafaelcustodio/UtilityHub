@@ -16,6 +16,8 @@ Enums.lua
 Helpers.lua
 Main.lua
 Options/ItemList.lua
+Options/OptionList.lua
+Options/OptionList.xml
 Options/Options.lua
 Layout/TreeGroup/TreeGroup.lua
 Layout/TreeGroup/TreeGroup.xml
