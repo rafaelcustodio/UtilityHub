@@ -370,6 +370,7 @@ function UtilityHub.Addon:OnInitialize()
 
   UtilityHub.Integration.Baganator();
   UtilityHub.Integration.Auctionator();
+  UtilityHub.Integration.TSM();
 
   if (UtilityHub.Database.global.options.simpleStatsTooltip) then
     UtilityHub.Addon:EnableModule("Tooltip");

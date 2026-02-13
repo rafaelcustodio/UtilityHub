@@ -22,9 +22,9 @@ UtilityHub = {
       autoBuy = false,
       autoBuyList = {},
       -- Cooldowns
-      cooldowns = false,
+      cooldowns = true,
       cooldowsList = {},
-      cooldownPlaySound = false,
+      cooldownPlaySound = true,
       -- DailyQuests
       dailyQuests = false,
     },
@@ -38,6 +38,10 @@ UtilityHub = {
   Flags = {
     ---@type boolean
     addonReady = false,
+    ---@type boolean
+    tsmLoaded = false,
+    ---@type Frame|nil
+    tsmMailFrame = nil,
   },
   Database = {},
   Events = CreateFromMixins(CallbackRegistryMixin),

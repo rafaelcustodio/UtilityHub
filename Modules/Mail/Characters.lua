@@ -235,6 +235,7 @@ function Module:GetGuildCharactersGeneratorFunction()
 end
 
 function Module:StartMail(characterName)
-  MailFrameTab_OnClick(_G["MailFrameTab2"]);
-  SendMailNameEditBox:SetText(characterName);
+  UtilityHub.Helpers.Mail:OpenSendMailTab(function()
+    UtilityHub.Helpers.Mail:SetRecipient(characterName);
+  end);
 end

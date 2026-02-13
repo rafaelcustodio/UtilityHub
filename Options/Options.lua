@@ -42,69 +42,73 @@ function addonTable.GenerateOptions()
           fontSize = "medium",
         },
         spacer1 = GenerateSpacer("default"),
-        addonDescription2 = {
-          type = "description",
-          name = "For the addon options, check the options in the left.",
-          order = GetNextOrder("default"),
-          fontSize = "large",
-        },
-        spacer2 = GenerateSpacer("default"),
         addonTitle = {
           type = "description",
           name = "Author: Cacetinho - Nightslayer",
           order = GetNextOrder("default"),
           fontSize = "medium",
         },
-      },
-    },
-  });
-
-  -- Tooltip
-  tinsert(UtilityHub.GameOptions.options, {
-    key = ADDON_NAME .. "_Tooltip",
-    name = "Tooltip",
-    root = false,
-    group = {
-      name = "Tooltip",
-      type = "group",
-      order = GetNextOrder("tooltip"),
-      args = {
-        tooltipGroupSeparator = GenerateSeparator("tooltip"),
-        tooltipSimpleStats = {
+        modulesSeparator = GenerateSeparator("default", "Modules"),
+        tooltipToggle = {
           type = "toggle",
-          name = "Enable",
+          name = "Tooltip - Simplified stats display",
           desc = "Change the way most stats are shown in the tooltip",
-          order = GetNextOrder("tooltip"),
+          order = GetNextOrder("default"),
+          width = "full",
           get = function() return UtilityHub.Database.global.options.simpleStatsTooltip end,
           set = function(_, val)
             UtilityHub.Database.global.options.simpleStatsTooltip = val;
             UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "simpleStatsTooltip", val);
           end,
         },
-      },
-    },
-  });
-
-  -- Trade
-  tinsert(UtilityHub.GameOptions.options, {
-    key = ADDON_NAME .. "_Trade",
-    name = "Trade",
-    root = false,
-    group = {
-      name = "Trade",
-      type = "group",
-      order = GetNextOrder("trade"),
-      args = {
-        tradeGroupSeparator = GenerateSeparator("trade"),
-        tradeExtraInfo = {
+        tradeToggle = {
           type = "toggle",
-          name = "Enable",
+          name = "Trade - Extra info frame",
           desc = "Show extra frame with more info about the person you are trading",
-          order = GetNextOrder("trade"),
+          order = GetNextOrder("default"),
+          width = "full",
           get = function() return UtilityHub.Database.global.options.tradeExtraInfo end,
           set = function(_, val)
             UtilityHub.Database.global.options.tradeExtraInfo = val;
             UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "tradeExtraInfo", val);
+          end,
+        },
+        cooldownsSeparator = GenerateSeparator("default", "Cooldowns"),
+        cooldownsToggle = {
+          type = "toggle",
+          name = "Enable cooldown tracking",
+          desc = "Enable tracking and listing of all character cooldowns (with the addon active)",
+          order = GetNextOrder("default"),
+          width = "full",
+          get = function() return UtilityHub.Database.global.options.cooldowns end,
+          set = function(_, val)
+            UtilityHub.Database.global.options.cooldowns = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldowns", val);
+          end,
+        },
+        cooldownsSoundToggle = {
+          type = "toggle",
+          name = "Play sound when a cooldown is ready",
+          order = GetNextOrder("default"),
+          width = "full",
+          disabled = function() return not UtilityHub.Database.global.options.cooldowns end,
+          get = function() return UtilityHub.Database.global.options.cooldownPlaySound end,
+          set = function(_, val)
+            UtilityHub.Database.global.options.cooldownPlaySound = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldownPlaySound", val);
+          end,
+        },
+        dailyQuestsSeparator = GenerateSeparator("default", "Daily Quests"),
+        dailyQuestsToggle = {
+          type = "toggle",
+          name = "Enable daily quest tracking",
+          desc = "Enable tracking of the daily quests",
+          order = GetNextOrder("default"),
+          width = "full",
+          get = function() return UtilityHub.Database.global.options.dailyQuests end,
+          set = function(_, val)
+            UtilityHub.Database.global.options.dailyQuests = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "dailyQuests", val);
           end,
         },
       },
@@ -699,68 +703,4 @@ function addonTable.GenerateOptions()
     },
   });
 
-  -- Cooldowns
-  tinsert(UtilityHub.GameOptions.options, {
-    key = ADDON_NAME .. "_Cooldowns",
-    name = "Cooldowns",
-    root = false,
-    group = {
-      name = "Cooldowns",
-      type = "group",
-      order = GetNextOrder("cooldowns"),
-      args = {
-        cooldowns = {
-          type = "toggle",
-          name = "Enable",
-          desc =
-          "Enable tracking and listing of all character cooldowns (with the addon active)",
-          order = GetNextOrder("cooldowns"),
-          width = "full",
-          get = function() return UtilityHub.Database.global.options.cooldowns end,
-          set = function(_, val)
-            UtilityHub.Database.global.options.cooldowns = val;
-            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldowns", val);
-          end,
-        },
-        cooldownsPlaySound = {
-          type = "toggle",
-          name = "Play sound when a cooldown is ready",
-          order = GetNextOrder("cooldowns"),
-          width = "full",
-          get = function() return UtilityHub.Database.global.options.cooldownPlaySound end,
-          set = function(_, val)
-            UtilityHub.Database.global.options.cooldownPlaySound = val;
-            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldownPlaySound", val);
-          end,
-        },
-      },
-    },
-  });
-
-  -- Cooldowns
-  tinsert(UtilityHub.GameOptions.options, {
-    key = ADDON_NAME .. "_DailyQuests",
-    name = "DailyQuests",
-    root = false,
-    group = {
-      name = "DailyQuests",
-      type = "group",
-      order = GetNextOrder("dailyQuests"),
-      args = {
-        cooldowns = {
-          type = "toggle",
-          name = "Enable",
-          desc =
-          "Enable tracking of the daily quests",
-          order = GetNextOrder("dailyQuests"),
-          width = "full",
-          get = function() return UtilityHub.Database.global.options.dailyQuests end,
-          set = function(_, val)
-            UtilityHub.Database.global.options.dailyQuests = val;
-            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "dailyQuests", val);
-          end,
-        },
-      },
-    },
-  });
 end

@@ -12,14 +12,46 @@ UtilityHub.Events:RegisterCallback("PLAYER_GUILD_UPDATE", function(_, name)
   Module:UpdateMailButtons();
 end);
 
+function Module:GetMailAnchorFrame()
+  if (UtilityHub.Flags.tsmLoaded and not MailFrame:IsVisible()) then
+    local tsmFrame = UtilityHub.Integration:GetTSMMailFrame();
+    if (tsmFrame) then
+      return tsmFrame;
+    end
+  end
+
+  return MailFrame;
+end
+
+function Module:AnchorButtons()
+  if (not Module.ButtonContainer) then return end
+  local anchor = Module:GetMailAnchorFrame();
+  Module.ButtonContainer:ClearAllPoints();
+
+  if (anchor ~= MailFrame) then
+    Module.ButtonContainer:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 2, 0);
+  else
+    Module.ButtonContainer:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 2, -60);
+  end
+
+  Module.ButtonContainer:SetFrameLevel(anchor:GetFrameLevel() + 5);
+end
+
 function Module:CreateMailIconButtons()
   local previousFrame = nil;
+
+  -- Container frame parented to UIParent (independent of MailFrame)
+  Module.ButtonContainer = CreateFrame("Frame",
+    UtilityHub.Helpers.String:ApplyPrefix("MailButtonContainer"), UIParent);
+  Module.ButtonContainer:SetSize(40, 240);
+  Module.ButtonContainer:SetFrameStrata("HIGH");
+  Module.ButtonContainer:Hide();
 
   local function SetPosition(frame)
     if (previousFrame) then
       frame:SetPoint("BOTTOM", previousFrame, "BOTTOM", 0, -40);
     else
-      frame:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 2, -60);
+      frame:SetPoint("TOPLEFT", Module.ButtonContainer, "TOPLEFT", 0, 0);
     end
 
     previousFrame = frame;
@@ -27,105 +59,105 @@ function Module:CreateMailIconButtons()
 
   local function CreateLoadPresetButton()
     -- Load
-    MailFrame.LoadPresetButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+    Module.LoadPresetButton = UtilityHub.Libs.Utils:CreateIconButton(Module.ButtonContainer,
       UtilityHub.Helpers.String:ApplyPrefix("LoadPresetButton"));
-    SetPosition(MailFrame.LoadPresetButton);
+    SetPosition(Module.LoadPresetButton);
 
-    local iconTexture = MailFrame.LoadPresetButton:CreateTexture(nil, "ARTWORK");
+    local iconTexture = Module.LoadPresetButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Calendar\\MoreArrow.blp");
     iconTexture:ClearAllPoints();
     iconTexture:SetSize(30, 30);
-    iconTexture:SetPoint("CENTER", MailFrame.LoadPresetButton, "CENTER", 1, -5);
-    MailFrame.LoadPresetButton:SetFrameLevel(MailFrame.LoadPresetButton:GetFrameLevel() + 1);
+    iconTexture:SetPoint("CENTER", Module.LoadPresetButton, "CENTER", 1, -5);
+    Module.LoadPresetButton:SetFrameLevel(Module.LoadPresetButton:GetFrameLevel() + 1);
 
-    MailFrame.LoadPresetButton.menuRelativePoint = "TOPRIGHT";
-    MailFrame.LoadPresetButton.menuMixin = MenuStyle2Mixin;
-    MailFrame.LoadPresetButton:SetMenuAnchor(AnchorUtil.CreateAnchor(MailFrame.LoadPresetButton.menuPoint,
-      MailFrame.LoadPresetButton, MailFrame.LoadPresetButton.menuRelativePoint, MailFrame.LoadPresetButton.menuPointX,
-      MailFrame.LoadPresetButton.menuPointY));
+    Module.LoadPresetButton.menuRelativePoint = "TOPRIGHT";
+    Module.LoadPresetButton.menuMixin = MenuStyle2Mixin;
+    Module.LoadPresetButton:SetMenuAnchor(AnchorUtil.CreateAnchor(Module.LoadPresetButton.menuPoint,
+      Module.LoadPresetButton, Module.LoadPresetButton.menuRelativePoint, Module.LoadPresetButton.menuPointX,
+      Module.LoadPresetButton.menuPointY));
 
     -- Events
-    MailFrame.LoadPresetButton:SetScript("OnEnter", function(self)
+    Module.LoadPresetButton:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
       GameTooltip:AddLine("Load preset", nil, nil, nil);
       GameTooltip:Show();
     end);
-    MailFrame.LoadPresetButton:SetScript("OnLeave", function(self)
+    Module.LoadPresetButton:SetScript("OnLeave", function(self)
       if (GameTooltip:IsOwned(self)) then
         GameTooltip:Hide();
       end
     end);
-    MailFrame.LoadPresetButton:SetScript("OnClick", function(self)
+    Module.LoadPresetButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
     end);
 
-    MailFrame.LoadPresetButton:SetupMenu(PresetModule:GetLoadPresetGeneratorFunction());
+    Module.LoadPresetButton:SetupMenu(PresetModule:GetLoadPresetGeneratorFunction());
 
-    return MailFrame.LoadPresetButton;
+    return Module.LoadPresetButton;
   end
 
   local function CreateCharactersButton()
-    MailFrame.CharactersButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+    Module.CharactersButton = UtilityHub.Libs.Utils:CreateIconButton(Module.ButtonContainer,
       UtilityHub.Helpers.String:ApplyPrefix("CharactersButton"));
-    SetPosition(MailFrame.CharactersButton);
+    SetPosition(Module.CharactersButton);
 
-    local iconTexture = MailFrame.CharactersButton:CreateTexture(nil, "ARTWORK");
+    local iconTexture = Module.CharactersButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetAtlas("UI-HUD-MicroMenu-Housing-Mouseover");
     iconTexture:ClearAllPoints();
     iconTexture:SetSize(24, 24);
-    iconTexture:SetPoint("CENTER", MailFrame.CharactersButton, "CENTER", 0, 0);
-    MailFrame.CharactersButton:SetFrameLevel(MailFrame.CharactersButton:GetFrameLevel() + 1);
+    iconTexture:SetPoint("CENTER", Module.CharactersButton, "CENTER", 0, 0);
+    Module.CharactersButton:SetFrameLevel(Module.CharactersButton:GetFrameLevel() + 1);
 
-    MailFrame.CharactersButton.menuRelativePoint = "TOPRIGHT";
-    MailFrame.CharactersButton.menuMixin = MenuStyle2Mixin;
-    MailFrame.CharactersButton:SetMenuAnchor(AnchorUtil.CreateAnchor(MailFrame.CharactersButton.menuPoint,
-      MailFrame.CharactersButton, MailFrame.CharactersButton.menuRelativePoint,
-      MailFrame.CharactersButton.menuPointX, MailFrame.CharactersButton.menuPointY));
+    Module.CharactersButton.menuRelativePoint = "TOPRIGHT";
+    Module.CharactersButton.menuMixin = MenuStyle2Mixin;
+    Module.CharactersButton:SetMenuAnchor(AnchorUtil.CreateAnchor(Module.CharactersButton.menuPoint,
+      Module.CharactersButton, Module.CharactersButton.menuRelativePoint,
+      Module.CharactersButton.menuPointX, Module.CharactersButton.menuPointY));
 
     -- Events
-    MailFrame.CharactersButton:SetScript("OnEnter", function(self)
+    Module.CharactersButton:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
       GameTooltip:AddLine("Account characters", nil, nil, nil);
       GameTooltip:Show();
     end);
-    MailFrame.CharactersButton:SetScript("OnLeave", function(self)
+    Module.CharactersButton:SetScript("OnLeave", function(self)
       if (GameTooltip:IsOwned(self)) then
         GameTooltip:Hide();
       end
     end);
-    MailFrame.CharactersButton:SetScript("OnClick", function(self)
+    Module.CharactersButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
     end);
 
-    MailFrame.CharactersButton:SetupMenu(CharactersModule:GetAccountCharactersGeneratorFunction());
+    Module.CharactersButton:SetupMenu(CharactersModule:GetAccountCharactersGeneratorFunction());
 
-    return MailFrame.CharactersButton;
+    return Module.CharactersButton;
   end
 
   local function CreateConfigEmailButton()
-    MailFrame.OpenConfigEmailButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+    Module.OpenConfigEmailButton = UtilityHub.Libs.Utils:CreateIconButton(Module.ButtonContainer,
       UtilityHub.Helpers.String:ApplyPrefix("OpenConfigEmailButton"));
-    SetPosition(MailFrame.OpenConfigEmailButton);
+    SetPosition(Module.OpenConfigEmailButton);
 
-    local iconTexture = MailFrame.OpenConfigEmailButton:CreateTexture(nil, "ARTWORK");
+    local iconTexture = Module.OpenConfigEmailButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\Buttons\\UI-OptionsButton.blp");
     iconTexture:ClearAllPoints();
     iconTexture:SetSize(20, 20);
-    iconTexture:SetPoint("CENTER", MailFrame.OpenConfigEmailButton, "CENTER", 0, 0);
-    MailFrame.OpenConfigEmailButton:SetFrameLevel(MailFrame.OpenConfigEmailButton:GetFrameLevel() + 1);
+    iconTexture:SetPoint("CENTER", Module.OpenConfigEmailButton, "CENTER", 0, 0);
+    Module.OpenConfigEmailButton:SetFrameLevel(Module.OpenConfigEmailButton:GetFrameLevel() + 1);
 
     -- Events
-    MailFrame.OpenConfigEmailButton:SetScript("OnEnter", function(self)
+    Module.OpenConfigEmailButton:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
       GameTooltip:AddLine("Open configuration", nil, nil, nil);
       GameTooltip:Show();
     end);
-    MailFrame.OpenConfigEmailButton:SetScript("OnLeave", function(self)
+    Module.OpenConfigEmailButton:SetScript("OnLeave", function(self)
       if (GameTooltip:IsOwned(self)) then
         GameTooltip:Hide();
       end
     end);
-    MailFrame.OpenConfigEmailButton:SetScript("OnClick", function(self)
+    Module.OpenConfigEmailButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 
       if (UtilityHub.Libs.AceConfigDialog.OpenFrames[ADDON_NAME .. "_Mail"]) then
@@ -135,90 +167,90 @@ function Module:CreateMailIconButtons()
       end
     end);
 
-    return MailFrame.OpenConfigEmailButton;
+    return Module.OpenConfigEmailButton;
   end
 
   local function CreateGuildButton()
-    MailFrame.GuildButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+    Module.GuildButton = UtilityHub.Libs.Utils:CreateIconButton(Module.ButtonContainer,
       UtilityHub.Helpers.String:ApplyPrefix("GuildButton"));
-    SetPosition(MailFrame.GuildButton);
+    SetPosition(Module.GuildButton);
 
-    local iconTexture = MailFrame.GuildButton:CreateTexture(nil, "ARTWORK");
+    local iconTexture = Module.GuildButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetTexture("Interface\\CHATFRAME\\UI-ChatConversationIcon.blp");
     iconTexture:ClearAllPoints();
     iconTexture:SetSize(20, 20);
-    iconTexture:SetPoint("CENTER", MailFrame.GuildButton, "CENTER", 0, 0);
-    MailFrame.GuildButton:SetFrameLevel(MailFrame.GuildButton:GetFrameLevel() + 1);
+    iconTexture:SetPoint("CENTER", Module.GuildButton, "CENTER", 0, 0);
+    Module.GuildButton:SetFrameLevel(Module.GuildButton:GetFrameLevel() + 1);
 
-    MailFrame.GuildButton.menuMixin = MenuStyle2Mixin;
-    MailFrame.GuildButton.menuRelativePoint = "TOPRIGHT";
-    MailFrame.GuildButton:SetMenuAnchor(AnchorUtil.CreateAnchor(MailFrame.GuildButton.menuPoint,
-      MailFrame.GuildButton, MailFrame.GuildButton.menuRelativePoint,
-      MailFrame.GuildButton.menuPointX, MailFrame.GuildButton.menuPointY));
+    Module.GuildButton.menuMixin = MenuStyle2Mixin;
+    Module.GuildButton.menuRelativePoint = "TOPRIGHT";
+    Module.GuildButton:SetMenuAnchor(AnchorUtil.CreateAnchor(Module.GuildButton.menuPoint,
+      Module.GuildButton, Module.GuildButton.menuRelativePoint,
+      Module.GuildButton.menuPointX, Module.GuildButton.menuPointY));
 
     -- Events
-    MailFrame.GuildButton:SetScript("OnEnter", function(self)
+    Module.GuildButton:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
       GameTooltip:AddLine("Guild characters", nil, nil, nil);
       GameTooltip:Show();
     end);
-    MailFrame.GuildButton:SetScript("OnLeave", function(self)
+    Module.GuildButton:SetScript("OnLeave", function(self)
       if (GameTooltip:IsOwned(self)) then
         GameTooltip:Hide();
       end
     end);
-    MailFrame.GuildButton:SetScript("OnClick", function(self)
+    Module.GuildButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
     end);
 
-    MailFrame.GuildButton:SetupMenu(CharactersModule:GetGuildCharactersGeneratorFunction());
+    Module.GuildButton:SetupMenu(CharactersModule:GetGuildCharactersGeneratorFunction());
 
-    return MailFrame.GuildButton;
+    return Module.GuildButton;
   end
 
   local function CreateItemClassButton()
     -- Load
-    MailFrame.ItemTypesButton = UtilityHub.Libs.Utils:CreateIconButton(MailFrame,
+    Module.ItemTypesButton = UtilityHub.Libs.Utils:CreateIconButton(Module.ButtonContainer,
       UtilityHub.Helpers.String:ApplyPrefix("ItemTypesButton"));
-    SetPosition(MailFrame.ItemTypesButton);
+    SetPosition(Module.ItemTypesButton);
 
-    local iconTexture = MailFrame.ItemTypesButton:CreateTexture(nil, "ARTWORK");
+    local iconTexture = Module.ItemTypesButton:CreateTexture(nil, "ARTWORK");
     iconTexture:SetAtlas("legionmission-icon-currency");
     iconTexture:ClearAllPoints();
     iconTexture:SetSize(30, 30);
-    iconTexture:SetPoint("CENTER", MailFrame.ItemTypesButton, "CENTER", 1, 0);
-    MailFrame.ItemTypesButton:SetFrameLevel(MailFrame.ItemTypesButton:GetFrameLevel() + 1);
+    iconTexture:SetPoint("CENTER", Module.ItemTypesButton, "CENTER", 1, 0);
+    Module.ItemTypesButton:SetFrameLevel(Module.ItemTypesButton:GetFrameLevel() + 1);
 
-    MailFrame.ItemTypesButton.menuRelativePoint = "TOPRIGHT";
-    MailFrame.ItemTypesButton.menuMixin = MenuStyle2Mixin;
-    MailFrame.ItemTypesButton:SetMenuAnchor(
+    Module.ItemTypesButton.menuRelativePoint = "TOPRIGHT";
+    Module.ItemTypesButton.menuMixin = MenuStyle2Mixin;
+    Module.ItemTypesButton:SetMenuAnchor(
       AnchorUtil.CreateAnchor(
-        MailFrame.ItemTypesButton.menuPoint,
-        MailFrame.ItemTypesButton,
-        MailFrame.ItemTypesButton.menuRelativePoint,
-        MailFrame.ItemTypesButton.menuPointX,
-        MailFrame.ItemTypesButton.menuPointY
+        Module.ItemTypesButton.menuPoint,
+        Module.ItemTypesButton,
+        Module.ItemTypesButton.menuRelativePoint,
+        Module.ItemTypesButton.menuPointX,
+        Module.ItemTypesButton.menuPointY
       )
     );
 
     -- Events
-    MailFrame.ItemTypesButton:SetScript("OnEnter", function(self)
+    Module.ItemTypesButton:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
       GameTooltip:AddLine("Item class/subclass", nil, nil, nil);
       GameTooltip:Show();
     end);
-    MailFrame.ItemTypesButton:SetScript("OnLeave", function(self)
+    Module.ItemTypesButton:SetScript("OnLeave", function(self)
       if (GameTooltip:IsOwned(self)) then
         GameTooltip:Hide();
       end
     end);
-    MailFrame.ItemTypesButton:SetScript("OnClick", function(self)
+    Module.ItemTypesButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
     end);
 
-    MailFrame.ItemTypesButton:SetupMenu(ItemModule:GetLoadItemGeneratorFunction());
+    Module.ItemTypesButton:SetupMenu(ItemModule:GetLoadItemGeneratorFunction());
 
-    return MailFrame.ItemTypesButton;
+    return Module.ItemTypesButton;
   end
 
   CreateLoadPresetButton();
@@ -231,11 +263,11 @@ function Module:CreateMailIconButtons()
 end
 
 function Module:UpdateMailButtons()
-  if (MailFrame.GuildButton) then
+  if (Module.GuildButton) then
     if (IsInGuild()) then
-      MailFrame.GuildButton:Enable();
+      Module.GuildButton:Enable();
     else
-      MailFrame.GuildButton:Disable();
+      Module.GuildButton:Disable();
     end
   end
 end
@@ -245,6 +277,54 @@ function Module:OnInitialize()
     if (not UtilityHub.Addon:GetModule("Mail"):IsEnabled()) then
       UtilityHub.Addon:EnableModule("Mail");
     end
+
+    if (Module.ButtonContainer) then
+      Module.ButtonContainer:Show();
+      -- Delay for TSM to have time to create its frame
+      C_Timer.After(0.15, function()
+        Module:AnchorButtons();
+      end);
+    end
+  end);
+
+  MailFrame:HookScript("OnHide", function()
+    if (not Module.ButtonContainer) then return end
+
+    if (UtilityHub.Flags.tsmLoaded) then
+      -- Delay to give TSM time to show and position its frame
+      C_Timer.After(0.3, function()
+        if (not Module.ButtonContainer:IsShown()) then return end
+
+        local tsmFrame = UtilityHub.Integration:GetTSMMailFrame();
+        if (tsmFrame) then
+          Module:AnchorButtons();
+
+          -- Re-anchor after TSM finishes layout
+          C_Timer.After(0.3, function()
+            Module:AnchorButtons();
+          end);
+
+          -- Hook TSM frame OnHide to catch when TSM closes
+          if (not tsmFrame.uhHooked) then
+            tsmFrame:HookScript("OnHide", function()
+              if (Module.ButtonContainer) then
+                Module.ButtonContainer:Hide();
+                UtilityHub.Flags.tsmMailFrame = nil;
+              end
+            end);
+            tsmFrame.uhHooked = true;
+          end
+          return;
+        end
+
+        Module.ButtonContainer:Hide();
+        UtilityHub.Flags.tsmMailFrame = nil;
+      end);
+      return;
+    end
+
+    Module.ButtonContainer:Hide();
+    UtilityHub.Flags.tsmMailFrame = nil;
   end);
 end
 

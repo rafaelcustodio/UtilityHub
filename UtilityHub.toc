@@ -30,6 +30,7 @@ Modules/AutoBuy/AutoBuy.lua
 Modules/Integration/Integration.lua
 Modules/Integration/Baganator.lua
 Modules/Integration/Auctionator.lua
+Modules/Integration/TSM.lua
 Modules/Tooltip/Tooltip.lua
 Modules/Cooldowns/Cooldowns.lua
 Modules/DailyQuests/DailyQuests.lua

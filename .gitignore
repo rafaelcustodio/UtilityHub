@@ -8,3 +8,7 @@ UtilityHub.zip
 
 # Git related files (though .git is usually implicitly ignored by git)
 .git/
+.vs/
+CLAUDE.md
+.claude/
+.vscode/
