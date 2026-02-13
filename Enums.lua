@@ -6,6 +6,13 @@ local CHARACTER_GROUP = {
   CD = 3,
 };
 
+---@enum ECooldownGroupBy
+local COOLDOWN_GROUP_BY = {
+  CHARACTER = 1,
+  TYPE = 2,
+  READY_DATE = 3,
+};
+
 ---@class Enums
 UtilityHub.Enums = {
   CharacterGroup = CHARACTER_GROUP,
@@ -55,5 +62,12 @@ UtilityHub.Enums = {
   Side = {
     ALLIANCE = "Alliance",
     HORDE = "Horde",
+  },
+  CooldownGroupBy = COOLDOWN_GROUP_BY,
+  ---@enum ECooldownGroupByText
+  CooldownGroupByText = {
+    [COOLDOWN_GROUP_BY.CHARACTER] = "By Character",
+    [COOLDOWN_GROUP_BY.TYPE] = "By Type",
+    [COOLDOWN_GROUP_BY.READY_DATE] = "By Ready Date",
   },
 };
