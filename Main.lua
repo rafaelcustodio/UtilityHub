@@ -142,6 +142,8 @@ local function SetupSlashCommands()
       print("  Toggle cooldowns frame");
       print("- |cffddff00daily or dailies|r");
       print("  Toggle daily frame");
+      print("- |cffddff00testcd|r");
+      print("  Test cooldown notifications");
     elseif (command == "debug") then
       UtilityHub.Database.global.debugMode = (not UtilityHub.Database.global.debugMode);
       local debugText = UtilityHub.Database.global.debugMode and "ON" or "OFF";
@@ -152,6 +154,10 @@ local function SetupSlashCommands()
       UtilityHub.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
     elseif (command == "daily" or command == "dailies") then
       UtilityHub.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
+    elseif (command == "testcd") then
+      ---@type Cooldowns
+      local cooldownsModule = UtilityHub.Addon:GetModule("Cooldowns");
+      cooldownsModule:TestNotification();
     elseif (command == "migrate") then
       UtilityHub:MigrateDB();
     elseif (command == "update-quest-flags") then
@@ -344,10 +350,6 @@ end);
 
 UtilityHub.Events:RegisterCallback("COUNT_READY_COOLDOWNS_CHANGED", function(_, count, first)
   UpdateMinimapIcon(count > 0);
-
-  if (not first and count > 0 and UtilityHub.Database.global.options.cooldownPlaySound) then
-    PlaySoundFile("Interface\\AddOns\\" .. ADDON_NAME .. "\\Assets\\Sounds\\Cooldown_Ready.ogg", "Master");
-  end
 end);
 
 EventRegistry:RegisterFrameEventAndCallback("LOADING_SCREEN_DISABLED", function()

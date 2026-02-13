@@ -217,6 +217,7 @@ Module.Ticker = C_Timer.NewTicker(1, function()
 end);
 
 Module.CollapsedGroups = {};
+Module.NotifiedCooldowns = {};
 Module.CountReadyGraceTicks = 5;
 
 ---@return table<string, CurrentCooldown[]>
@@ -330,6 +331,7 @@ end
 
 function Module:UpdateCountReadyCooldowns()
   local currentCount = 0;
+  local currentReadySet = {};
 
   for _, character in pairs(UtilityHub.Database.global.characters) do
     for _, cooldownGroup in pairs(character.cooldownGroup or {}) do
@@ -339,6 +341,11 @@ function Module:UpdateCountReadyCooldowns()
 
         if (cooldown.start == 0 or remaining < 0) then
           currentCount = currentCount + 1;
+
+          if (cooldown.maxCooldown > 0 and remaining < 0) then
+            local key = character.name .. ":" .. cooldown.name;
+            currentReadySet[key] = character.name .. " - " .. cooldown.name;
+          end
         end
       end
     end
@@ -348,6 +355,23 @@ function Module:UpdateCountReadyCooldowns()
 
   if (Module.CountReadyGraceTicks > 0) then
     Module.CountReadyGraceTicks = Module.CountReadyGraceTicks - 1;
+  end
+
+  if (not isInitializing) then
+    local hasNewReady = false;
+
+    for key, label in pairs(currentReadySet) do
+      if (not Module.NotifiedCooldowns[key]) then
+        UtilityHub.Helpers.Notification:ShowNotification(label .. " is ready!");
+        hasNewReady = true;
+      end
+    end
+
+    if (hasNewReady and UtilityHub.Database.global.options.cooldownPlaySound) then
+      PlaySoundFile("Interface\\AddOns\\UtilityHub\\Assets\\Sounds\\Cooldown_Ready.ogg", "Master");
+    end
+
+    Module.NotifiedCooldowns = currentReadySet;
   end
 
   if (currentCount ~= UtilityHub.lastCountReadyCooldowns) then
@@ -795,6 +819,13 @@ function Module:OnInitialize()
   end
 end
 
+function Module:TestNotification()
+  Module.NotifiedCooldowns = {};
+  Module.CountReadyGraceTicks = 0;
+  Module:UpdateCountReadyCooldowns();
+  UtilityHub.Helpers.Notification:ShowNotification("Triggered cooldown notification test");
+end
+
 -- Events
 local function skillUpdated(...)
   if (UtilityHub.Flags.addonReady and GetNumSkillLines() > 0) then
@@ -807,6 +838,7 @@ EventRegistry:RegisterFrameEventAndCallback("TRADE_SKILL_LIST_UPDATE", skillUpda
 EventRegistry:RegisterFrameEventAndCallback("TRADE_SKILL_UPDATE", skillUpdated);
 
 EventRegistry:RegisterFrameEventAndCallback("LOADING_SCREEN_DISABLED", function()
+  Module.NotifiedCooldowns = {};
   Module.CountReadyGraceTicks = 5;
 end);
 
