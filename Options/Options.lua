@@ -98,6 +98,47 @@ function addonTable.GenerateOptions()
             UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldownPlaySound", val);
           end,
         },
+        cooldownsStartCollapsedToggle = {
+          type = "toggle",
+          name = "Open cooldowns with groups collapsed",
+          desc = "When opening the cooldowns frame, all groups will start minimized",
+          order = GetNextOrder("default"),
+          width = "full",
+          disabled = function() return not UtilityHub.Database.global.options.cooldowns end,
+          get = function() return UtilityHub.Database.global.options.cooldownStartCollapsed end,
+          set = function(_, val)
+            UtilityHub.Database.global.options.cooldownStartCollapsed = val;
+          end,
+        },
+        cooldownsSyncToggle = {
+          type = "toggle",
+          name = "Enable cross-account sync",
+          desc = "Sync cooldown data between multiple WoW accounts via a shared chat channel",
+          order = GetNextOrder("default"),
+          width = "full",
+          disabled = function() return not UtilityHub.Database.global.options.cooldowns end,
+          get = function() return UtilityHub.Database.global.options.cooldownSync end,
+          set = function(_, val)
+            UtilityHub.Database.global.options.cooldownSync = val;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldownSync");
+          end,
+        },
+        cooldownsSyncChannel = {
+          type = "input",
+          name = "Sync channel name",
+          desc = "Both accounts must use the same channel name.",
+          order = GetNextOrder("default"),
+          width = "double",
+          disabled = function()
+            return not UtilityHub.Database.global.options.cooldowns or not UtilityHub.Database.global.options.cooldownSync
+          end,
+          get = function() return UtilityHub.Database.global.options.cooldownSyncChannel end,
+          set = function(_, val)
+            local sanitized = val:trim():lower():gsub("[^%a%d]", "");
+            UtilityHub.Database.global.options.cooldownSyncChannel = sanitized;
+            UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldownSyncChannel");
+          end,
+        },
         dailyQuestsSeparator = GenerateSeparator("default", "Daily Quests"),
         dailyQuestsToggle = {
           type = "toggle",

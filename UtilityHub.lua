@@ -25,6 +25,9 @@ UtilityHub = {
       cooldowns = true,
       cooldowsList = {},
       cooldownPlaySound = true,
+      cooldownStartCollapsed = false,
+      cooldownSync = false,
+      cooldownSyncChannel = "",
       -- DailyQuests
       dailyQuests = false,
     },

@@ -144,6 +144,10 @@ local function SetupSlashCommands()
       print("  Toggle daily frame");
       print("- |cffddff00testcd|r");
       print("  Test cooldown notifications");
+      print("- |cffddff00fakesync|r");
+      print("  Inject fake characters to simulate cross-account sync");
+      print("- |cffddff00clearfakesync|r");
+      print("  Remove all fake sync characters");
     elseif (command == "debug") then
       UtilityHub.Database.global.debugMode = (not UtilityHub.Database.global.debugMode);
       local debugText = UtilityHub.Database.global.debugMode and "ON" or "OFF";
@@ -158,6 +162,14 @@ local function SetupSlashCommands()
       ---@type Cooldowns
       local cooldownsModule = UtilityHub.Addon:GetModule("Cooldowns");
       cooldownsModule:TestNotification();
+    elseif (command == "fakesync") then
+      ---@type Cooldowns
+      local cooldownsModule = UtilityHub.Addon:GetModule("Cooldowns");
+      cooldownsModule:InjectFakeSyncData();
+    elseif (command == "clearfakesync") then
+      ---@type Cooldowns
+      local cooldownsModule = UtilityHub.Addon:GetModule("Cooldowns");
+      cooldownsModule:ClearFakeSyncData();
     elseif (command == "migrate") then
       UtilityHub:MigrateDB();
     elseif (command == "update-quest-flags") then
@@ -256,7 +268,7 @@ end
 
 local function UpdateCharacter()
   local function GetPlayerIndex(name)
-    for index, value in pairs(UtilityHub.Database.global.characters) do
+    for index, value in ipairs(UtilityHub.Database.global.characters) do
       if (value.name == name) then
         return index;
       end

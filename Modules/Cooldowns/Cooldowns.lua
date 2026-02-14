@@ -333,19 +333,17 @@ function Module:UpdateCountReadyCooldowns()
   local currentCount = 0;
   local currentReadySet = {};
 
-  for _, character in pairs(UtilityHub.Database.global.characters) do
+  for _, character in ipairs(UtilityHub.Database.global.characters) do
     for _, cooldownGroup in pairs(character.cooldownGroup or {}) do
-      for _, cooldown in pairs(cooldownGroup) do
+      for _, cooldown in ipairs(cooldownGroup) do
         local endTime = cooldown.start + cooldown.maxCooldown;
         local remaining = endTime - GetTime();
 
         if (cooldown.start == 0 or remaining < 0) then
           currentCount = currentCount + 1;
 
-          if (cooldown.maxCooldown > 0 and remaining < 0) then
-            local key = character.name .. ":" .. cooldown.name;
-            currentReadySet[key] = character.name .. " - " .. cooldown.name;
-          end
+          local key = character.name .. ":" .. cooldown.name;
+          currentReadySet[key] = character.name .. " - " .. cooldown.name;
         end
       end
     end
@@ -444,6 +442,48 @@ function Module:CreateCooldownsFrame()
       end;
       UIDropDownMenu_AddButton(info);
     end
+  end);
+
+  local collapseBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate");
+  frame.CollapseButton = collapseBtn;
+  collapseBtn:SetSize(80, 22);
+  collapseBtn:SetPoint("TOPRIGHT", content, "TOPRIGHT", -5, 4);
+  collapseBtn:SetText("Collapse");
+
+  collapseBtn:SetScript("OnClick", function()
+    local dataProvider = Module.Frame.ScrollBox:GetDataProvider();
+
+    if (not dataProvider) then
+      return;
+    end
+
+    -- Check current state from all group nodes
+    local allCollapsed = true;
+
+    for _, node in dataProvider:EnumerateEntireRange() do
+      local data = node:GetData();
+
+      if (data.group) then
+        if (not Module.CollapsedGroups[data.group]) then
+          allCollapsed = false;
+          break;
+        end
+      end
+    end
+
+    local newState = not allCollapsed;
+
+    for _, node in dataProvider:EnumerateEntireRange() do
+      local data = node:GetData();
+
+      if (data.group) then
+        Module.CollapsedGroups[data.group] = newState;
+      end
+    end
+
+    collapseBtn:SetText(newState and "Expand" or "Collapse");
+    Module:UpdateCooldownsFrameList();
+    PlaySound(SOUNDKIT.IG_MAINMENU_OPTION);
   end);
 
   frame.ScrollBar = CreateFrame("EventFrame", nil, content, "MinimalScrollBar");
@@ -609,9 +649,9 @@ function Module:UpdateCooldownsFrameList()
   -- Collect all cooldown entries across all characters
   local allEntries = {};
 
-  for _, character in pairs(UtilityHub.Database.global.characters) do
+  for _, character in ipairs(UtilityHub.Database.global.characters) do
     for profName, cooldownGroup in pairs(character.cooldownGroup or {}) do
-      for _, cooldown in pairs(cooldownGroup) do
+      for _, cooldown in ipairs(cooldownGroup) do
         local _, isReady = CooldownToRemainingTime(cooldown);
         local remaining = 0;
 
@@ -779,6 +819,22 @@ function Module:UpdateCooldownsFrameList()
     InsertGroupsIntoProvider(groups, order);
   end
 
+  -- Apply collapsed state to nodes before rendering
+  for _, node in dataProvider:EnumerateEntireRange() do
+    local elementData = node:GetData();
+
+    if (elementData.group) then
+      if (Module.AllCollapsedOverride) then
+        Module.CollapsedGroups[elementData.group] = true;
+        node:SetCollapsed(true);
+      elseif (Module.CollapsedGroups[elementData.group]) then
+        node:SetCollapsed(true);
+      end
+    end
+  end
+
+  Module.AllCollapsedOverride = nil;
+
   Module.Frame.ScrollBox:SetDataProvider(dataProvider);
 end
 
@@ -789,8 +845,19 @@ function Module:ShowFrame()
   end
 
   if (Module.Frame) then
+    -- Reset collapsed state based on user preference
+    Module.CollapsedGroups = {};
+
+    if (UtilityHub.Database.global.options.cooldownStartCollapsed) then
+      Module.AllCollapsedOverride = true;
+    end
+
     Module.Frame:Show();
     Module:UpdateCooldownsFrameList();
+
+    -- Update button text
+    local startCollapsed = UtilityHub.Database.global.options.cooldownStartCollapsed;
+    Module.Frame.CollapseButton:SetText(startCollapsed and "Expand" or "Collapse");
   end
 end
 

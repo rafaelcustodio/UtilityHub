@@ -33,4 +33,5 @@ Modules/Integration/Auctionator.lua
 Modules/Integration/TSM.lua
 Modules/Tooltip/Tooltip.lua
 Modules/Cooldowns/Cooldowns.lua
+Modules/Cooldowns/Sync.lua
 Modules/DailyQuests/DailyQuests.lua
