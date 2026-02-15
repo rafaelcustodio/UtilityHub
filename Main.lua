@@ -46,8 +46,59 @@ local function MigrateDB(version, oldVersion)
     UtilityHub.Database.global.options = UtilityHub.GameOptions.defaults;
   end
 
-  if (not UtilityHub.Database.global.options.autoBuyList) then
-    UtilityHub.Database.global.options.autoBuyList = UtilityHub.GameOptions.defaults.autoBuyList;
+  -- Migrate old autoBuyList (array of strings) to new format (array of objects)
+  if (UtilityHub.Database.global.options.autoBuyList) then
+    local needsMigration = false;
+
+    -- Check if old format (array of strings)
+    if (#UtilityHub.Database.global.options.autoBuyList > 0 and type(UtilityHub.Database.global.options.autoBuyList[1]) == "string") then
+      needsMigration = true;
+    end
+
+    if (needsMigration) then
+      local newList = {};
+
+      -- Convert old autoBuyList strings to new format
+      for _, itemLink in ipairs(UtilityHub.Database.global.options.autoBuyList) do
+        tinsert(newList, {
+          itemLink = itemLink,
+          quantity = 1,
+        });
+      end
+
+      UtilityHub.Database.global.options.autoBuyList = newList;
+      UtilityHub.Helpers.Notification:ShowNotification("Migrated AutoBuy list to new format");
+    end
+  else
+    UtilityHub.Database.global.options.autoBuyList = {};
+  end
+
+  -- Migrate autoRestockList to unified autoBuyList
+  if (UtilityHub.Database.global.options.autoRestockList and #UtilityHub.Database.global.options.autoRestockList > 0) then
+    for _, restockItem in ipairs(UtilityHub.Database.global.options.autoRestockList) do
+      -- Check if item already exists in autoBuyList
+      local itemID = tonumber(string.match(restockItem.itemLink, "item:(%d+):"));
+      local exists = false;
+
+      for _, buyItem in ipairs(UtilityHub.Database.global.options.autoBuyList) do
+        local buyItemID = tonumber(string.match(buyItem.itemLink, "item:(%d+):"));
+        if (buyItemID == itemID) then
+          exists = true;
+          break;
+        end
+      end
+
+      if (not exists) then
+        tinsert(UtilityHub.Database.global.options.autoBuyList, {
+          itemLink = restockItem.itemLink,
+          quantity = restockItem.targetQuantity or 20,
+        });
+      end
+    end
+
+    -- Clear autoRestockList after migration
+    UtilityHub.Database.global.options.autoRestockList = nil;
+    UtilityHub.Helpers.Notification:ShowNotification("Merged Auto-Restock items into AutoBuy list");
   end
 
   if (UtilityHub.Database.global.characters) then
@@ -142,6 +193,9 @@ local function SetupSlashCommands()
       print("  Toggle cooldowns frame");
       print("- |cffddff00daily or dailies|r");
       print("  Toggle daily frame");
+      print("- |cffddff00autobuy [itemLink] [quantity]|r - Add item (default: quantity=1)");
+      print("- |cffddff00autobuy list/remove/clear|r - Manage AutoBuy list");
+      print("  Quantity=1: buy once | Quantity>1: maintain stock");
       print("- |cffddff00testcd|r");
       print("  Test cooldown notifications");
       print("- |cffddff00fakesync|r");
@@ -179,6 +233,127 @@ local function SetupSlashCommands()
       local arg = fragments[4];
       local module = UtilityHub.Addon:GetModule(fragments[2]);
       module[functionName](module, arg);
+    elseif (command == "autobuy") then
+      local subCommand = fragments[2];
+
+      -- Extract itemLink from the full command string (handles spaces in item names)
+      local fullCommand = strParam;
+      local itemLink = string.match(fullCommand, "(|c%x+|Hitem:.-|h%[.-%]|h|r)");
+
+      -- Extract quantity (last number in the command)
+      local quantity = 1; -- default
+      for i = #fragments, 1, -1 do
+        local num = tonumber(fragments[i]);
+        if (num) then
+          quantity = num;
+          break;
+        end
+      end
+
+      -- If no valid subcommand specified and there's an itemLink, assume "add"
+      if (itemLink and subCommand ~= "list" and subCommand ~= "remove" and subCommand ~= "clear") then
+        subCommand = "add";
+      end
+
+      if (subCommand == "add") then
+        if (not itemLink) then
+          print("|cffFF6B6BError:|r Shift+Click an item first, then use: /uh autobuy [itemLink] [quantity]");
+          return;
+        end
+
+        -- Extract itemID from link
+        local itemID = tonumber(string.match(itemLink, "item:(%d+):"));
+
+        -- If itemID not found, try to resolve item name to link
+        if (not itemID) then
+          -- Try to get item info by name (remove brackets if present)
+          local itemName = string.match(itemLink, "%[(.-)%]") or itemLink;
+          local resolvedLink = select(2, C_Item.GetItemInfo(itemName));
+
+          if (resolvedLink) then
+            itemLink = resolvedLink;
+            itemID = tonumber(string.match(itemLink, "item:(%d+):"));
+            print("|cff00FF00Resolved item name to:|r " .. itemLink);
+          else
+            print("|cffFF6B6BError:|r Invalid item link. Please Shift+Click the item from your bags or inventory.");
+            return;
+          end
+        end
+
+        if (not itemID) then
+          print("|cffFF6B6BError:|r Could not extract item ID");
+          return;
+        end
+
+        local autoBuyList = UtilityHub.Database.global.options.autoBuyList or {};
+
+        -- Check if already exists
+        for _, existingItem in ipairs(autoBuyList) do
+          local existingID = tonumber(string.match(existingItem.itemLink, "item:(%d+):"));
+          if (existingID == itemID) then
+            print("|cffFF6B6BError:|r Item already in AutoBuy list");
+            return;
+          end
+        end
+
+        tinsert(autoBuyList, {
+          itemLink = itemLink,
+          quantity = quantity,
+        });
+        UtilityHub.Database.global.options.autoBuyList = autoBuyList;
+
+        if (quantity == 1) then
+          print("|cff00FF00Added to AutoBuy:|r " .. itemLink .. " |cff808080(buy once)|r");
+        else
+          print("|cff00FF00Added to AutoBuy:|r " .. itemLink .. " |cff808080(maintain: " .. quantity .. ")|r");
+        end
+      elseif (subCommand == "remove") then
+        if (not itemLink) then
+          print("|cffFF6B6BError:|r Usage: /uh autobuy remove [itemLink]");
+          return;
+        end
+
+        local autoBuyList = UtilityHub.Database.global.options.autoBuyList or {};
+        local itemID = tonumber(string.match(itemLink, "item:(%d+):"));
+        local removed = false;
+
+        for i = #autoBuyList, 1, -1 do
+          local existingID = tonumber(string.match(autoBuyList[i].itemLink, "item:(%d+):"));
+          if (existingID == itemID) then
+            table.remove(autoBuyList, i);
+            removed = true;
+            break;
+          end
+        end
+
+        if (removed) then
+          UtilityHub.Database.global.options.autoBuyList = autoBuyList;
+          print("|cff00FF00Removed from AutoBuy:|r " .. itemLink);
+        else
+          print("|cffFF6B6BError:|r Item not found in AutoBuy list");
+        end
+      elseif (subCommand == "list") then
+        local autoBuyList = UtilityHub.Database.global.options.autoBuyList or {};
+        if (#autoBuyList == 0) then
+          print("|cffFFD700AutoBuy list is empty|r");
+        else
+          print("|cffFFD700AutoBuy list (" .. #autoBuyList .. " items):|r");
+          for i, item in ipairs(autoBuyList) do
+            if (item.quantity == 1) then
+              print("  " .. i .. ". " .. item.itemLink .. " |cff808080(buy once)|r");
+            else
+              local itemID = tonumber(string.match(item.itemLink, "item:(%d+):"));
+              local currentCount = itemID and C_Item.GetItemCount(itemID, false, true) or 0;
+              print("  " .. i .. ". " .. item.itemLink .. " |cff808080(" .. currentCount .. "/" .. item.quantity .. ")|r");
+            end
+          end
+        end
+      elseif (subCommand == "clear") then
+        UtilityHub.Database.global.options.autoBuyList = {};
+        print("|cff00FF00AutoBuy list cleared|r");
+      else
+        print("|cffFF6B6BError:|r Usage: /uh autobuy [itemLink] [quantity] OR /uh autobuy [list|remove|clear]");
+      end
     else
       UtilityHub.Helpers.Notification:ShowNotification("Command not found");
     end

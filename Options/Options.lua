@@ -166,6 +166,18 @@ function addonTable.GenerateOptions()
       type = "group",
       order = GetNextOrder("autoBuy"),
       args = {
+        instructionsHeader = {
+          type = "description",
+          name = "|cffFFD700How to add items:|r\n" ..
+                 "• Method 1: Shift+Click items from your bags into the input field below\n" ..
+                 "• Method 2 (Recommended): Use chat commands - Shift+Click item in chat, then type: |cff00FF00/uh autobuy [itemLink] [quantity]|r\n" ..
+                 "• Quantity = 1 (default): Buys item once | Quantity > 1: Maintains that quantity (auto-restock)\n" ..
+                 "• Examples: |cff00FF00/uh autobuy [item]|r (buy once) | |cff00FF00/uh autobuy [item] 20|r (maintain 20)\n" ..
+                 "• Other commands: |cff00FF00/uh autobuy list|r | |cff00FF00/uh autobuy remove [itemLink]|r | |cff00FF00/uh autobuy clear|r",
+          order = GetNextOrder("autoBuy"),
+          fontSize = "medium",
+        },
+        spacer1 = GenerateSpacer("autoBuy"),
         autoBuy = {
           type = "toggle",
           name = "Enable",
@@ -196,7 +208,7 @@ function addonTable.GenerateOptions()
             heightSizeType = "full",
             OnEnterRow = function(self, frame, rowData)
               GameTooltip:SetOwner(frame, "ANCHOR_RIGHT");
-              GameTooltip:SetHyperlink(rowData);
+              GameTooltip:SetHyperlink(rowData.itemLink);
               GameTooltip:Show();
             end,
             OnLeaveRow = function(self, frame)
@@ -206,10 +218,23 @@ function addonTable.GenerateOptions()
 
               GameTooltip:Hide();
             end,
+            GetRowIndex = function(self, rows, rowData)
+              for index, loopItem in ipairs(rows) do
+                local itemID1 = tonumber(string.match(loopItem.itemLink, "item:(%d+):"));
+                local itemID2 = tonumber(string.match(rowData.itemLink, "item:(%d+):"));
+                if (itemID1 == itemID2) then
+                  return index;
+                end
+              end
+              return nil;
+            end,
             CreateNewRow = function(self, text, OnSuccess, OnError)
               UtilityHub.Helpers.Item:AsyncGetItemInfo(text, function(itemLink)
                 if (itemLink) then
-                  OnSuccess(itemLink, function(error)
+                  OnSuccess({
+                    itemLink = itemLink,
+                    quantity = 1,
+                  }, function(error)
                     if (error == "ROW_ALREADY_EXISTS") then
                       UtilityHub.Helpers.Notification:ShowNotification("Item already added to the list");
                     end
@@ -220,9 +245,65 @@ function addonTable.GenerateOptions()
               end);
             end,
             CustomizeRowElement = function(self, frame, rowData, helpers)
-              frame:SetText(rowData);
+              local widget = self;
+
+              -- FontString to show current/target count (only if quantity > 1)
+              if (rowData.quantity > 1) then
+                if (not frame.customElements[widget.name].CountLabel) then
+                  frame.customElements[widget.name].CountLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+                  frame.customElements[widget.name].CountLabel:SetPoint("TOPRIGHT", -95, -5);
+                end
+
+                -- Update count
+                local itemID = tonumber(string.match(rowData.itemLink, "item:(%d+):"));
+                if (itemID) then
+                  local currentCount = C_Item.GetItemCount(itemID, false, true);
+                  frame.customElements[widget.name].CountLabel:SetText(
+                    string.format("|cff808080%d/%d|r", currentCount, rowData.quantity)
+                  );
+                end
+              elseif (frame.customElements[widget.name].CountLabel) then
+                frame.customElements[widget.name].CountLabel:SetText("");
+              end
+
+              -- EditBox for quantity
+              if (not frame.customElements[widget.name].QuantityEditBox) then
+                frame.customElements[widget.name].QuantityEditBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
+                frame.customElements[widget.name].QuantityEditBox:SetSize(50, 20);
+                frame.customElements[widget.name].QuantityEditBox:SetPoint("TOPRIGHT", -38, -3);
+                frame.customElements[widget.name].QuantityEditBox:SetAutoFocus(false);
+                frame.customElements[widget.name].QuantityEditBox:SetNumeric(true);
+                frame.customElements[widget.name].QuantityEditBox:SetMaxLetters(4);
+
+                frame.customElements[widget.name].QuantityEditBox:SetScript("OnEnterPressed", function(self)
+                  local quantity = tonumber(self:GetText()) or 1;
+                  if (quantity < 1) then
+                    quantity = 1;
+                  end
+
+                  widget.items[widget:GetRowIndex(widget.items, rowData)].quantity = quantity;
+                  widget:FireValueChanged();
+                  self:ClearFocus();
+
+                  -- Update list to refresh count label
+                  widget:UpdateList();
+                end);
+
+                frame.customElements[widget.name].QuantityEditBox:SetScript("OnEscapePressed", function(self)
+                  self:SetText(tostring(rowData.quantity));
+                  self:ClearFocus();
+                end);
+              end
+
+              -- Set current value
+              frame.customElements[widget.name].QuantityEditBox:SetText(tostring(rowData.quantity));
+
+              -- Item name
+              frame:SetText(rowData.itemLink);
               frame:GetFontString():SetPoint("LEFT", 6, 0);
-              frame:GetFontString():SetPoint("RIGHT", -20, 0);
+              frame:GetFontString():SetPoint("RIGHT", -190, 0);
+
+              -- Delete button
               helpers.CreateDeleteIconButton(self, frame, rowData);
 
               return { skipFontStringPoints = true };

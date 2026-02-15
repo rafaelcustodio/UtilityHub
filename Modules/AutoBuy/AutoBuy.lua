@@ -5,32 +5,111 @@ local Module = UtilityHub.Addon:NewModule(moduleName);
 ---@type boolean
 Module.eventRegistered = false;
 
-function Module:SearchAndBuyRares()
+function Module:SearchAndBuyItems()
   local autoBuyList = UtilityHub.Database.global.options.autoBuyList or {};
 
-  for i = 1, GetMerchantNumItems() do
-    local itemID = GetMerchantItemID(i);
-    local searchResult = UtilityHub.Libs.Utils:ValueInTable(autoBuyList, function(value)
-      return itemID == tonumber(string.match(value, "item:(%d+):"));
-    end);
+  if (#autoBuyList == 0) then
+    return;
+  end
 
-    if (searchResult) then
-      local _, _, price, stackCount = GetMerchantItemInfo(i);
-      local unitPrice = price / stackCount;
-      local canAfford = (GetMoney() - unitPrice) > 0;
-      local priceTooHigh = unitPrice >= MERCHANT_HIGH_PRICE_COST;
+  local freeBagSlots = UtilityHub.Helpers.Item:GetFreeBagSlots();
+  local purchasedItems = {};
 
-      if (not canAfford) then
-        UtilityHub.Helpers.Notification:ShowNotification("Doesn't have enough money for " .. searchResult);
-      elseif (not priceTooHigh) then
-        UtilityHub.Helpers.Notification:ShowNotification("The price of " ..
-          searchResult .. " is too high (would give a high price popup warn)");
+  -- Iterate through autoBuyList in order
+  for _, buyItem in ipairs(autoBuyList) do
+    if (type(buyItem) == "table" and buyItem.itemLink) then
+      local itemID = tonumber(string.match(buyItem.itemLink, "item:(%d+):"));
+
+      if (itemID) then
+        -- Search for item in merchant
+        for i = 1, GetMerchantNumItems() do
+          local merchantItemID = GetMerchantItemID(i);
+
+          if (merchantItemID == itemID) then
+          local _, _, price, stackCount = GetMerchantItemInfo(i);
+          local unitPrice = price / stackCount;
+
+          -- Determine how many to buy
+          local quantityToBuy = 0;
+
+          if (buyItem.quantity == 1) then
+            -- Buy once mode: just buy 1
+            quantityToBuy = 1;
+          else
+            -- Restock mode: calculate deficit
+            local currentCount = UtilityHub.Helpers.Item:GetItemCount(itemID, true);
+            local deficit = buyItem.quantity - currentCount;
+
+            if (deficit > 0) then
+              quantityToBuy = deficit;
+            end
+          end
+
+          -- If we need to buy something
+          if (quantityToBuy > 0) then
+            local totalCost = unitPrice * quantityToBuy;
+            local slotsNeeded = math.ceil(quantityToBuy / stackCount);
+
+            -- Safety checks
+            local canAfford = (GetMoney() >= totalCost);
+            local priceTooHigh = unitPrice >= MERCHANT_HIGH_PRICE_COST;
+            local hasSpace = freeBagSlots >= slotsNeeded;
+
+            if (not hasSpace) then
+              UtilityHub.Helpers.Notification:ShowNotification(
+                string.format("Insufficient bag space for %s", buyItem.itemLink)
+              );
+            elseif (priceTooHigh) then
+              UtilityHub.Helpers.Notification:ShowNotification(
+                string.format("Price of %s is too high", buyItem.itemLink)
+              );
+            elseif (not canAfford) then
+              -- Partial buy: buy maximum possible (only for restock mode)
+              if (buyItem.quantity > 1) then
+                local maxAffordable = math.floor(GetMoney() / unitPrice);
+                if (maxAffordable > 0 and maxAffordable < quantityToBuy) then
+                  BuyMerchantItem(i, maxAffordable);
+                  tinsert(purchasedItems, string.format("%s x%d (partial)", buyItem.itemLink, maxAffordable));
+                  freeBagSlots = freeBagSlots - math.ceil(maxAffordable / stackCount);
+                else
+                  UtilityHub.Helpers.Notification:ShowNotification(
+                    string.format("Insufficient gold for %s", buyItem.itemLink)
+                  );
+                end
+              else
+                UtilityHub.Helpers.Notification:ShowNotification(
+                  string.format("Insufficient gold for %s", buyItem.itemLink)
+                );
+              end
+            else
+              -- Buy full quantity
+              BuyMerchantItem(i, quantityToBuy);
+
+              if (buyItem.quantity == 1) then
+                tinsert(purchasedItems, string.format("%s", buyItem.itemLink));
+              else
+                tinsert(purchasedItems, string.format("%s x%d", buyItem.itemLink, quantityToBuy));
+              end
+
+              freeBagSlots = freeBagSlots - slotsNeeded;
+            end
+          end
+
+          break; -- Item found, next in list
+        end
       end
-
-      if (canAfford and not priceTooHigh) then
-        BuyMerchantItem(i, 1);
-        UtilityHub.Helpers.Notification:ShowNotification("Bought: " .. searchResult);
       end
+    end
+  end
+
+  -- Consolidated notification
+  if (#purchasedItems > 0) then
+    if (#purchasedItems == 1) then
+      UtilityHub.Helpers.Notification:ShowNotification("Bought: " .. purchasedItems[1]);
+    else
+      UtilityHub.Helpers.Notification:ShowNotification(
+        string.format("Bought %d items", #purchasedItems)
+      );
     end
   end
 end
@@ -45,6 +124,6 @@ function Module:OnEnable()
       return;
     end
 
-    Module:SearchAndBuyRares();
+    Module:SearchAndBuyItems();
   end);
 end

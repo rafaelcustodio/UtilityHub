@@ -147,3 +147,25 @@ function UtilityHub.Helpers.Mail:SetRecipient(name)
     end);
   end
 end
+
+-- Item count helper
+
+---@param itemID number
+---@param includeBank boolean
+---@return number
+function UtilityHub.Helpers.Item:GetItemCount(itemID, includeBank)
+  return C_Item.GetItemCount(itemID, false, includeBank or false);
+end
+
+---@return number
+function UtilityHub.Helpers.Item:GetFreeBagSlots()
+  local totalFree = 0;
+  for i = 0, NUM_BAG_SLOTS do
+    local containerInfo = C_Container.GetContainerNumSlots(i);
+    if (containerInfo and containerInfo > 0) then
+      local freeSlots = C_Container.GetContainerNumFreeSlots(i);
+      totalFree = totalFree + freeSlots;
+    end
+  end
+  return totalFree;
+end
