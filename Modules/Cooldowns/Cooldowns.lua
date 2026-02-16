@@ -3,6 +3,11 @@ local moduleName = 'Cooldowns';
 local Module = UtilityHub.Addon:NewModule(moduleName);
 Module.frame = nil;
 
+---@return boolean
+local function IsDebugMode()
+  return UtilityHub.Database and UtilityHub.Database.global and UtilityHub.Database.global.debugMode;
+end
+
 ---@class NormalizedCooldown
 ---@field duration number
 ---@field expiration number
@@ -344,6 +349,18 @@ function Module:UpdateCountReadyCooldowns()
 
           local key = character.name .. ":" .. cooldown.name;
           currentReadySet[key] = character.name .. " - " .. cooldown.name;
+
+          -- Log Point 6: Transição para Ready
+          if (IsDebugMode() and not Module.NotifiedCooldowns[key] and Module.CountReadyGraceTicks == 0) then
+            local reason;
+            if (cooldown.start == 0) then
+              reason = "start=0";
+            else
+              reason = string.format("expired (%.0fs ago)", math.abs(remaining));
+            end
+            local now = GetTime();
+            UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cff00FF00READY|r %s - %s (%s) [start=%.2f, max=%d, end=%.2f, now=%.2f]", character.name, cooldown.name, reason, cooldown.start, cooldown.maxCooldown, cooldown.start + cooldown.maxCooldown, now));
+          end
         end
       end
     end

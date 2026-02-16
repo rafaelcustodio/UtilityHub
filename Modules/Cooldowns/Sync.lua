@@ -19,6 +19,80 @@ local function IsDebugMode()
   return UtilityHub.Database and UtilityHub.Database.global and UtilityHub.Database.global.debugMode;
 end
 
+--- Format a cooldown category for debug logging
+---@param categoryName string
+---@param cooldowns CurrentCooldown[]
+---@return string
+local function DebugFormatCooldownCategory(categoryName, cooldowns)
+  if (not cooldowns or #cooldowns == 0) then
+    return "    " .. categoryName .. ": (empty)";
+  end
+
+  local lines = { "    " .. categoryName .. ":" };
+  local now = GetTime();
+
+  for _, cd in ipairs(cooldowns) do
+    local status;
+    local remaining = 0;
+
+    if (cd.start == 0 or cd.maxCooldown == 0) then
+      status = "READY";
+    else
+      local endTime = cd.start + cd.maxCooldown;
+      remaining = endTime - now;
+
+      if (remaining > 0) then
+        status = string.format("CD (%.0fs left)", remaining);
+      else
+        status = "READY (expired)";
+      end
+    end
+
+    lines[#lines + 1] = string.format(
+      "      %s: start=%.2f max=%d end=%.2f [%s]",
+      cd.name,
+      cd.start,
+      cd.maxCooldown,
+      cd.start + cd.maxCooldown,
+      status
+    );
+  end
+
+  return table.concat(lines, "\n");
+end
+
+--- Check if new cooldown data is older/stale compared to existing data
+---@param oldCd CurrentCooldown
+---@param newCd CurrentCooldown
+---@return boolean isStale
+---@return string reason
+local function IsNewDataOlder(oldCd, newCd)
+  local now = GetTime();
+
+  -- Old was in CD, new is ready
+  if (oldCd.start > 0 and oldCd.maxCooldown > 0) then
+    local oldEnd = oldCd.start + oldCd.maxCooldown;
+    local oldRemaining = oldEnd - now;
+
+    -- Old still has time left, but new says it's ready
+    if (oldRemaining > 0 and (newCd.start == 0 or newCd.maxCooldown == 0)) then
+      return true, string.format("STALE: old had %.0fs left, new is ready", oldRemaining);
+    end
+
+    -- Both in CD, but new ends before old (inconsistent)
+    if (newCd.start > 0 and newCd.maxCooldown > 0) then
+      local newEnd = newCd.start + newCd.maxCooldown;
+
+      if (newEnd < oldEnd and oldRemaining > 0) then
+        local newRemaining = newEnd - now;
+        return true, string.format("STALE: old ends in %.0fs, new ends in %.0fs (earlier)", oldRemaining, newRemaining);
+      end
+    end
+  end
+
+  return false, "looks current";
+end
+
 ---@return Character|nil
 local function GetCurrentCharacterData()
   local playerName = UnitName("player");
@@ -70,6 +144,22 @@ local function BroadcastSyncData()
 
   if (not charData) then
     return;
+  end
+
+  -- Log Point 4: Envio de Dados
+  if (IsDebugMode()) then
+    local members = GetChannelMembers();
+    local categoryCount = 0;
+    local cooldownCount = 0;
+
+    if (charData.cooldownGroup) then
+      for _, cooldowns in pairs(charData.cooldownGroup) do
+        categoryCount = categoryCount + 1;
+        cooldownCount = cooldownCount + #cooldowns;
+      end
+    end
+
+    UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cff00BFFFSEND|r char=%s to [%s]: %d categories, %d cooldowns", charData.name, table.concat(members, ", "), categoryCount, cooldownCount));
   end
 
   SendCharacterData(charData);
@@ -154,6 +244,15 @@ local function OnSyncDataReceived(prefix, data, distribution, sender)
     return;
   end
 
+  -- Log Point 1: Recepção de Mensagem
+  if (IsDebugMode() and charData.name and charData.cooldownGroup) then
+    local categoryCount = 0;
+    for _ in pairs(charData.cooldownGroup) do
+      categoryCount = categoryCount + 1;
+    end
+    UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cff00FF00RECV|r from %s: char=%s, categories=%d", sender, charData.name, categoryCount));
+  end
+
   -- Handle clear command
   if (charData.action == "clearFakeSync") then
     local removed = ClearFakeCharactersFromDB();
@@ -176,6 +275,97 @@ local function OnSyncDataReceived(prefix, data, distribution, sender)
 
   for index, character in ipairs(UtilityHub.Database.global.characters) do
     if (character.name == charData.name) then
+      -- Log Point 2: Antes de Atualizar (CRÍTICO - detecta dados desatualizados)
+      local hasStaleData = false;
+      local staleCount = 0;
+
+      if (IsDebugMode()) then
+        UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cffFF0000UPDATE|r char=%s from %s", charData.name, sender));
+      end
+
+      -- Compare cooldown data to detect stale updates
+      local oldCooldownGroup = character.cooldownGroup or {};
+      local newCooldownGroup = charData.cooldownGroup or {};
+
+      for categoryName, newCooldowns in pairs(newCooldownGroup) do
+        local oldCooldowns = oldCooldownGroup[categoryName];
+
+        if (oldCooldowns) then
+          if (IsDebugMode()) then
+            UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r   Category: %s", categoryName));
+          end
+
+          -- Build lookup map for old cooldowns
+          local oldMap = {};
+          for _, oldCd in ipairs(oldCooldowns) do
+            oldMap[oldCd.name] = oldCd;
+          end
+
+          -- Check each new cooldown against old
+          for _, newCd in ipairs(newCooldowns) do
+            local oldCd = oldMap[newCd.name];
+
+            if (oldCd) then
+              local isStale, reason = IsNewDataOlder(oldCd, newCd);
+
+              if (isStale) then
+                hasStaleData = true;
+                staleCount = staleCount + 1;
+
+                if (IsDebugMode()) then
+                  UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r     |cffFF0000[!!!STALE!!!]|r %s: %s", newCd.name, reason));
+                  UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r       OLD: start=%.2f max=%d end=%.2f", oldCd.start, oldCd.maxCooldown, oldCd.start + oldCd.maxCooldown));
+                  UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r       NEW: start=%.2f max=%d end=%.2f", newCd.start, newCd.maxCooldown, newCd.start + newCd.maxCooldown));
+                end
+              else
+                if (IsDebugMode()) then
+                  UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r     |cff00FF00[ok]|r %s: %s", newCd.name, reason));
+                  UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r       OLD: start=%.2f max=%d end=%.2f", oldCd.start, oldCd.maxCooldown, oldCd.start + oldCd.maxCooldown));
+                  UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r       NEW: start=%.2f max=%d end=%.2f", newCd.start, newCd.maxCooldown, newCd.start + newCd.maxCooldown));
+                end
+              end
+            else
+              if (IsDebugMode()) then
+                UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r     |cff00FF00[new]|r %s", newCd.name));
+              end
+            end
+          end
+
+          -- Check for removed cooldowns
+          if (IsDebugMode()) then
+            for _, oldCd in ipairs(oldCooldowns) do
+              local foundInNew = false;
+
+              for _, newCd in ipairs(newCooldowns) do
+                if (newCd.name == oldCd.name) then
+                  foundInNew = true;
+                  break;
+                end
+              end
+
+              if (not foundInNew) then
+                UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r     |cffFF6B6B[removed]|r %s", oldCd.name));
+              end
+            end
+          end
+        else
+          if (IsDebugMode()) then
+            UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r   Category: %s |cff00FF00[new category]|r", categoryName));
+          end
+        end
+      end
+
+      -- REJECT stale data instead of accepting it
+      if (hasStaleData) then
+        if (IsDebugMode()) then
+          UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cffFF0000REJECTED|r Update rejected for %s (%d stale cooldowns detected)", charData.name, staleCount));
+        end
+
+        found = true;
+        break;
+      end
+
+      -- Only update if data is not stale
       UtilityHub.Database.global.characters[index].cooldownGroup = charData.cooldownGroup;
       UtilityHub.Database.global.characters[index].race = charData.race;
       UtilityHub.Database.global.characters[index].className = charData.className;
@@ -184,12 +374,20 @@ local function OnSyncDataReceived(prefix, data, distribution, sender)
         UtilityHub.Database.global.characters[index].group = charData.group;
       end
 
+      -- Log Point 3: Confirmação de Atualização
+      if (IsDebugMode()) then
+        UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cff00FF00UPDATE COMPLETE|r for %s", charData.name));
+      end
+
       found = true;
       break;
     end
   end
 
   if (not found) then
+    if (IsDebugMode()) then
+      UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cffFF00FF[NEW CHAR]|r Creating new character '%s' from sender '%s'", charData.name, sender));
+    end
     tinsert(UtilityHub.Database.global.characters, charData);
   end
 
@@ -198,6 +396,12 @@ local function OnSyncDataReceived(prefix, data, distribution, sender)
 
   -- If this is a new peer, reply with all our local characters
   if (isNewPeer) then
+    -- Log Point 5: Novo Peer (Trigger do Bug)
+    if (IsDebugMode()) then
+      local charCount = #UtilityHub.Database.global.characters;
+      UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cffFF6B6BNEW PEER|r %s joined, sending %d characters", sender, charCount));
+    end
+
     for _, character in ipairs(UtilityHub.Database.global.characters) do
       local json = C_EncodingUtil.SerializeJSON(character);
 

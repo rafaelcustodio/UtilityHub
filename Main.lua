@@ -202,6 +202,10 @@ local function SetupSlashCommands()
       print("  Inject fake characters to simulate cross-account sync");
       print("- |cffddff00clearfakesync|r");
       print("  Remove all fake sync characters");
+      print("- |cffddff00listchars|r");
+      print("  List all characters in database (debug)");
+      print("- |cffddff00logs [count|clear|export|show]|r");
+      print("  View recent logs, clear all logs, export to chat, or open log viewer window");
     elseif (command == "debug") then
       UtilityHub.Database.global.debugMode = (not UtilityHub.Database.global.debugMode);
       local debugText = UtilityHub.Database.global.debugMode and "ON" or "OFF";
@@ -224,6 +228,48 @@ local function SetupSlashCommands()
       ---@type Cooldowns
       local cooldownsModule = UtilityHub.Addon:GetModule("Cooldowns");
       cooldownsModule:ClearFakeSyncData();
+    elseif (command == "listchars") then
+      print("|cffFFD700Characters in database (" .. #UtilityHub.Database.global.characters .. " total):|r");
+      for i, char in ipairs(UtilityHub.Database.global.characters) do
+        local cooldownCount = 0;
+        if (char.cooldownGroup) then
+          for _, group in pairs(char.cooldownGroup) do
+            cooldownCount = cooldownCount + #group;
+          end
+        end
+        print(string.format("  %d. %s (class=%s, race=%s, cooldowns=%d)", i, char.name or "nil", char.className or "nil", char.race or "nil", cooldownCount));
+      end
+    elseif (command == "logs") then
+      local subCommand = fragments[2];
+
+      if (subCommand == "clear") then
+        UtilityHub.Helpers.DebugLog:Clear();
+        print("|cff00FF00Debug logs cleared|r");
+      elseif (subCommand == "show") then
+        UtilityHub.DebugLogViewer:Show();
+      elseif (subCommand == "export") then
+        local exported = UtilityHub.Helpers.DebugLog:Export();
+        if (exported == "") then
+          print("|cffFF6B6BNo logs to export|r");
+        else
+          print("|cffFFD700Exported logs (copy from chat):|r");
+          print(exported);
+        end
+      else
+        local count = tonumber(subCommand) or 20;
+        local logs = UtilityHub.Helpers.DebugLog:GetRecent(count);
+        local totalCount = UtilityHub.Helpers.DebugLog:Count();
+
+        if (#logs == 0) then
+          print("|cffFF6B6BNo debug logs available|r");
+        else
+          print(string.format("|cffFFD700Recent logs (showing last %d of %d total):|r", #logs, totalCount));
+          for _, log in ipairs(logs) do
+            print(log);
+          end
+          print("|cff808080Use '/uh logs show' to open log viewer window|r");
+        end
+      end
     elseif (command == "migrate") then
       UtilityHub:MigrateDB();
     elseif (command == "update-quest-flags") then
@@ -468,8 +514,16 @@ local function UpdateCharacter()
   if (playerIndex) then
     playerTable.group = UtilityHub.Database.global.characters[playerIndex].group;
     UtilityHub.Database.global.characters[playerIndex] = playerTable;
+
+    if (UtilityHub.Database.global.debugMode) then
+      UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-LOCAL]|r |cff00FF00UPDATED|r local character '%s'", name));
+    end
   else
     tinsert(UtilityHub.Database.global.characters, playerTable);
+
+    if (UtilityHub.Database.global.debugMode) then
+      UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-LOCAL]|r |cffFF00FF[NEW]|r Created new local character '%s'", name));
+    end
   end
 
   UtilityHub.Events:TriggerEvent("CHARACTER_UPDATED");

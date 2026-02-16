@@ -35,3 +35,4 @@ Modules/Tooltip/Tooltip.lua
 Modules/Cooldowns/Cooldowns.lua
 Modules/Cooldowns/Sync.lua
 Modules/DailyQuests/DailyQuests.lua
+Modules/DebugLog/DebugLogViewer.lua
