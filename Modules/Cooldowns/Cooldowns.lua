@@ -445,7 +445,7 @@ function Module:CreateCooldownsFrame()
   UIDropDownMenu_Initialize(dropdown, function(self, level, menuList)
     local current = UtilityHub.Database.global.cooldownGroupBy or groupByEnum.CHARACTER;
 
-    for _, value in ipairs({ groupByEnum.CHARACTER, groupByEnum.TYPE, groupByEnum.READY_DATE }) do
+    for _, value in ipairs({ groupByEnum.CHARACTER, groupByEnum.TYPE, groupByEnum.READY_DATE, groupByEnum.READY_DATE_PROFESSION }) do
       local info = UIDropDownMenu_CreateInfo();
       info.text = groupByText[value];
       info.value = value;
@@ -715,6 +715,8 @@ function Module:UpdateCooldownsFrameList()
       return entry.cooldownName;
     elseif (groupBy == groupByEnum.TYPE) then
       return ColorCharName(entry);
+    elseif (groupBy == groupByEnum.READY_DATE_PROFESSION) then
+      return ColorCharName(entry) .. " " .. entry.cooldownName;
     end
 
     return ColorCharName(entry) .. " - " .. entry.cooldownName;
@@ -727,7 +729,7 @@ function Module:UpdateCooldownsFrameList()
       cooldown = MakeEntryLabel(entry),
       start = entry.start,
       maxCooldown = entry.maxCooldown,
-      hideCountdown = (groupBy == groupByEnum.READY_DATE),
+      hideCountdown = (groupBy == groupByEnum.READY_DATE or groupBy == groupByEnum.READY_DATE_PROFESSION),
     };
   end
 
@@ -831,6 +833,165 @@ function Module:UpdateCooldownsFrameList()
       table.sort(groups[key].entries, function(a, b)
         return a.remaining < b.remaining;
       end);
+    end
+
+    InsertGroupsIntoProvider(groups, order);
+  elseif (groupBy == groupByEnum.READY_DATE_PROFESSION) then
+    local groups = {};
+    local order = {};
+
+    -- Time window: 2 hours in seconds
+    local TIME_WINDOW = 2 * 60 * 60;
+
+    -- First, group entries by profession
+    local professionEntries = {};
+    for _, entry in ipairs(allEntries) do
+      local profession = entry.professionName;
+      if (not professionEntries[profession]) then
+        professionEntries[profession] = {};
+      end
+      tinsert(professionEntries[profession], entry);
+    end
+
+    -- For each profession, apply time window grouping
+    local tempGroups = {};
+
+    for profession, entries in pairs(professionEntries) do
+      -- Separate ready and non-ready entries
+      local readyEntries = {};
+      local nonReadyEntries = {};
+
+      for _, entry in ipairs(entries) do
+        if (entry.isReady or entry.remaining <= 0) then
+          tinsert(readyEntries, entry);
+        else
+          tinsert(nonReadyEntries, entry);
+        end
+      end
+
+      -- Process ready entries
+      if (#readyEntries > 0) then
+        local dateKey = "0000-00-00|" .. profession;
+        local dateLabel = "Ready - " .. profession;
+
+        if (not tempGroups[dateKey]) then
+          tempGroups[dateKey] = {
+            label = dateLabel,
+            characters = {},
+            nearestEndTime = nil,
+          };
+          tinsert(order, dateKey);
+        end
+
+        for _, entry in ipairs(readyEntries) do
+          local charName = entry.characterName;
+          if (not tempGroups[dateKey].characters[charName]) then
+            tempGroups[dateKey].characters[charName] = {
+              className = entry.className,
+              characterName = charName,
+              count = 0,
+              entries = {},
+            };
+          end
+          tempGroups[dateKey].characters[charName].count = tempGroups[dateKey].characters[charName].count + 1;
+          tinsert(tempGroups[dateKey].characters[charName].entries, entry);
+        end
+      end
+
+      -- Process non-ready entries with time window
+      if (#nonReadyEntries > 0) then
+        -- Sort by ready timestamp
+        table.sort(nonReadyEntries, function(a, b)
+          local timeA = time() + a.remaining;
+          local timeB = time() + b.remaining;
+          return timeA < timeB;
+        end);
+
+        -- Group entries within time window
+        local currentGroupTimestamp = nil;
+        local currentDateKey = nil;
+        local currentDateLabel = nil;
+
+        for _, entry in ipairs(nonReadyEntries) do
+          local readyTimestamp = time() + entry.remaining;
+
+          -- Check if this entry is within time window of current group
+          if (not currentGroupTimestamp or (readyTimestamp - currentGroupTimestamp) > TIME_WINDOW) then
+            -- Start a new group
+            currentGroupTimestamp = readyTimestamp;
+            local formattedDate = date("%Y-%m-%d", readyTimestamp);
+            currentDateKey = formattedDate .. "|" .. profession;
+            currentDateLabel = FormatDateGroupLabel(readyTimestamp) .. " - " .. profession;
+
+            if (not tempGroups[currentDateKey]) then
+              tempGroups[currentDateKey] = {
+                label = currentDateLabel,
+                characters = {},
+                nearestEndTime = nil,
+              };
+              tinsert(order, currentDateKey);
+            end
+          end
+
+          -- Add entry to current group
+          local charName = entry.characterName;
+          if (not tempGroups[currentDateKey].characters[charName]) then
+            tempGroups[currentDateKey].characters[charName] = {
+              className = entry.className,
+              characterName = charName,
+              count = 0,
+              entries = {},
+            };
+          end
+          tempGroups[currentDateKey].characters[charName].count = tempGroups[currentDateKey].characters[charName].count + 1;
+          tinsert(tempGroups[currentDateKey].characters[charName].entries, entry);
+
+          -- Update nearest end time
+          local endTime = entry.start + entry.maxCooldown;
+          if (not tempGroups[currentDateKey].nearestEndTime or endTime < tempGroups[currentDateKey].nearestEndTime) then
+            tempGroups[currentDateKey].nearestEndTime = endTime;
+          end
+        end
+      end
+    end
+
+    -- Now convert to final groups structure
+    table.sort(order);
+
+    for _, key in ipairs(order) do
+      local tempGroup = tempGroups[key];
+      groups[key] = {
+        label = tempGroup.label,
+        entries = {},
+        readyCount = 0,
+        nearestEndTime = tempGroup.nearestEndTime,
+      };
+
+      local charNames = {};
+      for charName, _ in pairs(tempGroup.characters) do
+        tinsert(charNames, charName);
+      end
+      table.sort(charNames);
+
+      for _, charName in ipairs(charNames) do
+        local charData = tempGroup.characters[charName];
+        -- Use the first entry as representative for timing
+        local firstEntry = charData.entries[1];
+
+        tinsert(groups[key].entries, {
+          characterName = charData.characterName,
+          className = charData.className,
+          cooldownName = "(" .. charData.count .. ")",
+          start = firstEntry.start,
+          maxCooldown = firstEntry.maxCooldown,
+          isReady = firstEntry.isReady,
+          remaining = firstEntry.remaining,
+        });
+
+        if (firstEntry.isReady) then
+          groups[key].readyCount = groups[key].readyCount + 1;
+        end
+      end
     end
 
     InsertGroupsIntoProvider(groups, order);
