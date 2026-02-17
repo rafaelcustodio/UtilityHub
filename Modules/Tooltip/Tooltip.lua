@@ -261,7 +261,7 @@ local MANA_REGEN                      = {
   FormatText = function(self, text, prefix)
     if (prefix) then
       text = text:gsub(prefix, "");
-      text = text:gsub("Restores ", "");
+      text = text:gsub(" Restores ", "+");
     end
 
     text = text:gsub("mana per 5 sec.", "MP5");
