@@ -398,20 +398,15 @@ end
 ---@param dataID number|nil
 ---@return boolean
 function Module:SavePreset(data)
-  local preset = {};
   local dataID = data.id;
 
-  if (not preset.name or #preset.name < 1) then
-    Module:ShowFormErrorPopup("Field Name is required", function()
-      if (not data) then
-        Module.NewPresetFrame.NameInput:SetFocus();
-      end
-    end);
+  if (not data.name or #data.name < 1) then
+    Module:ShowFormErrorPopup("Field Name is required");
 
     return false;
   end
 
-  if (not preset.to or #preset.to < 1) then
+  if (not data.to or #data.to < 1) then
     Module:ShowFormErrorPopup("Field To is required", function()
       if (not data) then
         Module.NewPresetFrame.ToInput:SetFocus();
@@ -423,13 +418,13 @@ function Module:SavePreset(data)
 
   local atLeastOneCheck = false;
 
-  for _, value in pairs(preset.itemGroups) do
+  for _, value in pairs(data.itemGroups) do
     if (value) then
       atLeastOneCheck = true;
     end
   end
 
-  if (UtilityHub.Libs.Utils:TableLength(preset.custom) == 0 and (not atLeastOneCheck)) then
+  if (UtilityHub.Libs.Utils:TableLength(data.custom) == 0 and (not atLeastOneCheck)) then
     Module:ShowFormErrorPopup("At least one item group needs to be checked or one item added to the inclusions");
     return false;
   end
@@ -438,12 +433,12 @@ function Module:SavePreset(data)
   if (dataID) then
     for key, value in pairs(UtilityHub.Database.global.presets) do
       if (value.id == dataID) then
-        UtilityHub.Database.global.presets[key] = preset;
+        UtilityHub.Database.global.presets[key] = data;
       end
     end
   else
-    preset.id = Module:GetNextID();
-    tinsert(UtilityHub.Database.global.presets, preset);
+    data.id = Module:GetNextID();
+    tinsert(UtilityHub.Database.global.presets, data);
   end
 
   return true;
