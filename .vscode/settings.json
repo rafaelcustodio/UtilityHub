@@ -119,7 +119,30 @@
     "MouseIsOver",
     "UHdatabase",
     "CharacterFrame",
-    "MenuResponse"
+    "MenuResponse",
+    "EventRegistry",
+    "UIParent",
+    "GameFontHighlight",
+    "GameFontNormal",
+    "WOW_PROJECT_CLASSIC",
+    "Item",
+    "GameFontNormal_NoShadow",
+    "NORMAL_FONT_COLOR",
+    "GameFontHighlightLarge",
+    "GameFontHighlightSmall",
+    "GameTooltip",
+    "ChatFontNormal",
+    "GameFontDisableSmall",
+    "GameFontNormalSmall",
+    "WOW_PROJECT_MAINLINE",
+    "Minimap",
+    "GetCVar",
+    "HideUIPanel",
+    "ItemLocation",
+    "CallbackRegistryMixin",
+    "CALENDAR_WEEKDAY_NAMES",
+    "CALENDAR_FULLDATE_MONTH_NAMES",
+    "ChatFrame1"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.runtime.builtin": {
@@ -134,7 +157,7 @@
     "utf8": "disable"
   },
   "Lua.workspace.library": [
-    "~\\.vscode\\extensions\\ketho.wow-api-0.22.1\\Annotations\\Core"
+    "~\\.vscode\\extensions\\ketho.wow-api-0.22.2\\Annotations\\Core"
   ],
   "Lua.diagnostics.disable": [
     "assign-type-mismatch",

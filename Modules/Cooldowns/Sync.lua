@@ -199,11 +199,22 @@ local function JoinSyncChannel(channelName)
     C_Timer.After(1, function()
       JoinChannelByName(fullName);
 
-      C_Timer.After(2, function()
+      C_Timer.After(0.5, function()
         local id = GetChannelName(fullName);
 
         if (id and id > 0) then
-          BroadcastSyncData();
+          -- Move channel to the end of the list
+          local channels = { GetChannelList() };
+          local numChannels = #channels / 3; -- Each channel has 3 entries: id, name, disabled
+
+          -- Swap the sync channel to the last position
+          for i = id, numChannels - 1 do
+            C_ChatInfo.SwapChatChannelsByChannelIndex(i, i + 1);
+          end
+
+          C_Timer.After(1.5, function()
+            BroadcastSyncData();
+          end);
         else
           currentChannel = nil;
         end
