@@ -173,22 +173,6 @@ local function SetupSlashCommands()
   end
 end
 
-local function RegisterOptions()
-  ---@type string|nil
-  local parent = nil;
-  addonTable.GenerateOptions();
-
-  for _, option in ipairs(UtilityHub.GameOptions.options) do
-    UtilityHub.Libs.AceConfig:RegisterOptionsTable(option.key, option.group);
-    local _, categoryID = UtilityHub.Libs.AceConfigDialog:AddToBlizOptions(option.key, option.name, parent);
-    option.categoryID = categoryID;
-
-    if (option.root) then
-      parent = option.name;
-    end
-  end
-end
-
 local function CreateMinimapIcon()
   UtilityHub.Libs.LDB:NewDataObject(ADDON_NAME, {
     type = "data source",
@@ -202,7 +186,7 @@ local function CreateMinimapIcon()
           if (SettingsPanel:IsShown()) then
             HideUIPanel(SettingsPanel);
           else
-            Settings.OpenToCategory(ADDON_NAME);
+            UtilityHub.GameOptions.OpenConfig();
           end
         end
       elseif (button == "RightButton") then
@@ -367,9 +351,9 @@ end);
 function UtilityHub.Addon:OnInitialize()
   InitVariables();
   SetupSlashCommands();
-  RegisterOptions();
   CreateMinimapIcon();
 
+  UtilityHub.GameOptions.Register();
   UtilityHub.Integration.Baganator();
   UtilityHub.Integration.Auctionator();
   UtilityHub.Integration.TSM();
