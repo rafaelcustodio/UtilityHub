@@ -157,8 +157,10 @@ function GeneralPage:Create(parent)
   syncChannelInput:SetAutoFocus(false);
   syncChannelInput:SetMaxLetters(50);
 
-  -- Set initial value
-  syncChannelInput:SetText(UtilityHub.Database.global.options.cooldownSyncChannel or "");
+  -- Force text to be visible
+  syncChannelInput:SetTextColor(1, 1, 1, 1);
+  syncChannelInput:SetFontObject("ChatFontNormal");
+  syncChannelInput:SetJustifyH("LEFT");
 
   -- Function to save the channel
   local function SaveChannel()
@@ -199,6 +201,20 @@ function GeneralPage:Create(parent)
       GameTooltip:Hide();
     end
   end);
+
+  -- Update field value when page is shown
+  frame:SetScript("OnShow", function(self)
+    local currentValue = UtilityHub.Database.global.options.cooldownSyncChannel or "";
+    syncChannelInput:SetText(currentValue);
+    syncChannelInput:SetCursorPosition(0);
+    syncChannelInput:ClearFocus();
+  end);
+
+  -- Load initial value immediately (in case frame is already shown)
+  local initialValue = UtilityHub.Database.global.options.cooldownSyncChannel or "";
+  syncChannelInput:SetText(initialValue);
+  syncChannelInput:SetCursorPosition(0);
+  syncChannelInput:ClearFocus();
 
   return frame;
 end
