@@ -7,6 +7,85 @@ local minimapIcons = {
 ---@type number|nil
 local lastCountReadyCooldowns = nil;
 
+---@param version string|nil
+---@param oldVersion string|nil
+local function MigrateDB(version, oldVersion)
+  if (version and oldVersion) then
+    UtilityHub.Helpers.Notification:ShowNotification("Migrating DB version from " .. oldVersion .. " to " .. version);
+  else
+    UtilityHub.Helpers.Notification:ShowNotification("Migrating DB version - Forced action without any version change");
+  end
+
+  if (#UtilityHub.Database.global.presets > 0) then
+    for _, preset in pairs(UtilityHub.Database.global.presets) do
+      local shouldFixEssenceElemental = false;
+
+      for j, _ in pairs(preset.itemGroups) do
+        if (j == "Essence") then
+          shouldFixEssenceElemental = true;
+        end
+      end
+
+      if (shouldFixEssenceElemental) then
+        local newItemGroups = {};
+
+        for key, value in pairs(preset.itemGroups) do
+          if (key == "Essence") then
+            newItemGroups["EssenceElemental"] = value;
+          else
+            newItemGroups[key] = value;
+          end
+        end
+
+        preset.itemGroups = newItemGroups;
+      end
+    end
+  end
+
+  if (not UtilityHub.Database.global.options) then
+    UtilityHub.Database.global.options = UtilityHub.GameOptions.defaults;
+  end
+
+  if (not UtilityHub.Database.global.options.autoBuyList) then
+    UtilityHub.Database.global.options.autoBuyList = UtilityHub.GameOptions.defaults.autoBuyList;
+  end
+
+  if (UtilityHub.Database.global.characters) then
+    for index, value in ipairs(UtilityHub.Database.global.characters) do
+      if (type(value) == "string") then
+        local name = UtilityHub.Database.global.characters[index];
+
+        if (name == UnitName("player")) then
+          local race = select(2, UnitRace("player"));
+          local className = select(2, UnitClass("player"));
+
+          UtilityHub.Database.global.characters[index] = {
+            name = name,
+            race = race,
+            className = className,
+            group = nil,
+          };
+        else
+          UtilityHub.Database.global.characters[index] = {
+            name = name,
+            race = nil,
+            className = nil,
+            group = nil,
+          };
+        end
+      end
+    end
+  end
+
+  if (not UtilityHub.Database.global.options.cooldowns) then
+    UtilityHub.Database.global.options.cooldowns = false;
+  end
+
+  if (not UtilityHub.Database.global.options.cooldowsList) then
+    UtilityHub.Database.global.options.cooldowsList = {};
+  end
+end
+
 local function InitVariables()
   ---@type string|nil
   local version = UtilityHub.Constants.AddonVersion;
@@ -35,7 +114,7 @@ local function InitVariables()
   UtilityHub.Database.global.oldVersion = version;
 
   if (oldVersion and oldVersion ~= version) then
-    UtilityHub:MigrateDB(version, oldVersion);
+    MigrateDB(version, oldVersion);
   end
 end
 
@@ -63,6 +142,8 @@ local function SetupSlashCommands()
       print("  Toggle cooldowns frame");
       print("- |cffddff00daily or dailies|r");
       print("  Toggle daily frame");
+      print("- |cffddff00testcd|r");
+      print("  Test cooldown notifications");
     elseif (command == "debug") then
       UtilityHub.Database.global.debugMode = (not UtilityHub.Database.global.debugMode);
       local debugText = UtilityHub.Database.global.debugMode and "ON" or "OFF";
@@ -73,7 +154,11 @@ local function SetupSlashCommands()
       UtilityHub.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
     elseif (command == "daily" or command == "dailies") then
       UtilityHub.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
-    elseif (command == "fixdb") then
+    elseif (command == "testcd") then
+      ---@type Cooldowns
+      local cooldownsModule = UtilityHub.Addon:GetModule("Cooldowns");
+      cooldownsModule:TestNotification();
+    elseif (command == "migrate") then
       UtilityHub:MigrateDB();
     elseif (command == "update-quest-flags") then
       UtilityHub.Events:TriggerEvent("FORCE_DAILY_QUESTS_FLAG_UPDATE", fragments[2]);
@@ -84,6 +169,22 @@ local function SetupSlashCommands()
       module[functionName](module, arg);
     else
       UtilityHub.Helpers.Notification:ShowNotification("Command not found");
+    end
+  end
+end
+
+local function RegisterOptions()
+  ---@type string|nil
+  local parent = nil;
+  addonTable.GenerateOptions();
+
+  for _, option in ipairs(UtilityHub.GameOptions.options) do
+    UtilityHub.Libs.AceConfig:RegisterOptionsTable(option.key, option.group);
+    local _, categoryID = UtilityHub.Libs.AceConfigDialog:AddToBlizOptions(option.key, option.name, parent);
+    option.categoryID = categoryID;
+
+    if (option.root) then
+      parent = option.name;
     end
   end
 end
@@ -101,7 +202,7 @@ local function CreateMinimapIcon()
           if (SettingsPanel:IsShown()) then
             HideUIPanel(SettingsPanel);
           else
-            UtilityHub.GameOptions.OpenConfig();
+            Settings.OpenToCategory(ADDON_NAME);
           end
         end
       elseif (button == "RightButton") then
@@ -249,10 +350,6 @@ end);
 
 UtilityHub.Events:RegisterCallback("COUNT_READY_COOLDOWNS_CHANGED", function(_, count, first)
   UpdateMinimapIcon(count > 0);
-
-  if (not first and count > 0 and UtilityHub.Database.global.options.cooldownPlaySound) then
-    PlaySoundFile("Interface\\AddOns\\" .. ADDON_NAME .. "\\Assets\\Sounds\\Cooldown_Ready.ogg", "Master");
-  end
 end);
 
 EventRegistry:RegisterFrameEventAndCallback("LOADING_SCREEN_DISABLED", function()
@@ -270,11 +367,12 @@ end);
 function UtilityHub.Addon:OnInitialize()
   InitVariables();
   SetupSlashCommands();
-  UtilityHub.GameOptions.Register();
+  RegisterOptions();
   CreateMinimapIcon();
 
   UtilityHub.Integration.Baganator();
   UtilityHub.Integration.Auctionator();
+  UtilityHub.Integration.TSM();
 
   if (UtilityHub.Database.global.options.simpleStatsTooltip) then
     UtilityHub.Addon:EnableModule("Tooltip");

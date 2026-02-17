@@ -114,3 +114,36 @@ function UtilityHub.Helpers.Mail:ClearAllMailSlots()
     ClickSendMailItemButton(i, true);
   end
 end
+
+function UtilityHub.Helpers.Mail:OpenSendMailTab(callback)
+  if (UtilityHub.Flags.tsmLoaded and not MailFrame:IsVisible()) then
+    UtilityHub.Integration:ClickTSMSendTab();
+    -- Delay for TSM Send view to render before executing callback
+    if (callback) then
+      C_Timer.After(0.3, callback);
+    end
+    return;
+  end
+
+  MailFrameTab_OnClick(_G["MailFrameTab2"]);
+  if (callback) then
+    callback();
+  end
+end
+
+function UtilityHub.Helpers.Mail:SetRecipient(name)
+  -- Always set Blizzard field (backend uses this)
+  SendMailNameEditBox:SetText(name);
+
+  -- Also set TSM field if active
+  if (UtilityHub.Flags.tsmLoaded and not MailFrame:IsVisible()) then
+    C_Timer.After(0.1, function()
+      local tsmField = UtilityHub.Integration:GetTSMRecipientField();
+      if (tsmField) then
+        tsmField:SetFocus();
+        tsmField:SetText("");
+        tsmField:Insert(name);
+      end
+    end);
+  end
+end

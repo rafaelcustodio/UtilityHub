@@ -31,42 +31,43 @@ end
 ---@param class AuctionHouseItemClassStructureClass
 ---@param subClass AuctionHouseItemClassStructureSubClass|nil
 function Module:Execute(class, subClass)
-  MailFrameTab_OnClick(_G["MailFrameTab2"]);
-  UtilityHub.Helpers.Mail:ClearAllMailSlots();
+  UtilityHub.Helpers.Mail:OpenSendMailTab(function()
+    UtilityHub.Helpers.Mail:ClearAllMailSlots();
 
-  local name = class.name;
+    local name = class.name;
 
-  if (subClass) then
-    name = name .. " - " .. subClass.name;
-  end
+    if (subClass) then
+      name = name .. " - " .. subClass.name;
+    end
 
-  SendMailSubjectEditBox:SetText("UH -  [" .. name .. "]");
+    SendMailSubjectEditBox:SetText("UH -  [" .. name .. "]");
 
-  for bag = 0, 4 do -- Loops through bags 0 (backpack) to 4 (bags)
-    for slot = 1, C_Container.GetContainerNumSlots(bag) do
-      local itemLink = C_Container.GetContainerItemLink(bag, slot);
+    for bag = 0, 4 do -- Loops through bags 0 (backpack) to 4 (bags)
+      for slot = 1, C_Container.GetContainerNumSlots(bag) do
+        local itemLink = C_Container.GetContainerItemLink(bag, slot);
 
-      if (itemLink) then
-        local _, _, _, _, _, _, _, _, _, _, _, classID, subClassID = C_Item.GetItemInfo(itemLink);
-        local isSoulbound = C_Item.IsBound(ItemLocation:CreateFromBagAndSlot(bag, slot));
-        local isConjured = UtilityHub.Libs.Utils:IsItemConjured(itemLink);
-        local classCheck = classID == class.classID;
-        local subClassCheck = true;
+        if (itemLink) then
+          local _, _, _, _, _, _, _, _, _, _, _, classID, subClassID = C_Item.GetItemInfo(itemLink);
+          local isSoulbound = C_Item.IsBound(ItemLocation:CreateFromBagAndSlot(bag, slot));
+          local isConjured = UtilityHub.Libs.Utils:IsItemConjured(itemLink);
+          local classCheck = classID == class.classID;
+          local subClassCheck = true;
 
-        if (subClass) then
-          subClassCheck = subClassID == subClass.subClassID;
-        end
+          if (subClass) then
+            subClassCheck = subClassID == subClass.subClassID;
+          end
 
-        if (not isSoulbound and not isConjured and classCheck and subClassCheck) then
-          UtilityHub.Helpers.Mail:AddItemToNextEmptyMailSlot(bag, slot);
+          if (not isSoulbound and not isConjured and classCheck and subClassCheck) then
+            UtilityHub.Helpers.Mail:AddItemToNextEmptyMailSlot(bag, slot);
+          end
         end
       end
     end
-  end
 
-  ClearCursor();
+    ClearCursor();
 
-  if (#SendMailNameEditBox:GetText() == 0) then
-    SendMailNameEditBox:SetFocus();
-  end
+    if (#SendMailNameEditBox:GetText() == 0) then
+      SendMailNameEditBox:SetFocus();
+    end
+  end);
 end

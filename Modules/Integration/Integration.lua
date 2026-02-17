@@ -37,3 +37,77 @@ function UtilityHub.Integration:FuncOrWaitFrame(addon, func)
     end
   end);
 end
+
+function UtilityHub.Integration:GetTSMMailFrame()
+  if (not UtilityHub.Flags.tsmLoaded) then
+    return nil;
+  end
+
+  -- Cache: if we already found it and it's still visible
+  if (UtilityHub.Flags.tsmMailFrame and UtilityHub.Flags.tsmMailFrame:IsVisible()) then
+    return UtilityHub.Flags.tsmMailFrame;
+  end
+
+  -- TSM frames are not direct children of UIParent
+  -- Scan all frames for TSM's main LargeApplicationFrame (not small child buttons)
+  local frame = EnumerateFrames();
+  while (frame) do
+    if (frame:IsVisible() and frame.GetName and frame:GetWidth() > 300) then
+      local name = frame:GetName();
+      if (name and name:find("^TSM_FRAME") and name:find("LargeApplicationFrame")) then
+        UtilityHub.Flags.tsmMailFrame = frame;
+        return frame;
+      end
+    end
+    frame = EnumerateFrames(frame);
+  end
+
+  return nil;
+end
+
+function UtilityHub.Integration:GetTSMRecipientField()
+  local best = nil;
+  local frame = EnumerateFrames();
+  while (frame) do
+    if (frame:IsVisible() and frame.GetName and frame.SetText) then
+      local name = frame:GetName();
+      if (name and name:find("^TSM_EDIT_BOX") and name:find("Input")) then
+        -- Pick the widest TSM_EDIT_BOX:Input (recipient field is ~424px, gold field is ~160px)
+        if (not best or frame:GetWidth() > best:GetWidth()) then
+          best = frame;
+        end
+      end
+    end
+    frame = EnumerateFrames(frame);
+  end
+
+  return best;
+end
+
+function UtilityHub.Integration:ClickTSMSendTab()
+  local frame = EnumerateFrames();
+  while (frame) do
+    if (frame:IsVisible() and frame.GetName and frame.Click) then
+      local name = frame:GetName();
+      if (name and name:find("^TSM_BUTTON") and name:find("FlashingButton")) then
+        local text = frame.GetText and frame:GetText();
+        if (not text) then
+          for _, region in pairs({frame:GetRegions()}) do
+            if (region.GetText) then
+              text = region:GetText();
+              if (text and text ~= "") then break end
+            end
+          end
+        end
+
+        if (text and text == "Send") then
+          frame:Click();
+          return true;
+        end
+      end
+    end
+    frame = EnumerateFrames(frame);
+  end
+
+  return false;
+end

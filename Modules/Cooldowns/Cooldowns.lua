@@ -76,41 +76,122 @@ end
 
 local DAY_IN_MS = 24 * 60 * 60;
 
+---@param str string
+---@param numChars number
+---@return string
+local function Utf8Sub(str, numChars)
+  local bytePos = 1;
+  local strLen = #str;
+
+  for i = 1, numChars do
+    if (bytePos > strLen) then
+      break;
+    end
+
+    local byte = string.byte(str, bytePos);
+
+    if (byte >= 240) then
+      bytePos = bytePos + 4;
+    elseif (byte >= 224) then
+      bytePos = bytePos + 3;
+    elseif (byte >= 192) then
+      bytePos = bytePos + 2;
+    else
+      bytePos = bytePos + 1;
+    end
+  end
+
+  return string.sub(str, 1, bytePos - 1);
+end
+
+---@param remaining number
+---@return string
+local function FormatReadyDate(remaining)
+  local readyTime = time() + remaining;
+  local t = date("*t", readyTime);
+
+  local dayName = CALENDAR_WEEKDAY_NAMES[t.wday];
+  local monthName = CALENDAR_FULLDATE_MONTH_NAMES[t.month];
+  local shortDay = Utf8Sub(dayName, 3);
+  local shortMonth = Utf8Sub(monthName, 3);
+
+  local locale = GetLocale();
+
+  if (locale == "enUS" or locale == "enGB") then
+    return string.format("%s, %s %d %02d:%02d", shortDay, shortMonth, t.day, t.hour, t.min);
+  end
+
+  return string.format("%s, %d %s %02d:%02d", shortDay, t.day, shortMonth, t.hour, t.min);
+end
+
+---@param timestamp number
+---@return string
+local function FormatDateGroupLabel(timestamp)
+  local t = date("*t", timestamp);
+
+  local dayName = CALENDAR_WEEKDAY_NAMES[t.wday];
+  local monthName = CALENDAR_FULLDATE_MONTH_NAMES[t.month];
+  local shortDay = Utf8Sub(dayName, 3);
+  local shortMonth = Utf8Sub(monthName, 3);
+
+  local locale = GetLocale();
+
+  if (locale == "enUS" or locale == "enGB") then
+    return string.format("%s, %s %d", shortDay, shortMonth, t.day);
+  end
+
+  return string.format("%s, %d %s", shortDay, t.day, shortMonth);
+end
+
+---@param remaining number
+---@return string
+local function FormatReadyTime(remaining)
+  local readyTime = time() + remaining;
+  local t = date("*t", readyTime);
+  return string.format("%02d:%02d", t.hour, t.min);
+end
+
 ---@param cooldown CurrentCooldown
 ---@return string "Converted time"
 ---@return boolean "If its ready"
 ---@return table "RGB"
+---@return string|nil "Ready date"
+---@return string|nil "Ready time (HH:MM)"
 local function CooldownToRemainingTime(cooldown)
-  ---@param rgb BasicRGB
-  ---@return table
-  function ToRGB(rgb)
-    return { r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255 };
-  end
-
-  if (cooldown.start and cooldown.start > 0) then
+  if (cooldown.start and cooldown.maxCooldown and cooldown.maxCooldown > 0) then
     local endTime = cooldown.start + cooldown.maxCooldown;
     local remaining = endTime - GetTime();
 
     if (remaining > 0) then
+      local progress = math.max(0, math.min(1, remaining / cooldown.maxCooldown));
+      local r, g;
+
+      if (progress > 0.5) then
+        r = 1.0;
+        g = (1.0 - progress) * 2;
+      else
+        r = progress * 2;
+        g = 1.0;
+      end
+
+      local rgb = { r = r, g = g, b = 0 };
+      local readyDate = FormatReadyDate(remaining);
+      local readyTime = FormatReadyTime(remaining);
+
       if (remaining >= DAY_IN_MS) then
         local days = math.floor(remaining / DAY_IN_MS);
-        return days .. (days == 1 and " day" or " days"), false, ToRGB({ r = 255, g = 255, b = 255 });
+        return days .. (days == 1 and " day" or " days"), false, rgb, readyDate, readyTime;
       end
 
       local hours = math.floor(remaining / 3600);
       local minutes = math.floor((remaining % 3600) / 60);
       local seconds = remaining % 60;
-      local rgb = { r = 252, g = 186, b = 3 };
 
-      if (hours < 12) then
-        rgb = { r = 255, g = 71, b = 71 };
-      end
-
-      return string.format("%02d:%02d:%02d", hours, minutes, seconds), false, ToRGB(rgb);
+      return string.format("%02d:%02d:%02d", hours, minutes, seconds), false, rgb, readyDate, readyTime;
     end
   end
 
-  return "Ready", true, ToRGB({ r = 16, g = 179, b = 16 });
+  return "Ready", true, { r = 16 / 255, g = 179 / 255, b = 16 / 255 }, nil, nil;
 end
 
 Module.Ticker = C_Timer.NewTicker(1, function()
@@ -136,6 +217,8 @@ Module.Ticker = C_Timer.NewTicker(1, function()
 end);
 
 Module.CollapsedGroups = {};
+Module.NotifiedCooldowns = {};
+Module.CountReadyGraceTicks = 5;
 
 ---@return table<string, CurrentCooldown[]>
 function Module:UpdateCurrentCharacterCooldowns()
@@ -248,6 +331,7 @@ end
 
 function Module:UpdateCountReadyCooldowns()
   local currentCount = 0;
+  local currentReadySet = {};
 
   for _, character in pairs(UtilityHub.Database.global.characters) do
     for _, cooldownGroup in pairs(character.cooldownGroup or {}) do
@@ -257,16 +341,44 @@ function Module:UpdateCountReadyCooldowns()
 
         if (cooldown.start == 0 or remaining < 0) then
           currentCount = currentCount + 1;
+
+          if (cooldown.maxCooldown > 0 and remaining < 0) then
+            local key = character.name .. ":" .. cooldown.name;
+            currentReadySet[key] = character.name .. " - " .. cooldown.name;
+          end
         end
       end
     end
+  end
+
+  local isInitializing = Module.CountReadyGraceTicks > 0;
+
+  if (Module.CountReadyGraceTicks > 0) then
+    Module.CountReadyGraceTicks = Module.CountReadyGraceTicks - 1;
+  end
+
+  if (not isInitializing) then
+    local hasNewReady = false;
+
+    for key, label in pairs(currentReadySet) do
+      if (not Module.NotifiedCooldowns[key]) then
+        UtilityHub.Helpers.Notification:ShowNotification(label .. " is ready!");
+        hasNewReady = true;
+      end
+    end
+
+    if (hasNewReady and UtilityHub.Database.global.options.cooldownPlaySound) then
+      PlaySoundFile("Interface\\AddOns\\UtilityHub\\Assets\\Sounds\\Cooldown_Ready.ogg", "Master");
+    end
+
+    Module.NotifiedCooldowns = currentReadySet;
   end
 
   if (currentCount ~= UtilityHub.lastCountReadyCooldowns) then
     UtilityHub.Events:TriggerEvent(
       "COUNT_READY_COOLDOWNS_CHANGED",
       currentCount,
-      UtilityHub.lastCountReadyCooldowns == nil
+      isInitializing
     );
   end
 
@@ -277,7 +389,7 @@ end
 function Module:CreateCooldownsFrame()
   local frame = CreateFrame("Frame", nil, UIParent, "SettingsFrameTemplate");
   Module.Frame = frame;
-  frame:SetSize(250, 350);
+  frame:SetSize(400, 450);
   frame:Hide();
   local savedPosition = UtilityHub.Database.global.cooldownFramePosition;
 
@@ -304,18 +416,48 @@ function Module:CreateCooldownsFrame()
   content:SetPoint("TOPLEFT", 15, -25);
   content:SetPoint("BOTTOMRIGHT", -5, 7);
 
+  local groupByEnum = UtilityHub.Enums.CooldownGroupBy;
+  local groupByText = UtilityHub.Enums.CooldownGroupByText;
+
+  local dropdown = CreateFrame("Frame", "UHCooldownGroupByDropdown", content, "UIDropDownMenuTemplate");
+  frame.GroupByDropdown = dropdown;
+  dropdown:SetPoint("TOPLEFT", content, "TOPLEFT", -15, 2);
+  UIDropDownMenu_SetWidth(dropdown, 140);
+
+  local currentGroupBy = UtilityHub.Database.global.cooldownGroupBy or groupByEnum.CHARACTER;
+  UIDropDownMenu_SetText(dropdown, groupByText[currentGroupBy]);
+
+  UIDropDownMenu_Initialize(dropdown, function(self, level, menuList)
+    local current = UtilityHub.Database.global.cooldownGroupBy or groupByEnum.CHARACTER;
+
+    for _, value in ipairs({ groupByEnum.CHARACTER, groupByEnum.TYPE, groupByEnum.READY_DATE }) do
+      local info = UIDropDownMenu_CreateInfo();
+      info.text = groupByText[value];
+      info.value = value;
+      info.checked = (current == value);
+      info.func = function(btn)
+        UtilityHub.Database.global.cooldownGroupBy = btn.value;
+        UIDropDownMenu_SetText(dropdown, groupByText[btn.value]);
+        Module.CollapsedGroups = {};
+        Module:UpdateCooldownsFrameList();
+        CloseDropDownMenus();
+      end;
+      UIDropDownMenu_AddButton(info);
+    end
+  end);
+
   frame.ScrollBar = CreateFrame("EventFrame", nil, content, "MinimalScrollBar");
   frame.ScrollBar:SetPoint("TOPRIGHT", -10, -5);
   frame.ScrollBar:SetPoint("BOTTOMRIGHT", 0, 5);
 
   frame.ScrollBox = CreateFrame("Frame", nil, content, "WowScrollBoxList");
-  frame.ScrollBox:SetPoint("TOPLEFT", 2, -4);
+  frame.ScrollBox:SetPoint("TOPLEFT", 2, -30);
   frame.ScrollBox:SetPoint("BOTTOMRIGHT", frame.ScrollBar, "BOTTOMLEFT", -3, 0);
 
   local indent = 10;
   local padLeft = 0;
   local pad = 5;
-  local spacing = 1;
+  local spacing = 2;
   local view = CreateScrollBoxListTreeListView(indent, pad, pad, padLeft, pad, spacing);
   Module.View = view;
 
@@ -324,11 +466,46 @@ function Module:CreateCooldownsFrame()
 
     if (elementData.group) then
       local function Initializer(button, node)
-        if (not Module.CollapsedGroups[elementData.group]) then
+        if (Module.CollapsedGroups[elementData.group] == nil) then
           Module.CollapsedGroups[elementData.group] = node:IsCollapsed();
         end
+
+        local color = UtilityHub.Helpers.Color:GetRGBFromClassName(elementData.className);
         button.Label:SetText(elementData.group);
+        button.Label:SetTextColor(color.r, color.g, color.b);
+
+        local readySuffix = elementData.readyCount .. "/" .. elementData.totalCount .. " ready";
+        button.LabelRight:SetText(readySuffix);
         button:SetCollapseState(Module.CollapsedGroups[elementData.group]);
+
+        if (elementData.nearestEndTime) then
+          button.Timer = {
+            Update = function()
+              local remaining = elementData.nearestEndTime - GetTime();
+
+              if (remaining > 0) then
+                local timeText;
+
+                if (remaining >= DAY_IN_MS) then
+                  local days = math.floor(remaining / DAY_IN_MS);
+                  timeText = days .. (days == 1 and " day" or " days");
+                else
+                  local hours = math.floor(remaining / 3600);
+                  local minutes = math.floor((remaining % 3600) / 60);
+                  local seconds = remaining % 60;
+                  timeText = string.format("%02d:%02d:%02d", hours, minutes, seconds);
+                end
+
+                button.LabelRight:SetText(timeText .. " - " .. readySuffix);
+              else
+                button.LabelRight:SetText(readySuffix);
+              end
+            end,
+          };
+          button.Timer:Update();
+        else
+          button.Timer = nil;
+        end
 
         button:SetScript("OnClick", function(button)
           node:ToggleCollapsed();
@@ -339,36 +516,67 @@ function Module:CreateCooldownsFrame()
       end
 
       factory("TreeGroupButtonTemplate", Initializer);
-    elseif (elementData.character) then
+    elseif (elementData.cooldown) then
       local function Initializer(button, node)
         local width = button:GetWidth();
+        local timerWidth = width * 0.3;
 
         button:SetPushedTextOffset(0, 0);
         button:SetHighlightAtlas("search-highlight");
         button:SetNormalFontObject(GameFontHighlight);
-        button:SetText(elementData.character);
+        button:SetText(elementData.cooldown);
         button.elementData = elementData;
         button:GetFontString():SetPoint("LEFT", 12, 0);
-        button:GetFontString():SetPoint("RIGHT", -(width / 2), 0);
+        button:GetFontString():SetPoint("RIGHT", -(timerWidth + 6), 0);
         button:GetFontString():SetJustifyH("LEFT");
+        button:GetFontString():SetWordWrap(false);
 
         if (not button.Timer) then
-          button.Timer = button:CreateFontString(nil, "OVERLAY", "GameFontNormal");
-          button.Timer:SetPoint("LEFT", (width / 2), 0);
-          button.Timer:SetPoint("RIGHT", -6, 0);
+          button.Timer = button:CreateFontString(nil, "OVERLAY");
+          local font, size, flags = GameFontNormal:GetFont();
+          button.Timer:SetFont(font, size, flags);
+          button.Timer:SetPoint("TOPRIGHT", -6, -2);
+          button.Timer:SetPoint("LEFT", width - timerWidth - 6, 0);
           button.Timer:SetJustifyH("RIGHT");
+        end
 
-          function button.Timer:Update()
-            local parent = self:GetParent();
-            local text, ready, rgb = CooldownToRemainingTime(parent.elementData);
+        if (not button.ReadyDate) then
+          button.ReadyDate = button:CreateFontString(nil, "OVERLAY");
+          local font, size, flags = GameFontNormal:GetFont();
+          button.ReadyDate:SetFont(font, size - 2, flags);
+          button.ReadyDate:SetPoint("BOTTOMRIGHT", -6, 2);
+          button.ReadyDate:SetPoint("LEFT", width - timerWidth - 6, 0);
+          button.ReadyDate:SetJustifyH("RIGHT");
+          button.ReadyDate:SetTextColor(0.7, 0.7, 0.7);
+        end
+
+        function button.Timer:Update()
+          local parent = self:GetParent();
+          local text, ready, rgb, readyDate, readyTime = CooldownToRemainingTime(parent.elementData);
+
+          if (parent.elementData.hideCountdown) then
+            if (ready) then
+              self:SetText(text);
+              self:SetTextColor(rgb.r, rgb.g, rgb.b);
+            else
+              self:SetText(readyTime);
+              self:SetTextColor(0.7, 0.7, 0.7);
+            end
+            parent.ReadyDate:Hide();
+          else
             self:SetText(text);
             self:SetTextColor(rgb.r, rgb.g, rgb.b);
+
+            if (readyDate) then
+              parent.ReadyDate:SetText(readyDate);
+              parent.ReadyDate:Show();
+            else
+              parent.ReadyDate:Hide();
+            end
           end
         end
 
         button.Timer:Update();
-
-        node:SetCollapsed(Module.CollapsedGroups[elementData.group]);
       end
       factory("Button", Initializer);
     else
@@ -378,15 +586,13 @@ function Module:CreateCooldownsFrame()
 
   view:SetElementExtentCalculator(function(dataIndex, node)
     local elementData = node:GetData();
-    local baseElementHeight = 20;
-    local categoryPadding = 5;
 
-    if (elementData.character) then
-      return baseElementHeight;
+    if (elementData.cooldown) then
+      return elementData.hideCountdown and 26 or 38;
     end
 
     if (elementData.group) then
-      return baseElementHeight + categoryPadding;
+      return 30;
     end
 
     return 0;
@@ -396,51 +602,184 @@ function Module:CreateCooldownsFrame()
 end
 
 function Module:UpdateCooldownsFrameList()
-  local groups = setmetatable({}, {
-    __index = {
-      InsertGroup = function(self, group)
-        for _, loopGroup in ipairs(self) do
-          if (loopGroup.group == group.group) then
-            return loopGroup;
-          end
-        end
+  local groupByEnum = UtilityHub.Enums.CooldownGroupBy;
+  local groupBy = UtilityHub.Database.global.cooldownGroupBy or groupByEnum.CHARACTER;
+  local dataProvider = CreateTreeDataProvider();
 
-        tinsert(self, group);
-
-        return group;
-      end,
-      ToTreeDataProvider = function(self)
-        local dataProvider = CreateTreeDataProvider();
-
-        for _, group in pairs(self) do
-          local groupDataNode = dataProvider:Insert({ group = group.group });
-
-          for _, cooldown in pairs(group.cooldowns) do
-            groupDataNode:Insert(cooldown);
-          end
-        end
-
-        return dataProvider;
-      end,
-    },
-  });
+  -- Collect all cooldown entries across all characters
+  local allEntries = {};
 
   for _, character in pairs(UtilityHub.Database.global.characters) do
-    for _, cooldownGroup in pairs(character.cooldownGroup or {}) do
+    for profName, cooldownGroup in pairs(character.cooldownGroup or {}) do
       for _, cooldown in pairs(cooldownGroup) do
-        local group = groups:InsertGroup({ group = cooldown.name, cooldowns = {} });
-        tinsert(group.cooldowns, {
-          groupName = cooldown.name,
-          cooldown = cooldown.name,
-          character = character.name,
+        local _, isReady = CooldownToRemainingTime(cooldown);
+        local remaining = 0;
+
+        if (cooldown.start and cooldown.maxCooldown and cooldown.maxCooldown > 0) then
+          remaining = (cooldown.start + cooldown.maxCooldown) - GetTime();
+
+          if (remaining < 0) then
+            remaining = 0;
+          end
+        end
+
+        tinsert(allEntries, {
+          characterName = character.name,
+          className = character.className,
+          professionName = profName,
+          cooldownName = cooldown.name,
           start = cooldown.start,
           maxCooldown = cooldown.maxCooldown,
+          isReady = isReady,
+          remaining = remaining,
         });
       end
     end
   end
 
-  Module.Frame.ScrollBox:SetDataProvider(groups:ToTreeDataProvider());
+  ---@param entry table
+  ---@return string
+  local function ColorCharName(entry)
+    if (entry.className) then
+      local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[entry.className];
+
+      if (color and color.colorStr) then
+        return "|c" .. color.colorStr .. entry.characterName .. "|r";
+      end
+    end
+
+    return entry.characterName;
+  end
+
+  ---@param entry table
+  ---@return string
+  local function MakeEntryLabel(entry)
+    if (groupBy == groupByEnum.CHARACTER) then
+      return entry.cooldownName;
+    elseif (groupBy == groupByEnum.TYPE) then
+      return ColorCharName(entry);
+    end
+
+    return ColorCharName(entry) .. " - " .. entry.cooldownName;
+  end
+
+  ---@param entry table
+  ---@return table
+  local function MakeEntryData(entry)
+    return {
+      cooldown = MakeEntryLabel(entry),
+      start = entry.start,
+      maxCooldown = entry.maxCooldown,
+      hideCountdown = (groupBy == groupByEnum.READY_DATE),
+    };
+  end
+
+  ---@param entries table[]
+  ---@param key string
+  ---@param groupData table
+  ---@param groups table
+  ---@param order string[]
+  local function AddToGroup(entries, key, groupData, groups, order)
+    if (not groups[key]) then
+      groups[key] = groupData;
+      groups[key].entries = {};
+      groups[key].readyCount = 0;
+      tinsert(order, key);
+    end
+
+    local g = groups[key];
+
+    for _, entry in ipairs(entries) do
+      if (entry.isReady) then
+        g.readyCount = g.readyCount + 1;
+      end
+
+      tinsert(g.entries, entry);
+    end
+  end
+
+  ---@param groups table
+  ---@param order string[]
+  local function InsertGroupsIntoProvider(groups, order)
+    for _, key in ipairs(order) do
+      local g = groups[key];
+
+      if (#g.entries > 0) then
+        local groupNode = dataProvider:Insert({
+          group = g.label or key,
+          className = g.className,
+          readyCount = g.readyCount,
+          totalCount = #g.entries,
+          nearestEndTime = g.nearestEndTime,
+        });
+
+        for _, entry in ipairs(g.entries) do
+          groupNode:Insert(MakeEntryData(entry));
+        end
+      end
+    end
+  end
+
+  if (groupBy == groupByEnum.CHARACTER) then
+    local groups = {};
+    local order = {};
+
+    for _, entry in ipairs(allEntries) do
+      AddToGroup({ entry }, entry.characterName, { className = entry.className }, groups, order);
+    end
+
+    table.sort(order);
+    InsertGroupsIntoProvider(groups, order);
+  elseif (groupBy == groupByEnum.TYPE) then
+    local groups = {};
+    local order = {};
+
+    for _, entry in ipairs(allEntries) do
+      AddToGroup({ entry }, entry.cooldownName, {}, groups, order);
+    end
+
+    table.sort(order);
+    InsertGroupsIntoProvider(groups, order);
+  elseif (groupBy == groupByEnum.READY_DATE) then
+    local groups = {};
+    local order = {};
+
+    for _, entry in ipairs(allEntries) do
+      local dateKey, dateLabel;
+
+      if (entry.isReady or entry.remaining <= 0) then
+        dateKey = "0000-00-00";
+        dateLabel = "Ready";
+      else
+        local readyTimestamp = time() + entry.remaining;
+        dateKey = date("%Y-%m-%d", readyTimestamp);
+        dateLabel = FormatDateGroupLabel(readyTimestamp);
+      end
+
+      AddToGroup({ entry }, dateKey, { label = dateLabel }, groups, order);
+
+      if (not entry.isReady and entry.remaining > 0) then
+        local endTime = entry.start + entry.maxCooldown;
+        local g = groups[dateKey];
+
+        if (not g.nearestEndTime or endTime < g.nearestEndTime) then
+          g.nearestEndTime = endTime;
+        end
+      end
+    end
+
+    table.sort(order);
+
+    for _, key in ipairs(order) do
+      table.sort(groups[key].entries, function(a, b)
+        return a.remaining < b.remaining;
+      end);
+    end
+
+    InsertGroupsIntoProvider(groups, order);
+  end
+
+  Module.Frame.ScrollBox:SetDataProvider(dataProvider);
 end
 
 function Module:ShowFrame()
@@ -480,6 +819,13 @@ function Module:OnInitialize()
   end
 end
 
+function Module:TestNotification()
+  Module.NotifiedCooldowns = {};
+  Module.CountReadyGraceTicks = 0;
+  Module:UpdateCountReadyCooldowns();
+  UtilityHub.Helpers.Notification:ShowNotification("Triggered cooldown notification test");
+end
+
 -- Events
 local function skillUpdated(...)
   if (UtilityHub.Flags.addonReady and GetNumSkillLines() > 0) then
@@ -490,6 +836,11 @@ end
 EventRegistry:RegisterFrameEventAndCallback("SKILL_LINES_CHANGED", skillUpdated);
 EventRegistry:RegisterFrameEventAndCallback("TRADE_SKILL_LIST_UPDATE", skillUpdated);
 EventRegistry:RegisterFrameEventAndCallback("TRADE_SKILL_UPDATE", skillUpdated);
+
+EventRegistry:RegisterFrameEventAndCallback("LOADING_SCREEN_DISABLED", function()
+  Module.NotifiedCooldowns = {};
+  Module.CountReadyGraceTicks = 5;
+end);
 
 UtilityHub.Events:RegisterCallback("CHARACTER_UPDATED", function(_, name)
   Module:UpdateCooldownsFrameList();
