@@ -3,7 +3,7 @@
 ## Title: UtilityHub
 ## IconTexture: Interface\Addons\UtilityHub\Assets\Icons\addon
 ## Author: Cacetinho-Nightslayer 
-## Version: 0.17
+## Version: 0.18
 ## SavedVariables: UHdatabase, MDHdatabase
 
 # XMLs
@@ -16,6 +16,8 @@ Enums.lua
 Helpers.lua
 Main.lua
 Options/ItemList.lua
+Options/OptionList.lua
+Options/OptionList.xml
 Options/Options.lua
 Layout/TreeGroup/TreeGroup.lua
 Layout/TreeGroup/TreeGroup.xml

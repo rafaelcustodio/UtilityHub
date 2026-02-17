@@ -1,6 +1,6 @@
 # Define paths
 $currentDir = Get-Location
-$outputPath = Join-Path $currentDir "out"
+$outputPath = "C:\wow-addon-versions\$title"
 $addonDestinationPath = Join-Path $outputPath "UtilityHub"
 
 Write-Host "Preparing UtilityHub for distribution..."
@@ -41,6 +41,7 @@ $itemsToRemove = @(
     (Join-Path $addonDestinationPath ".git"),
     (Join-Path $addonDestinationPath ".vscode"),
     (Join-Path $addonDestinationPath ".github")
+    (Join-Path $addonDestinationPath "refs")
 )
 
 Write-Host "Removing unnecessary files and folders from the build..."
