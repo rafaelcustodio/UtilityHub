@@ -407,19 +407,7 @@ local function SetupSlashCommands()
 end
 
 local function RegisterOptions()
-  ---@type string|nil
-  local parent = nil;
-  addonTable.GenerateOptions();
-
-  for _, option in ipairs(UtilityHub.GameOptions.options) do
-    UtilityHub.Libs.AceConfig:RegisterOptionsTable(option.key, option.group);
-    local _, categoryID = UtilityHub.Libs.AceConfigDialog:AddToBlizOptions(option.key, option.name, parent);
-    option.categoryID = categoryID;
-
-    if (option.root) then
-      parent = option.name;
-    end
-  end
+  UtilityHub.GameOptions.Register();
 end
 
 local function CreateMinimapIcon()
