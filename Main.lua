@@ -70,7 +70,7 @@ local function MigrateDB(version, oldVersion)
       UtilityHub.Helpers.Notification:ShowNotification("Migrated AutoBuy list to new format");
     end
   else
-    UtilityHub.Database.global.options.autoBuyList = {};
+    UtilityHub.Database.global.options.autoBuyList = UtilityHub.GameOptions.defaults.autoBuyList or {};
   end
 
   -- Migrate autoRestockList to unified autoBuyList
