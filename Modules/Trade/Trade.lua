@@ -41,14 +41,14 @@ local function CreateModule()
     frame:Hide();
     frame:SetTitle("Trading with...");
     frame:SetLayout("Flow");
-    frame:SetWidth(frameWidth);
-    frame:SetHeight(330);
+    frame:SetHeight(280);
     frame:EnableResize(false);
     frame:ClearAllPoints();
-    frame:SetPoint("TOPRIGHT", TradeFrame, "TOPRIGHT", 10 + frameWidth, 0);
+    -- Anchor to match TradeFrame width
+    frame:SetPoint("TOPLEFT", TradeFrame, "BOTTOMLEFT", 0, -10);
+    frame:SetPoint("TOPRIGHT", TradeFrame, "BOTTOMRIGHT", 0, -10);
 
-    frame.NameLabel = CreateLabel(frame);
-    frame.ServerLabel = CreateLabel(frame);
+    frame.NameServerLabel = CreateLabel(frame);
     frame.GuildLabel = CreateLabel(frame);
     frame.LevelLabel = CreateLabel(frame);
     frame.RaceClassLabel = CreateLabel(frame);
@@ -110,8 +110,7 @@ local function CreateModule()
         englishClass = "-";
       end
 
-      frame.NameLabel:SetText(name);
-      frame.ServerLabel:SetText("|cffffd100Server:|r " .. server);
+      frame.NameServerLabel:SetText(name .. "-" .. server);
       frame.GuildLabel:SetText("|cffffd100Guild:|r " .. guild);
       frame.LevelLabel:SetText("|cffffd100Level:|r " .. level);
       frame.RaceClassLabel:SetText(raceClass, englishClass);
@@ -172,13 +171,9 @@ local function CreateModule()
     end,
     UpdateParent = function()
       frame:ClearAllPoints();
-      frame:SetPoint(
-        "TOPRIGHT",
-        CharacterFrame:IsShown() and CharacterFrame or TradeFrame,
-        "TOPRIGHT",
-        10 + frameWidth,
-        0
-      );
+      -- Anchor to match TradeFrame width
+      frame:SetPoint("TOPLEFT", TradeFrame, "BOTTOMLEFT", 0, -10);
+      frame:SetPoint("TOPRIGHT", TradeFrame, "BOTTOMRIGHT", 0, -10);
     end,
     UpdateLastWhisperInFrame = function()
       frame:UpdateWhisper();
