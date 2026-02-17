@@ -602,9 +602,9 @@ end);
 function UtilityHub.Addon:OnInitialize()
   InitVariables();
   SetupSlashCommands();
-  RegisterOptions();
   CreateMinimapIcon();
 
+  UtilityHub.GameOptions.Register();
   UtilityHub.Integration.Baganator();
   UtilityHub.Integration.Auctionator();
   UtilityHub.Integration.TSM();
