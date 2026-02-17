@@ -7,85 +7,6 @@ local minimapIcons = {
 ---@type number|nil
 local lastCountReadyCooldowns = nil;
 
----@param version string|nil
----@param oldVersion string|nil
-local function MigrateDB(version, oldVersion)
-  if (version and oldVersion) then
-    UtilityHub.Helpers.Notification:ShowNotification("Migrating DB version from " .. oldVersion .. " to " .. version);
-  else
-    UtilityHub.Helpers.Notification:ShowNotification("Migrating DB version - Forced action without any version change");
-  end
-
-  if (#UtilityHub.Database.global.presets > 0) then
-    for _, preset in pairs(UtilityHub.Database.global.presets) do
-      local shouldFixEssenceElemental = false;
-
-      for j, _ in pairs(preset.itemGroups) do
-        if (j == "Essence") then
-          shouldFixEssenceElemental = true;
-        end
-      end
-
-      if (shouldFixEssenceElemental) then
-        local newItemGroups = {};
-
-        for key, value in pairs(preset.itemGroups) do
-          if (key == "Essence") then
-            newItemGroups["EssenceElemental"] = value;
-          else
-            newItemGroups[key] = value;
-          end
-        end
-
-        preset.itemGroups = newItemGroups;
-      end
-    end
-  end
-
-  if (not UtilityHub.Database.global.options) then
-    UtilityHub.Database.global.options = UtilityHub.GameOptions.defaults;
-  end
-
-  if (not UtilityHub.Database.global.options.autoBuyList) then
-    UtilityHub.Database.global.options.autoBuyList = UtilityHub.GameOptions.defaults.autoBuyList;
-  end
-
-  if (UtilityHub.Database.global.characters) then
-    for index, value in ipairs(UtilityHub.Database.global.characters) do
-      if (type(value) == "string") then
-        local name = UtilityHub.Database.global.characters[index];
-
-        if (name == UnitName("player")) then
-          local race = select(2, UnitRace("player"));
-          local className = select(2, UnitClass("player"));
-
-          UtilityHub.Database.global.characters[index] = {
-            name = name,
-            race = race,
-            className = className,
-            group = nil,
-          };
-        else
-          UtilityHub.Database.global.characters[index] = {
-            name = name,
-            race = nil,
-            className = nil,
-            group = nil,
-          };
-        end
-      end
-    end
-  end
-
-  if (not UtilityHub.Database.global.options.cooldowns) then
-    UtilityHub.Database.global.options.cooldowns = false;
-  end
-
-  if (not UtilityHub.Database.global.options.cooldowsList) then
-    UtilityHub.Database.global.options.cooldowsList = {};
-  end
-end
-
 local function InitVariables()
   ---@type string|nil
   local version = UtilityHub.Constants.AddonVersion;
@@ -114,7 +35,7 @@ local function InitVariables()
   UtilityHub.Database.global.oldVersion = version;
 
   if (oldVersion and oldVersion ~= version) then
-    MigrateDB(version, oldVersion);
+    UtilityHub:MigrateDB(version, oldVersion);
   end
 end
 
@@ -152,7 +73,7 @@ local function SetupSlashCommands()
       UtilityHub.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
     elseif (command == "daily" or command == "dailies") then
       UtilityHub.Events:TriggerEvent("TOGGLE_DAILY_FRAME");
-    elseif (command == "migrate") then
+    elseif (command == "fixdb") then
       UtilityHub:MigrateDB();
     elseif (command == "update-quest-flags") then
       UtilityHub.Events:TriggerEvent("FORCE_DAILY_QUESTS_FLAG_UPDATE", fragments[2]);
@@ -165,24 +86,6 @@ local function SetupSlashCommands()
       UtilityHub.Helpers.Notification:ShowNotification("Command not found");
     end
   end
-end
-
--- ---@type string|nil
--- local parent = nil;
--- addonTable.GenerateOptions();
-
--- for _, option in ipairs(UtilityHub.GameOptions.options) do
---   UtilityHub.Libs.AceConfig:RegisterOptionsTable(option.key, option.group);
---   local _, categoryID = UtilityHub.Libs.AceConfigDialog:AddToBlizOptions(option.key, option.name, parent);
---   option.categoryID = categoryID;
-
---   if (option.root) then
---     parent = option.name;
---   end
--- end
-
-local function RegisterOptions()
-
 end
 
 local function CreateMinimapIcon()
@@ -198,7 +101,7 @@ local function CreateMinimapIcon()
           if (SettingsPanel:IsShown()) then
             HideUIPanel(SettingsPanel);
           else
-            Settings.OpenToCategory(ADDON_NAME);
+            UtilityHub.GameOptions.OpenConfig();
           end
         end
       elseif (button == "RightButton") then

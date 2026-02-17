@@ -258,9 +258,9 @@ function UtilityHub_OptionListControlMixin:UpdateList(values)
 
   -- Check for insert/update
   for _, value in ipairs(values) do
-    local index, existentItemLink = dataProvider:FindByPredicate(GeneratePredicateFn(value));
+    local index, row = dataProvider:FindByPredicate(GeneratePredicateFn(value));
 
-    if (not existentItemLink) then
+    if (not row) then
       dataProvider:Insert(value);
       hasChanges = true;
     end
@@ -351,6 +351,12 @@ function UtilityHub_OptionListControlMixin:AddRow(text)
 
   if (configuration.NewRow) then
     newRowFn = configuration.NewRow;
+  end
+
+  local newRow = newRowFn(text);
+
+  if (self:GetRowIndex(newRow) ~= nil) then
+    return;
   end
 
   tinsert(value, newRowFn(text));
