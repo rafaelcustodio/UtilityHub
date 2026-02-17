@@ -362,13 +362,7 @@ Module.ItemGroupOptions = {
       return UtilityHub.Constants.IsTBCorLater;
     end,
     CheckItemBelongsToGroup = function(itemLink)
-      local _, _, _, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(itemLink);
-
-      if (UtilityHub.Constants.IsClassic) then
-        return CheckItemLinkInList(itemLink, classicItems.rawFood);
-      else
-        return classID == Enum.ItemClass.Tradegoods and subclassID == 8;
-      end
+      return CheckItemLinkInList(itemLink, classicItems.aldorScryer);
     end
   },
 };
