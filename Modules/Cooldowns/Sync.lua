@@ -68,6 +68,7 @@ end
 ---@return string reason
 local function IsNewDataOlder(oldCd, newCd)
   local now = GetTime();
+  local TOLERANCE_THRESHOLD = 5; -- Allow up to 5 seconds difference due to network latency
 
   -- Old was in CD, new is ready
   if (oldCd.start > 0 and oldCd.maxCooldown > 0) then
@@ -75,17 +76,19 @@ local function IsNewDataOlder(oldCd, newCd)
     local oldRemaining = oldEnd - now;
 
     -- Old still has time left, but new says it's ready
-    if (oldRemaining > 0 and (newCd.start == 0 or newCd.maxCooldown == 0)) then
+    if (oldRemaining > TOLERANCE_THRESHOLD and (newCd.start == 0 or newCd.maxCooldown == 0)) then
       return true, string.format("STALE: old had %.0fs left, new is ready", oldRemaining);
     end
 
     -- Both in CD, but new ends before old (inconsistent)
     if (newCd.start > 0 and newCd.maxCooldown > 0) then
       local newEnd = newCd.start + newCd.maxCooldown;
+      local timeDifference = oldEnd - newEnd;
 
-      if (newEnd < oldEnd and oldRemaining > 0) then
+      -- Only reject if difference is significant (> threshold)
+      if (timeDifference > TOLERANCE_THRESHOLD and oldRemaining > TOLERANCE_THRESHOLD) then
         local newRemaining = newEnd - now;
-        return true, string.format("STALE: old ends in %.0fs, new ends in %.0fs (earlier)", oldRemaining, newRemaining);
+        return true, string.format("STALE: old ends in %.0fs, new ends in %.0fs (diff: %.1fs)", oldRemaining, newRemaining, timeDifference);
       end
     end
   end

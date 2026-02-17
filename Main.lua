@@ -211,6 +211,7 @@ local function SetupSlashCommands()
       local debugText = UtilityHub.Database.global.debugMode and "ON" or "OFF";
       UtilityHub.Helpers.Notification:ShowNotification("Debug mode " .. debugText);
     elseif (command == "options") then
+      print("|cffFFD700[UH Debug] Options command, category:|r", UtilityHub.GameOptions.category);
       UtilityHub.GameOptions.OpenConfig();
     elseif (command == "cd" or command == "cds") then
       UtilityHub.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
@@ -407,7 +408,12 @@ local function SetupSlashCommands()
 end
 
 local function RegisterOptions()
+  print("|cffFFD700[UH Debug] RegisterOptions called|r");
   UtilityHub.GameOptions.Register();
+  print("|cffFFD700[UH Debug] Register executed, category:|r", UtilityHub.GameOptions.category);
+  if (UtilityHub.GameOptions.category) then
+    print("|cffFFD700[UH Debug] Category has GetID:|r", type(UtilityHub.GameOptions.category.GetID));
+  end
 end
 
 local function CreateMinimapIcon()
@@ -423,7 +429,7 @@ local function CreateMinimapIcon()
           if (SettingsPanel:IsShown()) then
             HideUIPanel(SettingsPanel);
           else
-            Settings.OpenToCategory(ADDON_NAME);
+            UtilityHub.GameOptions.OpenConfig();
           end
         end
       elseif (button == "RightButton") then

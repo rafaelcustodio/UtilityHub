@@ -1,0 +1,207 @@
+local ADDON_NAME = ...;
+
+---@class GeneralPage
+local GeneralPage = {};
+
+---@param parent Frame
+---@param labelText string
+---@param dbKey string
+---@param tooltip? string
+---@param previousCheckbox? CheckButton
+---@return CheckButton
+function GeneralPage:CreateCheckbox(parent, labelText, dbKey, tooltip, previousCheckbox)
+  local checkbox = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate");
+  checkbox:SetSize(24, 24);
+
+  if (previousCheckbox) then
+    checkbox:SetPoint("TOPLEFT", previousCheckbox, "BOTTOMLEFT", 0, -10);
+  else
+    checkbox:SetPoint("TOPLEFT", 20, -20);
+  end
+
+  -- Label
+  local label = checkbox:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+  label:SetPoint("LEFT", checkbox, "RIGHT", 5, 0);
+  label:SetText(labelText);
+
+  -- Set initial state
+  checkbox:SetChecked(UtilityHub.Database.global.options[dbKey]);
+
+  -- OnClick handler
+  checkbox:SetScript("OnClick", function(self)
+    local checked = self:GetChecked();
+    UtilityHub.Database.global.options[dbKey] = checked;
+    UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", dbKey, checked);
+  end);
+
+  -- Tooltip
+  if (tooltip) then
+    checkbox:SetScript("OnEnter", function(self)
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+      GameTooltip:SetText(labelText, 1, 1, 1);
+      GameTooltip:AddLine(tooltip, nil, nil, nil, true);
+      GameTooltip:Show();
+    end);
+    checkbox:SetScript("OnLeave", function(self)
+      if (GameTooltip:IsOwned(self)) then
+        GameTooltip:Hide();
+      end
+    end);
+  end
+
+  return checkbox;
+end
+
+---@param parent Frame
+---@return Frame
+function GeneralPage:Create(parent)
+  local frame = CreateFrame("Frame", "UtilityHubGeneralPage", parent);
+
+  -- Title
+  local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
+  title:SetPoint("TOPLEFT", 20, -20);
+  title:SetText("General Settings");
+
+  -- Section: Tooltip
+  local sectionTooltip = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+  sectionTooltip:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -20);
+  sectionTooltip:SetText("Tooltip");
+
+  local cbTooltip = self:CreateCheckbox(
+    frame,
+    "Simplified stats display",
+    "simpleStatsTooltip",
+    "Change the way most stats are shown in the tooltip",
+    nil
+  );
+  cbTooltip:SetPoint("TOPLEFT", sectionTooltip, "BOTTOMLEFT", 0, -10);
+
+  -- Section: Trade
+  local sectionTrade = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+  sectionTrade:SetPoint("TOPLEFT", cbTooltip, "BOTTOMLEFT", 0, -20);
+  sectionTrade:SetText("Trade");
+
+  local cbTrade = self:CreateCheckbox(
+    frame,
+    "Extra info frame",
+    "tradeExtraInfo",
+    "Show extra frame with more info about the person you are trading",
+    cbTooltip
+  );
+  cbTrade:SetPoint("TOPLEFT", sectionTrade, "BOTTOMLEFT", 0, -10);
+
+  -- Section: Daily Quests
+  local sectionDaily = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+  sectionDaily:SetPoint("TOPLEFT", cbTrade, "BOTTOMLEFT", 0, -20);
+  sectionDaily:SetText("Daily Quests");
+
+  local cbDaily = self:CreateCheckbox(
+    frame,
+    "Enable tracking",
+    "dailyQuests",
+    "Enable tracking of daily quests",
+    cbTrade
+  );
+  cbDaily:SetPoint("TOPLEFT", sectionDaily, "BOTTOMLEFT", 0, -10);
+
+  -- Section: Cooldowns
+  local sectionCooldowns = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+  sectionCooldowns:SetPoint("TOPLEFT", cbDaily, "BOTTOMLEFT", 0, -20);
+  sectionCooldowns:SetText("Cooldowns");
+
+  local cbCooldowns = self:CreateCheckbox(
+    frame,
+    "Enable tracking",
+    "cooldowns",
+    "Enable tracking and listing of all character cooldowns",
+    cbDaily
+  );
+  cbCooldowns:SetPoint("TOPLEFT", sectionCooldowns, "BOTTOMLEFT", 0, -10);
+
+  local cbCooldownSound = self:CreateCheckbox(
+    frame,
+    "Play sound when ready",
+    "cooldownPlaySound",
+    "Play sound when a cooldown is ready",
+    cbCooldowns
+  );
+
+  local cbCooldownCollapsed = self:CreateCheckbox(
+    frame,
+    "Start collapsed",
+    "cooldownStartCollapsed",
+    "When opening the cooldowns frame, all groups will start minimized",
+    cbCooldownSound
+  );
+
+  local cbCooldownSync = self:CreateCheckbox(
+    frame,
+    "Enable cross-account sync",
+    "cooldownSync",
+    "Sync cooldown data between multiple WoW accounts via a shared chat channel",
+    cbCooldownCollapsed
+  );
+
+  -- Sync channel input
+  local syncChannelContainer = CreateFrame("Frame", nil, frame);
+  syncChannelContainer:SetSize(400, 30);
+  syncChannelContainer:SetPoint("TOPLEFT", cbCooldownSync, "BOTTOMLEFT", 0, -10);
+
+  local syncChannelLabel = syncChannelContainer:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+  syncChannelLabel:SetPoint("LEFT", 30, 0);
+  syncChannelLabel:SetText("Sync channel:");
+
+  local syncChannelInput = CreateFrame("EditBox", nil, syncChannelContainer, "InputBoxTemplate");
+  syncChannelInput:SetSize(200, 30);
+  syncChannelInput:SetPoint("LEFT", syncChannelLabel, "RIGHT", 10, 0);
+  syncChannelInput:SetAutoFocus(false);
+  syncChannelInput:SetMaxLetters(50);
+
+  -- Set initial value
+  syncChannelInput:SetText(UtilityHub.Database.global.options.cooldownSyncChannel or "");
+
+  -- Function to save the channel
+  local function SaveChannel()
+    local text = syncChannelInput:GetText();
+    UtilityHub.Database.global.options.cooldownSyncChannel = text;
+    UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "cooldownSyncChannel", text);
+  end
+
+  -- Save when pressing Enter
+  syncChannelInput:SetScript("OnEnterPressed", function(self)
+    SaveChannel();
+    self:ClearFocus();
+  end);
+
+  -- Save when losing focus
+  syncChannelInput:SetScript("OnEditFocusLost", function(self)
+    SaveChannel();
+  end);
+
+  -- Cancel on Escape
+  syncChannelInput:SetScript("OnEscapePressed", function(self)
+    -- Restore original value
+    self:SetText(UtilityHub.Database.global.options.cooldownSyncChannel or "");
+    self:ClearFocus();
+  end);
+
+  -- Tooltip
+  syncChannelInput:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+    GameTooltip:SetText("Sync Channel", 1, 1, 1);
+    GameTooltip:AddLine("Enter the name of a custom chat channel (e.g., 'MyCooldowns')", nil, nil, nil, true);
+    GameTooltip:AddLine("All accounts must use the same channel name to sync", nil, nil, nil, true);
+    GameTooltip:Show();
+  end);
+
+  syncChannelInput:SetScript("OnLeave", function(self)
+    if (GameTooltip:IsOwned(self)) then
+      GameTooltip:Hide();
+    end
+  end);
+
+  return frame;
+end
+
+-- Register page
+UtilityHub.OptionsPages.General = GeneralPage;
