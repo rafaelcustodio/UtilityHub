@@ -211,7 +211,7 @@ local function SetupSlashCommands()
       local debugText = UtilityHub.Database.global.debugMode and "ON" or "OFF";
       UtilityHub.Helpers.Notification:ShowNotification("Debug mode " .. debugText);
     elseif (command == "options") then
-      Settings.OpenToCategory(ADDON_NAME);
+      UtilityHub.GameOptions.OpenConfig();
     elseif (command == "cd" or command == "cds") then
       UtilityHub.Events:TriggerEvent("TOGGLE_COOLDOWNS_FRAME");
     elseif (command == "daily" or command == "dailies") then
