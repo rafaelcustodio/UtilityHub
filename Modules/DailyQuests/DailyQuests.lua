@@ -5,9 +5,9 @@ local Module = UtilityHub.Addon:NewModule(moduleName);
 ---@class Quest
 ---@field questID number
 ---@field questName string
----@field type EnumQuestType
+---@field type EQuestType
 ---@field periodicity number
----@field expansion EnumExpansion
+---@field expansion EExpansion
 ---@field GetRequirements? fun(): QuestRequirements | nil
 
 ---@class QuestRequirements
@@ -25,7 +25,7 @@ local Module = UtilityHub.Addon:NewModule(moduleName);
 ---@field data Quest[]
 
 ---@class QuestDBMetatable
----@field GetQuestsByType fun(self: QuestDB, type: EnumQuestType, expansion: EnumExpansion): Quest[]
+---@field GetQuestsByType fun(self: QuestDB, type: EQuestType, expansion: EExpansion): Quest[]
 ---@field GetQuestByID fun(self: QuestDB, questID: number): Quest|nil
 ---@field GetQuestRequirements fun(self: QuestDB, questID: number): QuestRequirements|nil, Quest|nil
 
@@ -39,7 +39,7 @@ local Module = UtilityHub.Addon:NewModule(moduleName);
 ---@field level number|nil
 ---@field notFound boolean|nil
 ---@field questID number|nil
----@field side EnumSide|nil
+---@field side ESide|nil
 ---@field skillName string|nil
 ---@field skillRank number|nil
 
@@ -1192,12 +1192,12 @@ function Module:UpdateDailyQuestsFrameList()
   ---@field groupName string
   ---@field questName string
   ---@field questID number
-  ---@field type EnumQuestType
+  ---@field type EQuestType
 
   ---@class DailyQuestGroup
   ---@field group string
   ---@field isQuestVariationGroup boolean
-  ---@field type EnumQuestType
+  ---@field type EQuestType
   ---@field quests DailyQuest[]
 
   ---@class DailyQuestsTable
@@ -1216,13 +1216,13 @@ function Module:UpdateDailyQuestsFrameList()
     ---@type DailyQuestMetatable
     __index = {
       InsertOrGetGroup = function(self, group)
-        for _, loopGroup in ipairs(self) do
+        for _, loopGroup in ipairs(self.data) do
           if (loopGroup.group == group.group) then
             return loopGroup;
           end
         end
 
-        tinsert(self, group);
+        tinsert(self.data, group);
 
         return group;
       end,
@@ -1330,7 +1330,7 @@ function Module:ShowFrame()
     return;
   end
 
-  if (Module:CheckIfRefreshIsNeeded()) then
+  if (Module:CheckIfRefreshIsNeeded() or true) then
     Module:UpdateFlags();
   end
 

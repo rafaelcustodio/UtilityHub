@@ -159,12 +159,7 @@ function Module:CreateMailIconButtons()
     end);
     Module.OpenConfigEmailButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
-
-      if (UtilityHub.Libs.AceConfigDialog.OpenFrames[ADDON_NAME .. "_Mail"]) then
-        UtilityHub.Libs.AceConfigDialog:Close(ADDON_NAME .. "_Mail");
-      else
-        UtilityHub.Libs.AceConfigDialog:Open(ADDON_NAME .. "_Mail");
-      end
+      UtilityHub.GameOptions.OpenConfig(UtilityHub.GameOptions.subcategories.mail);
     end);
 
     return Module.OpenConfigEmailButton;

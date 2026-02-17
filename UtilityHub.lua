@@ -27,9 +27,25 @@ UtilityHub = {
       cooldownPlaySound = true,
       -- DailyQuests
       dailyQuests = false,
+      -- Trade
+      tradeExtraInfo = false,
     },
     ---@type Option[]
     options = {},
+    category = nil,
+    subcategories = {},
+    Register = function() end,
+    OpenConfig = function(category)
+      if (not category) then
+        category = UtilityHub.GameOptions.category;
+      end
+
+      if (not category or not category.GetID) then
+        return;
+      end
+
+      Settings.OpenToCategory(category:GetID());
+    end,
   },
   Integration = {},
   ---@type Helpers
@@ -45,19 +61,91 @@ UtilityHub = {
   },
   Database = {},
   Events = CreateFromMixins(CallbackRegistryMixin),
+  ---@param version string|nil
+  ---@param oldVersion string|nil
+  MigrateDB = function(self, version, oldVersion)
+    if (version and oldVersion) then
+      UtilityHub.Helpers.Notification:ShowNotification("Migrating DB version from " .. oldVersion .. " to " .. version);
+    else
+      UtilityHub.Helpers.Notification:ShowNotification("Trying to fix DB");
+    end
+
+    ---@type Preset
+    local presetModule = UtilityHub.Addon:GetModule("Preset");
+
+    if (#UtilityHub.Database.global.presets > 0) then
+      for _, preset in pairs(UtilityHub.Database.global.presets) do
+        local shouldFixEssenceElemental = false;
+
+        for j, _ in pairs(preset.itemGroups) do
+          if (j == "Essence") then
+            shouldFixEssenceElemental = true;
+          end
+        end
+
+        if (shouldFixEssenceElemental) then
+          local newItemGroups = {};
+
+          for key, value in pairs(preset.itemGroups) do
+            if (key == "Essence") then
+              newItemGroups["EssenceElemental"] = value;
+            else
+              newItemGroups[key] = value;
+            end
+          end
+
+          preset.itemGroups = newItemGroups;
+        end
+
+        if (not preset.id) then
+          preset.id = presetModule:GetNextID();
+        end
+      end
+    end
+
+    if (not UtilityHub.Database.global.options) then
+      UtilityHub.Database.global.options = UtilityHub.GameOptions.defaults;
+    end
+
+    if (not UtilityHub.Database.global.options.autoBuyList) then
+      UtilityHub.Database.global.options.autoBuyList = UtilityHub.GameOptions.defaults.autoBuyList;
+    end
+
+    if (UtilityHub.Database.global.characters) then
+      for index, value in ipairs(UtilityHub.Database.global.characters) do
+        if (type(value) == "string") then
+          local name = UtilityHub.Database.global.characters[index];
+
+          if (name == UnitName("player")) then
+            local race = select(2, UnitRace("player"));
+            local className = select(2, UnitClass("player"));
+
+            UtilityHub.Database.global.characters[index] = {
+              name = name,
+              race = race,
+              className = className,
+              group = nil,
+            };
+          else
+            UtilityHub.Database.global.characters[index] = {
+              name = name,
+              race = nil,
+              className = nil,
+              group = nil,
+            };
+          end
+        end
+      end
+    end
+
+    if (not UtilityHub.Database.global.options.cooldowns) then
+      UtilityHub.Database.global.options.cooldowns = false;
+    end
+
+    if (not UtilityHub.Database.global.options.cooldowsList) then
+      UtilityHub.Database.global.options.cooldowsList = {};
+    end
+  end
 };
 
 UtilityHub.Addon:SetDefaultModuleState(false);
-
----@type boolean
-UtilityHub.tempPreset = {};
-
----@class Character
----@field name string
----@field race number
----@field className number
----@field group number
----@field cooldownGroup table<string, CurrentCooldown[]>
-
----@class Option
----@field categoryID number

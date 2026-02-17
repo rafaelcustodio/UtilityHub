@@ -258,9 +258,15 @@ local HEALING                         = {
 -- Resources
 local MANA_REGEN                      = {
   pattern = "(%d+) mana per",
-  FormatText = function(self, text)
-    local regen = text:match("(%d+) mana per");
-    return string.format("+%s MP5", regen);
+  FormatText = function(self, text, prefix)
+    if (prefix) then
+      text = text:gsub(prefix, "");
+      text = text:gsub(" Restores ", "+");
+    end
+
+    text = text:gsub("mana per 5 sec.", "MP5");
+
+    return text;
   end
 };
 

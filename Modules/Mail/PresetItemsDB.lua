@@ -453,6 +453,17 @@ addonTable.classicItems = {
     { itemID = 8959,  name = "Raw Spinefin Halibut" },
     { itemID = 21024, name = "Chimaerok Tenderloin" },
   },
+  ---@type PresetItemsDBItem[]
+  aldorScryer = {
+    -- Aldor
+    { itemID = 29425, name = "Mark of Kil'jaeden" },
+    { itemID = 30809, name = "Mark of Sargeras" },
+    { itemID = 29740, name = "Fel Armament" },
+    -- Scryer
+    { itemID = 29426, name = "Firewing Signet" },
+    { itemID = 30810, name = "Sunfury Signet" },
+    { itemID = 29739, name = "Arcane Tome" },
+  },
 };
 
 ---@class TBCItems
