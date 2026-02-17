@@ -3,6 +3,11 @@ local moduleName = 'Cooldowns';
 local Module = UtilityHub.Addon:NewModule(moduleName);
 Module.frame = nil;
 
+---@return boolean
+local function IsDebugMode()
+  return UtilityHub.Database and UtilityHub.Database.global and UtilityHub.Database.global.debugMode;
+end
+
 ---@class NormalizedCooldown
 ---@field duration number
 ---@field expiration number
@@ -333,18 +338,28 @@ function Module:UpdateCountReadyCooldowns()
   local currentCount = 0;
   local currentReadySet = {};
 
-  for _, character in pairs(UtilityHub.Database.global.characters) do
+  for _, character in ipairs(UtilityHub.Database.global.characters) do
     for _, cooldownGroup in pairs(character.cooldownGroup or {}) do
-      for _, cooldown in pairs(cooldownGroup) do
+      for _, cooldown in ipairs(cooldownGroup) do
         local endTime = cooldown.start + cooldown.maxCooldown;
         local remaining = endTime - GetTime();
 
         if (cooldown.start == 0 or remaining < 0) then
           currentCount = currentCount + 1;
 
-          if (cooldown.maxCooldown > 0 and remaining < 0) then
-            local key = character.name .. ":" .. cooldown.name;
-            currentReadySet[key] = character.name .. " - " .. cooldown.name;
+          local key = character.name .. ":" .. cooldown.name;
+          currentReadySet[key] = character.name .. " - " .. cooldown.name;
+
+          -- Log Point 6: Transição para Ready
+          if (IsDebugMode() and not Module.NotifiedCooldowns[key] and Module.CountReadyGraceTicks == 0) then
+            local reason;
+            if (cooldown.start == 0) then
+              reason = "start=0";
+            else
+              reason = string.format("expired (%.0fs ago)", math.abs(remaining));
+            end
+            local now = GetTime();
+            UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cff00FF00READY|r %s - %s (%s) [start=%.2f, max=%d, end=%.2f, now=%.2f]", character.name, cooldown.name, reason, cooldown.start, cooldown.maxCooldown, cooldown.start + cooldown.maxCooldown, now));
           end
         end
       end
@@ -430,7 +445,7 @@ function Module:CreateCooldownsFrame()
   UIDropDownMenu_Initialize(dropdown, function(self, level, menuList)
     local current = UtilityHub.Database.global.cooldownGroupBy or groupByEnum.CHARACTER;
 
-    for _, value in ipairs({ groupByEnum.CHARACTER, groupByEnum.TYPE, groupByEnum.READY_DATE }) do
+    for _, value in ipairs({ groupByEnum.CHARACTER, groupByEnum.TYPE, groupByEnum.READY_DATE, groupByEnum.READY_DATE_PROFESSION }) do
       local info = UIDropDownMenu_CreateInfo();
       info.text = groupByText[value];
       info.value = value;
@@ -444,6 +459,48 @@ function Module:CreateCooldownsFrame()
       end;
       UIDropDownMenu_AddButton(info);
     end
+  end);
+
+  local collapseBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate");
+  frame.CollapseButton = collapseBtn;
+  collapseBtn:SetSize(80, 22);
+  collapseBtn:SetPoint("TOPRIGHT", content, "TOPRIGHT", -5, 4);
+  collapseBtn:SetText("Collapse");
+
+  collapseBtn:SetScript("OnClick", function()
+    local dataProvider = Module.Frame.ScrollBox:GetDataProvider();
+
+    if (not dataProvider) then
+      return;
+    end
+
+    -- Check current state from all group nodes
+    local allCollapsed = true;
+
+    for _, node in dataProvider:EnumerateEntireRange() do
+      local data = node:GetData();
+
+      if (data.group) then
+        if (not Module.CollapsedGroups[data.group]) then
+          allCollapsed = false;
+          break;
+        end
+      end
+    end
+
+    local newState = not allCollapsed;
+
+    for _, node in dataProvider:EnumerateEntireRange() do
+      local data = node:GetData();
+
+      if (data.group) then
+        Module.CollapsedGroups[data.group] = newState;
+      end
+    end
+
+    collapseBtn:SetText(newState and "Expand" or "Collapse");
+    Module:UpdateCooldownsFrameList();
+    PlaySound(SOUNDKIT.IG_MAINMENU_OPTION);
   end);
 
   frame.ScrollBar = CreateFrame("EventFrame", nil, content, "MinimalScrollBar");
@@ -609,9 +666,9 @@ function Module:UpdateCooldownsFrameList()
   -- Collect all cooldown entries across all characters
   local allEntries = {};
 
-  for _, character in pairs(UtilityHub.Database.global.characters) do
+  for _, character in ipairs(UtilityHub.Database.global.characters) do
     for profName, cooldownGroup in pairs(character.cooldownGroup or {}) do
-      for _, cooldown in pairs(cooldownGroup) do
+      for _, cooldown in ipairs(cooldownGroup) do
         local _, isReady = CooldownToRemainingTime(cooldown);
         local remaining = 0;
 
@@ -658,6 +715,8 @@ function Module:UpdateCooldownsFrameList()
       return entry.cooldownName;
     elseif (groupBy == groupByEnum.TYPE) then
       return ColorCharName(entry);
+    elseif (groupBy == groupByEnum.READY_DATE_PROFESSION) then
+      return ColorCharName(entry) .. " " .. entry.cooldownName;
     end
 
     return ColorCharName(entry) .. " - " .. entry.cooldownName;
@@ -670,7 +729,7 @@ function Module:UpdateCooldownsFrameList()
       cooldown = MakeEntryLabel(entry),
       start = entry.start,
       maxCooldown = entry.maxCooldown,
-      hideCountdown = (groupBy == groupByEnum.READY_DATE),
+      hideCountdown = (groupBy == groupByEnum.READY_DATE or groupBy == groupByEnum.READY_DATE_PROFESSION),
     };
   end
 
@@ -777,7 +836,182 @@ function Module:UpdateCooldownsFrameList()
     end
 
     InsertGroupsIntoProvider(groups, order);
+  elseif (groupBy == groupByEnum.READY_DATE_PROFESSION) then
+    local groups = {};
+    local order = {};
+
+    -- Time window: 2 hours in seconds
+    local TIME_WINDOW = 2 * 60 * 60;
+
+    -- First, group entries by profession
+    local professionEntries = {};
+    for _, entry in ipairs(allEntries) do
+      local profession = entry.professionName;
+      if (not professionEntries[profession]) then
+        professionEntries[profession] = {};
+      end
+      tinsert(professionEntries[profession], entry);
+    end
+
+    -- For each profession, apply time window grouping
+    local tempGroups = {};
+
+    for profession, entries in pairs(professionEntries) do
+      -- Separate ready and non-ready entries
+      local readyEntries = {};
+      local nonReadyEntries = {};
+
+      for _, entry in ipairs(entries) do
+        if (entry.isReady or entry.remaining <= 0) then
+          tinsert(readyEntries, entry);
+        else
+          tinsert(nonReadyEntries, entry);
+        end
+      end
+
+      -- Process ready entries
+      if (#readyEntries > 0) then
+        local dateKey = "0000-00-00|" .. profession;
+        local dateLabel = "Ready - " .. profession;
+
+        if (not tempGroups[dateKey]) then
+          tempGroups[dateKey] = {
+            label = dateLabel,
+            characters = {},
+            nearestEndTime = nil,
+          };
+          tinsert(order, dateKey);
+        end
+
+        for _, entry in ipairs(readyEntries) do
+          local charName = entry.characterName;
+          if (not tempGroups[dateKey].characters[charName]) then
+            tempGroups[dateKey].characters[charName] = {
+              className = entry.className,
+              characterName = charName,
+              count = 0,
+              entries = {},
+            };
+          end
+          tempGroups[dateKey].characters[charName].count = tempGroups[dateKey].characters[charName].count + 1;
+          tinsert(tempGroups[dateKey].characters[charName].entries, entry);
+        end
+      end
+
+      -- Process non-ready entries with time window
+      if (#nonReadyEntries > 0) then
+        -- Sort by ready timestamp
+        table.sort(nonReadyEntries, function(a, b)
+          local timeA = time() + a.remaining;
+          local timeB = time() + b.remaining;
+          return timeA < timeB;
+        end);
+
+        -- Group entries within time window
+        local currentGroupTimestamp = nil;
+        local currentDateKey = nil;
+        local currentDateLabel = nil;
+
+        for _, entry in ipairs(nonReadyEntries) do
+          local readyTimestamp = time() + entry.remaining;
+
+          -- Check if this entry is within time window of current group
+          if (not currentGroupTimestamp or (readyTimestamp - currentGroupTimestamp) > TIME_WINDOW) then
+            -- Start a new group
+            currentGroupTimestamp = readyTimestamp;
+            local formattedDate = date("%Y-%m-%d", readyTimestamp);
+            currentDateKey = formattedDate .. "|" .. profession;
+            currentDateLabel = FormatDateGroupLabel(readyTimestamp) .. " - " .. profession;
+
+            if (not tempGroups[currentDateKey]) then
+              tempGroups[currentDateKey] = {
+                label = currentDateLabel,
+                characters = {},
+                nearestEndTime = nil,
+              };
+              tinsert(order, currentDateKey);
+            end
+          end
+
+          -- Add entry to current group
+          local charName = entry.characterName;
+          if (not tempGroups[currentDateKey].characters[charName]) then
+            tempGroups[currentDateKey].characters[charName] = {
+              className = entry.className,
+              characterName = charName,
+              count = 0,
+              entries = {},
+            };
+          end
+          tempGroups[currentDateKey].characters[charName].count = tempGroups[currentDateKey].characters[charName].count + 1;
+          tinsert(tempGroups[currentDateKey].characters[charName].entries, entry);
+
+          -- Update nearest end time
+          local endTime = entry.start + entry.maxCooldown;
+          if (not tempGroups[currentDateKey].nearestEndTime or endTime < tempGroups[currentDateKey].nearestEndTime) then
+            tempGroups[currentDateKey].nearestEndTime = endTime;
+          end
+        end
+      end
+    end
+
+    -- Now convert to final groups structure
+    table.sort(order);
+
+    for _, key in ipairs(order) do
+      local tempGroup = tempGroups[key];
+      groups[key] = {
+        label = tempGroup.label,
+        entries = {},
+        readyCount = 0,
+        nearestEndTime = tempGroup.nearestEndTime,
+      };
+
+      local charNames = {};
+      for charName, _ in pairs(tempGroup.characters) do
+        tinsert(charNames, charName);
+      end
+      table.sort(charNames);
+
+      for _, charName in ipairs(charNames) do
+        local charData = tempGroup.characters[charName];
+        -- Use the first entry as representative for timing
+        local firstEntry = charData.entries[1];
+
+        tinsert(groups[key].entries, {
+          characterName = charData.characterName,
+          className = charData.className,
+          cooldownName = "(" .. charData.count .. ")",
+          start = firstEntry.start,
+          maxCooldown = firstEntry.maxCooldown,
+          isReady = firstEntry.isReady,
+          remaining = firstEntry.remaining,
+        });
+
+        if (firstEntry.isReady) then
+          groups[key].readyCount = groups[key].readyCount + 1;
+        end
+      end
+    end
+
+    InsertGroupsIntoProvider(groups, order);
   end
+
+  -- Apply collapsed state to nodes before rendering
+  for _, node in dataProvider:EnumerateEntireRange() do
+    local elementData = node:GetData();
+
+    if (elementData.group) then
+      if (Module.AllCollapsedOverride) then
+        Module.CollapsedGroups[elementData.group] = true;
+        node:SetCollapsed(true);
+      elseif (Module.CollapsedGroups[elementData.group]) then
+        node:SetCollapsed(true);
+      end
+    end
+  end
+
+  Module.AllCollapsedOverride = nil;
 
   Module.Frame.ScrollBox:SetDataProvider(dataProvider);
 end
@@ -789,8 +1023,19 @@ function Module:ShowFrame()
   end
 
   if (Module.Frame) then
+    -- Reset collapsed state based on user preference
+    Module.CollapsedGroups = {};
+
+    if (UtilityHub.Database.global.options.cooldownStartCollapsed) then
+      Module.AllCollapsedOverride = true;
+    end
+
     Module.Frame:Show();
     Module:UpdateCooldownsFrameList();
+
+    -- Update button text
+    local startCollapsed = UtilityHub.Database.global.options.cooldownStartCollapsed;
+    Module.Frame.CollapseButton:SetText(startCollapsed and "Expand" or "Collapse");
   end
 end
 

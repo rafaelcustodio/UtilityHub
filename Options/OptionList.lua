@@ -2,6 +2,20 @@
 UtilityHub_OptionListControlMixin = CreateFromMixins(SettingsControlMixin);
 
 function UtilityHub_OptionListControlMixin:OnLoad()
+  -- Force refresh when control becomes visible
+  self:SetScript("OnShow", function()
+    if (self.dataProvider and self:GetSetting()) then
+      local toRemove = {};
+      for _, value in self.dataProvider:Enumerate() do
+        tinsert(toRemove, value);
+      end
+      for _, value in ipairs(toRemove) do
+        self.dataProvider:Remove(value);
+      end
+      self:UpdateList(self:GetValue());
+    end
+  end);
+
   local function CreateDeleteIconButton(self, frame, rowData)
     if (not frame.customElements) then
       frame.customElements = {};
@@ -107,6 +121,16 @@ function UtilityHub_OptionListControlMixin:OnLoad()
       return rowData;
     end;
 
+    -- Reset custom elements from previous use
+    if (frame.customElements) then
+      if (frame.customElements.DeleteIconButton) then
+        frame.customElements.DeleteIconButton:Hide();
+      end
+      if (frame.customElements.EditIconButton) then
+        frame.customElements.EditIconButton:Hide();
+      end
+    end
+
     frame:SetPushedTextOffset(0, 0);
     frame:SetHighlightAtlas("search-highlight");
     frame:SetNormalFontObject(GameFontHighlight);
@@ -133,11 +157,25 @@ function UtilityHub_OptionListControlMixin:OnLoad()
     end);
 
     if (configuration.showRemoveIcon) then
-      CreateDeleteIconButton(self, frame, rowData);
+      local btn = CreateDeleteIconButton(self, frame, rowData);
+      if (btn) then
+        btn:Show();
+      end
+    else
+      if (frame.customElements and frame.customElements.DeleteIconButton) then
+        frame.customElements.DeleteIconButton:Hide();
+      end
     end
 
     if (configuration.showEditIcon) then
-      CreateEditIconButton(self, frame, rowData);
+      local btn = CreateEditIconButton(self, frame, rowData);
+      if (btn) then
+        btn:Show();
+      end
+    else
+      if (frame.customElements and frame.customElements.EditIconButton) then
+        frame.customElements.EditIconButton:Hide();
+      end
     end
 
     local CustomizeRow = configuration.CustomizeRow;
@@ -201,6 +239,15 @@ function UtilityHub_OptionListControlMixin:Init(initializer)
   SettingsControlMixin.Init(self, initializer);
 
   local configuration = self:GetConfiguration();
+
+  local setting = self:GetSetting();
+  self.settingVariable = setting and setting.variable or "unknown";
+
+  -- Store global reference to this control for external access
+  if (not _G.UtilityHub_OptionListControls) then
+    _G.UtilityHub_OptionListControls = {};
+  end
+  _G.UtilityHub_OptionListControls[self.settingVariable] = self;
 
   self.dataProvider = CreateDataProvider();
   self.dataProvider:SetSortComparator(configuration.SortComparator);
@@ -315,7 +362,12 @@ function UtilityHub_OptionListControlMixin:Remove(rowData)
 
   if (index) then
     table.remove(rows, index);
-    self:OnValueChanged(rows);
+
+    -- Update database and refresh UI manually
+    if (self.dataProvider) then
+      self.dataProvider:Flush();
+      self:UpdateList(rows);
+    end
   end
 end
 

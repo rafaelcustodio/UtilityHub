@@ -159,7 +159,17 @@ function Module:CreateMailIconButtons()
     end);
     Module.OpenConfigEmailButton:SetScript("OnClick", function(self)
       PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
-      UtilityHub.GameOptions.OpenConfig(UtilityHub.GameOptions.subcategories.mail);
+      -- Open main settings and show Mail page
+      UtilityHub.GameOptions.OpenConfig();
+      -- Switch to Mail page after a short delay
+      C_Timer.After(0.1, function()
+        if (UtilityHub.OptionsCanvas) then
+          local mainFrame = _G["UtilityHubCanvasFrame"];
+          if (mainFrame and mainFrame.content) then
+            UtilityHub.OptionsCanvas:ShowPage(mainFrame.content, "mail");
+          end
+        end
+      end);
     end);
 
     return Module.OpenConfigEmailButton;

@@ -614,185 +614,22 @@ local framesHelper = {
   end
 };
 
+-- Expose framesHelper for use by pages
+UtilityHub.GameOptions.framesHelper = framesHelper;
+
 UtilityHub.GameOptions.Register = function()
   ---@type Preset
   local presetModule = UtilityHub.Addon:GetModule("Preset");
   ---@type MailPreset|nil
   local selectedPreset = nil;
 
-  UtilityHub.GameOptions.category = Settings.RegisterVerticalLayoutCategory(ADDON_NAME);
+  -- Create Canvas layout main category
+  local mainFrame = UtilityHub.OptionsCanvas:Create();
+  UtilityHub.GameOptions.category = Settings.RegisterCanvasLayoutCategory(mainFrame, ADDON_NAME);
 
-  do -- Tooltip
-    UtilityHub.GameOptions.subcategories.tooltip = Settings.RegisterVerticalLayoutSubcategory(
-      UtilityHub.GameOptions.category,
-      "Tooltip"
-    );
-
-    framesHelper:CreateCheckbox(
-      UtilityHub.GameOptions.subcategories.tooltip,
-      "Enabled",
-      "UtilityHub_Tooltip_simpleStatsTooltip",
-      "simpleStatsTooltip",
-      UtilityHub.Database.global.options,
-      UtilityHub.GameOptions.defaults.simpleStatsTooltip,
-      "Change the way most stats are shown in the tooltip"
-    );
-  end
-
-  do -- AutoBuy
-    UtilityHub.GameOptions.subcategories.autoBuy = Settings.RegisterVerticalLayoutSubcategory(
-      UtilityHub.GameOptions.category,
-      "AutoBuy"
-    );
-
-    framesHelper:CreateCheckbox(
-      UtilityHub.GameOptions.subcategories.autoBuy,
-      "Enabled",
-      "UtilityHub_AutoBuy_autoBuy",
-      "autoBuy",
-      UtilityHub.Database.global.options,
-      UtilityHub.GameOptions.defaults.autoBuy,
-      "Enable the functionality to autobuy specific limited stock items from vendors when the window is opened"
-    );
-
-    framesHelper:CreateList(
-      UtilityHub.GameOptions.subcategories.autoBuy,
-      "Items",
-      "UtilityHub_AutoBuy_autoBuyList",
-      "autoBuyList",
-      UtilityHub.Database.global.options,
-      {},
-      {
-        SortComparator = function(a, b)
-          local itemNameA = select(3, strfind(a, "|H(.+)|h"));
-          local itemNameB = select(3, strfind(b, "|H(.+)|h"));
-
-          return itemNameA < itemNameB;
-        end,
-        Predicate = function(rowData)
-          return rowData;
-        end,
-        GetHyperlink = function(rowData)
-          return rowData;
-        end,
-        showRemoveIcon = true,
-        hasHyperlink = true,
-        showInput = true,
-      }
-    );
-  end
-
-  do -- Trade
-    UtilityHub.GameOptions.subcategories.trade = Settings.RegisterVerticalLayoutSubcategory(
-      UtilityHub.GameOptions.category,
-      "Trade"
-    );
-
-    framesHelper:CreateCheckbox(
-      UtilityHub.GameOptions.subcategories.trade,
-      "Enabled",
-      "UtilityHub_Trade_tradeExtraInfo",
-      "tradeExtraInfo",
-      UtilityHub.Database.global.options,
-      UtilityHub.GameOptions.defaults.tradeExtraInfo,
-      "Show extra frame with more info about the person you are trading"
-    );
-  end
-
-  do -- DailyQuests
-    UtilityHub.GameOptions.subcategories.dailyQuests = Settings.RegisterVerticalLayoutSubcategory(
-      UtilityHub.GameOptions.category,
-      "DailyQuests"
-    );
-
-    framesHelper:CreateCheckbox(
-      UtilityHub.GameOptions.subcategories.dailyQuests,
-      "Enabled",
-      "UtilityHub_DailyQuests_dailyQuests",
-      "dailyQuests",
-      UtilityHub.Database.global.options,
-      UtilityHub.GameOptions.defaults.dailyQuests,
-      "Enable tracking of the daily quests"
-    );
-  end
-
-  do -- Cooldowns
-    UtilityHub.GameOptions.subcategories.cooldowns = Settings.RegisterVerticalLayoutSubcategory(
-      UtilityHub.GameOptions.category,
-      "Cooldowns"
-    );
-
-    framesHelper:CreateCheckbox(
-      UtilityHub.GameOptions.subcategories.cooldowns,
-      "Enabled",
-      "UtilityHub_Cooldowns_cooldowns",
-      "cooldowns",
-      UtilityHub.Database.global.options,
-      UtilityHub.GameOptions.defaults.cooldowns,
-      "Enable tracking and listing of all character cooldowns (with the addon active)"
-    );
-
-    framesHelper:CreateCheckbox(
-      UtilityHub.GameOptions.subcategories.cooldowns,
-      "Enabled",
-      "UtilityHub_Cooldowns_cooldownPlaySound",
-      "cooldownPlaySound",
-      UtilityHub.Database.global.options,
-      UtilityHub.GameOptions.defaults.cooldownPlaySound,
-      "Enable tracking of the daily quests"
-    );
-  end
-
-  do -- Mail
-    UtilityHub.GameOptions.subcategories.mail = Settings.RegisterVerticalLayoutSubcategory(
-      UtilityHub.GameOptions.category,
-      "Mail"
-    );
-
-    framesHelper:CreateList(
-      UtilityHub.GameOptions.subcategories.mail,
-      "Presets",
-      "UtilityHub_Mail_presets",
-      "presets",
-      UtilityHub.Database.global,
-      {},
-      {
-        SortComparator = function(a, b)
-          return a.name < b.name;
-        end,
-        Predicate = function(rowData)
-          return rowData.name;
-        end,
-        CustomizeRow = function(frame, rowData, helpers)
-          local color = rowData.color;
-          local fontString = frame:GetFontString();
-
-          fontString:SetTextColor(
-            color and color.r or 1,
-            color and color.g or 1,
-            color and color.b or 1
-          );
-        end,
-        GetText = function(rowData)
-          return rowData.name;
-        end,
-        OnEditClicked = function(rowData)
-          selectedPreset = CopyTable(rowData);
-
-          if (not selectedPreset.custom) then
-            selectedPreset.custom = {};
-          end
-
-          if (not selectedPreset.exclusion) then
-            selectedPreset.exclusion = {};
-          end
-
-          UtilityHub.GameOptions.OpenConfig(UtilityHub.GameOptions.subcategories.preset);
-        end,
-        showRemoveIcon = true,
-        showEditIcon = true,
-      }
-    );
+  do -- Mail Preset Editor (Canvas subcategory)
+    -- Create a temporary subcategory for compatibility with the Mail preset editor
+    UtilityHub.GameOptions.subcategories.mail = UtilityHub.GameOptions.category;
 
     do -- Mail > Edit/New Preset
       ---@param type "new"|"edit"
@@ -1021,9 +858,10 @@ UtilityHub.GameOptions.Register = function()
           });
 
           if (result) then
-            local listSetting = Settings.GetSetting("UtilityHub_Mail_presets");
-            listSetting:SetValue(UtilityHub.Database.global.presets);
-            UtilityHub.GameOptions.OpenConfig(UtilityHub.GameOptions.subcategories.mail);
+            -- Clear temp preset
+            UtilityHub.tempSelectedPreset = nil;
+            -- Go back to main settings (which will show Mail page)
+            UtilityHub.GameOptions.OpenConfig();
           end
         end
       );
@@ -1042,6 +880,9 @@ UtilityHub.GameOptions.Register = function()
 
         if (categoryData and categoryData.name == "Preset") then
           local text = "New Preset";
+
+          -- Use temp variable set by MailPage
+          selectedPreset = UtilityHub.tempSelectedPreset;
 
           if (selectedPreset) then
             text = "Editing Preset";
@@ -1082,10 +923,13 @@ UtilityHub.GameOptions.Register = function()
           manualExclusionsFrame:ReplaceData(selectedPreset.exclusion or {});
         else
           selectedPreset = nil;
+          UtilityHub.tempSelectedPreset = nil;
         end
       end);
     end
   end
 
+  print("|cffFFD700[UH Debug] About to register addon category|r");
   Settings.RegisterAddOnCategory(UtilityHub.GameOptions.category);
+  print("|cffFFD700[UH Debug] Register function END - category registered|r");
 end

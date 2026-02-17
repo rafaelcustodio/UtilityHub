@@ -2,6 +2,10 @@ local Type, Version = "ItemList", 1;
 local AceGUI = LibStub("AceGUI-3.0");
 -- if AceGUI:GetWidgetVersion(Type) and AceGUI:GetWidgetVersion(Type) >= Version then return end
 
+-- Global registry for visible ItemList EditBoxes
+local visibleEditBoxes = {};
+local ctrlClickHookRegistered = false;
+
 ---@class ItemListArg
 ---@field widthSizeType? "side" | "full" | "manual"
 ---@field heightSizeType? "default" | "full" | "manual"
@@ -26,7 +30,7 @@ local ReleaseSimpleFrame = function(simpleFrame)
 end
 
 local function Constructor()
-  local buttonAddWidth = 40;
+  local buttonAddWidth = 50;
   local frame = CreateFrame("Frame", nil, UIParent);
 
   local content = CreateFrame("Frame", "ScrollableList", frame, "InsetFrameTemplate");
@@ -368,10 +372,38 @@ local function Constructor()
     widget:ToggleAddBar();
   end
 
-  hooksecurefunc("ChatEdit_InsertLink", function(link)
-    if (frame.EditBoxAdd:HasFocus()) then
-      frame.EditBoxAdd:SetText(link);
-    end
+  -- Register global hook for Shift+Click (only once)
+  if (not ctrlClickHookRegistered) then
+    ctrlClickHookRegistered = true;
+    hooksecurefunc("ChatEdit_InsertLink", function(link)
+      -- Check if any ItemList EditBox has focus
+      for _, editBox in pairs(visibleEditBoxes) do
+        if (editBox:HasFocus()) then
+          editBox:SetText(link);
+          return;
+        end
+      end
+
+      -- If no EditBox has focus but Settings panel is open, fill the first visible one
+      if (SettingsPanel and SettingsPanel:IsShown()) then
+        for _, editBox in pairs(visibleEditBoxes) do
+          if (editBox:IsVisible()) then
+            editBox:SetText(link);
+            editBox:SetFocus();
+            return;
+          end
+        end
+      end
+    end);
+  end
+
+  -- Register this EditBox when visible
+  frame.EditBoxAdd:SetScript("OnShow", function(self)
+    visibleEditBoxes[self] = self;
+  end);
+
+  frame.EditBoxAdd:SetScript("OnHide", function(self)
+    visibleEditBoxes[self] = nil;
   end);
 
   hooksecurefunc("OpenStackSplitFrame", function()

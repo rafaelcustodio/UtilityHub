@@ -6,6 +6,7 @@ UtilityHub.Helpers = {
   Item = {},
   Color = {},
   Mail = {},
+  DebugLog = {},
 };
 
 -- Time
@@ -146,4 +147,103 @@ function UtilityHub.Helpers.Mail:SetRecipient(name)
       end
     end);
   end
+end
+
+-- Item count helper
+
+---@param itemID number
+---@param includeBank boolean
+---@return number
+function UtilityHub.Helpers.Item:GetItemCount(itemID, includeBank)
+  return C_Item.GetItemCount(itemID, false, includeBank or false);
+end
+
+---@return number
+function UtilityHub.Helpers.Item:GetFreeBagSlots()
+  local totalFree = 0;
+  for i = 0, NUM_BAG_SLOTS do
+    local containerInfo = C_Container.GetContainerNumSlots(i);
+    if (containerInfo and containerInfo > 0) then
+      local freeSlots = C_Container.GetContainerNumFreeSlots(i);
+      totalFree = totalFree + freeSlots;
+    end
+  end
+  return totalFree;
+end
+
+-- Debug Log
+
+local MAX_LOG_ENTRIES = 500;
+
+---@param message string
+---@param category? string
+function UtilityHub.Helpers.DebugLog:Add(message, category)
+  if (not UtilityHub.Database or not UtilityHub.Database.global) then
+    return;
+  end
+
+  if (not UtilityHub.Database.global.debugLogs) then
+    UtilityHub.Database.global.debugLogs = {};
+  end
+
+  local timestamp = date("%H:%M:%S");
+  local entry = string.format("[%s] %s", timestamp, message);
+
+  if (category) then
+    entry = string.format("[%s] %s", category, entry);
+  end
+
+  tinsert(UtilityHub.Database.global.debugLogs, entry);
+
+  -- Keep only last MAX_LOG_ENTRIES
+  if (#UtilityHub.Database.global.debugLogs > MAX_LOG_ENTRIES) then
+    tremove(UtilityHub.Database.global.debugLogs, 1);
+  end
+
+  -- Also print to chat if debug mode is on
+  if (UtilityHub.Database.global.debugMode) then
+    print(message);
+  end
+end
+
+function UtilityHub.Helpers.DebugLog:Clear()
+  if (UtilityHub.Database and UtilityHub.Database.global) then
+    UtilityHub.Database.global.debugLogs = {};
+  end
+end
+
+---@return number
+function UtilityHub.Helpers.DebugLog:Count()
+  if (not UtilityHub.Database or not UtilityHub.Database.global or not UtilityHub.Database.global.debugLogs) then
+    return 0;
+  end
+
+  return #UtilityHub.Database.global.debugLogs;
+end
+
+---@param count? number
+---@return string[]
+function UtilityHub.Helpers.DebugLog:GetRecent(count)
+  if (not UtilityHub.Database or not UtilityHub.Database.global or not UtilityHub.Database.global.debugLogs) then
+    return {};
+  end
+
+  local logs = UtilityHub.Database.global.debugLogs;
+  local startIdx = math.max(1, #logs - (count or 50) + 1);
+  local result = {};
+
+  for i = startIdx, #logs do
+    tinsert(result, logs[i]);
+  end
+
+  return result;
+end
+
+---@return string
+function UtilityHub.Helpers.DebugLog:Export()
+  if (not UtilityHub.Database or not UtilityHub.Database.global or not UtilityHub.Database.global.debugLogs) then
+    return "";
+  end
+
+  return table.concat(UtilityHub.Database.global.debugLogs, "\n");
 end

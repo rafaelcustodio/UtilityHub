@@ -38,6 +38,32 @@ function UtilityHub.Integration:FuncOrWaitFrame(addon, func)
   end);
 end
 
+--- Checks if a frame contains Mail-specific child elements
+---@param parentFrame Frame
+---@return boolean
+local function HasMailSpecificElements(parentFrame)
+  -- Check all child frames for Mail-specific elements
+  local children = { parentFrame:GetChildren() };
+  for _, child in ipairs(children) do
+    if (child.GetName) then
+      local name = child:GetName();
+      if (name) then
+        -- Check for Mail-specific frame names (MailsScrollTable is unique to Mail UI)
+        if (name:find("MailsScrollTable")) then
+          return true;
+        end
+      end
+    end
+
+    -- Recursively check children
+    if (HasMailSpecificElements(child)) then
+      return true;
+    end
+  end
+
+  return false;
+end
+
 function UtilityHub.Integration:GetTSMMailFrame()
   if (not UtilityHub.Flags.tsmLoaded) then
     return nil;
@@ -49,14 +75,18 @@ function UtilityHub.Integration:GetTSMMailFrame()
   end
 
   -- TSM frames are not direct children of UIParent
-  -- Scan all frames for TSM's main LargeApplicationFrame (not small child buttons)
+  -- Scan all frames for TSM's mail LargeApplicationFrame
+  -- Identify by presence of Mail-specific child elements (Send button, MailsScrollTable)
   local frame = EnumerateFrames();
   while (frame) do
     if (frame:IsVisible() and frame.GetName and frame:GetWidth() > 300) then
       local name = frame:GetName();
       if (name and name:find("^TSM_FRAME") and name:find("LargeApplicationFrame")) then
-        UtilityHub.Flags.tsmMailFrame = frame;
-        return frame;
+        -- Verify this is the Mail frame by checking for Mail-specific elements
+        if (HasMailSpecificElements(frame)) then
+          UtilityHub.Flags.tsmMailFrame = frame;
+          return frame;
+        end
       end
     end
     frame = EnumerateFrames(frame);
