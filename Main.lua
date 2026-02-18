@@ -1,8 +1,8 @@
 local ADDON_NAME, addonTable = ...;
 
 local minimapIcons = {
-  NORMAL = "Interface\\Addons\\UtilityHub\\Assets\\Icons\\addon.blp",
-  NOTIFICATION = "Interface\\ICONS\\INV_Enchant_FormulaEpic_01.blp",
+  NORMAL = "Interface\\Addons\\" .. ADDON_NAME .. "\\Assets\\Icons\\addon.blp",
+  NOTIFICATION = "Interface\\Addons\\" .. ADDON_NAME .. "\\Assets\\Icons\\cooldowns_ready",
 };
 ---@type number|nil
 local lastCountReadyCooldowns = nil;
@@ -541,7 +541,6 @@ end
 local function UpdateMinimapIcon(hasNotification)
   local data = UtilityHub.Libs.LDB:GetDataObjectByName(ADDON_NAME);
   data.icon = hasNotification and minimapIcons.NOTIFICATION or minimapIcons.NORMAL;
-  UtilityHub.Libs.LDBIcon:Refresh(ADDON_NAME, UtilityHub.Database.global.minimapIcon);
 end
 
 -- Events
