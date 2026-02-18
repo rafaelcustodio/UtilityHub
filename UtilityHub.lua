@@ -46,12 +46,14 @@ UtilityHub = {
       local page;
 
       if (not categoryOrPage) then
-        category = UtilityHub.GameOptions.category;
+        categoryOrPage = UtilityHub.GameOptions.category;
       end
 
       if (type(categoryOrPage) == "string") then
         page = categoryOrPage;
         category = UtilityHub.GameOptions.category;
+      else
+        category = categoryOrPage;
       end
 
       -- Invalid category
