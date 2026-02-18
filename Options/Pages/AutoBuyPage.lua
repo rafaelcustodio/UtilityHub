@@ -37,7 +37,13 @@ function AutoBuyPage:Create(parent)
   enableCheckbox:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
     GameTooltip:SetText("AutoBuy", 1, 1, 1);
-    GameTooltip:AddLine("Enable the functionality to autobuy specific limited stock items from vendors when the window is opened", nil, nil, nil, true);
+    GameTooltip:AddLine(
+      "Enable the functionality to autobuy specific limited stock items from vendors when the window is opened",
+      nil,
+      nil,
+      nil,
+      true
+    );
     GameTooltip:Show();
   end);
 
@@ -69,8 +75,10 @@ function AutoBuyPage:Create(parent)
 
       -- Check if item already exists
       local itemID = tonumber(string.match(text, "item:(%d+):"));
+
       if (itemID) then
         for _, existingItem in ipairs(list) do
+          DevTool:AddData(existingItem);
           local existingID = tonumber(string.match(existingItem.itemLink, "item:(%d+):"));
           if (existingID == itemID) then
             return; -- Item already exists
@@ -97,12 +105,14 @@ function AutoBuyPage:Create(parent)
           hasEditBox = true,
           editBoxWidth = 200,
           OnShow = function(self)
-            self.editBox:SetText("1");
-            self.editBox:SetFocus();
-            self.editBox:HighlightText();
+            DevTool:AddData(self);
+            self.EditBox:SetText("1");
+            self.EditBox:SetFocus();
+            self.EditBox:HighlightText();
           end,
           OnAccept = function(self)
-            local editBox = self.editBox or self.wideEditBox;
+            local editBox = self.EditBox or self.WideEditBox;
+
             if (not editBox) then
               local dialogName = self:GetName();
               editBox = _G[dialogName .. "EditBox"] or _G[dialogName .. "WideEditBox"];
@@ -113,6 +123,7 @@ function AutoBuyPage:Create(parent)
             end
 
             local newQty = tonumber(editBox:GetText());
+
             if (not newQty or newQty <= 0) then
               return;
             end
@@ -149,7 +160,8 @@ function AutoBuyPage:Create(parent)
     end
   );
 
-  addInput:SetPoint("TOPLEFT", itemsLabel, "BOTTOMLEFT", 0, -10);
+  addInput:SetPoint("TOPLEFT", itemsLabel, "BOTTOMLEFT", 5, 0);
+  addInput:SetPoint("RIGHT", frame, "RIGHT", -77, 0);
 
   -- Create items list
   autoBuyListFrame = framesHelper:CreateCustomList(
@@ -233,12 +245,13 @@ function AutoBuyPage:Create(parent)
               hasEditBox = true,
               editBoxWidth = 200,
               OnShow = function(self)
-                self.editBox:SetText(tostring(selectedAutoBuyItem.quantity or 1));
-                self.editBox:SetFocus();
-                self.editBox:HighlightText();
+                self.EditBox:SetText(tostring(selectedAutoBuyItem.quantity or 1));
+                self.EditBox:SetFocus();
+                self.EditBox:HighlightText();
               end,
               OnAccept = function(self)
-                local editBox = self.editBox or self.wideEditBox;
+                local editBox = self.EditBox or self.WideEditBox;
+
                 if (not editBox) then
                   local dialogName = self:GetName();
                   editBox = _G[dialogName .. "EditBox"] or _G[dialogName .. "WideEditBox"];

@@ -37,3 +37,8 @@
 ---@field OnRemove? fun(rowData, OptionsCreateList): boolean
 ---@field hasHyperlink? boolean
 ---@field GetHyperlink? fun(rowData: any): string
+
+------- AutoBuy
+---@class AutoBuyItem
+---@field itemLink ItemLink
+---@field quantity number

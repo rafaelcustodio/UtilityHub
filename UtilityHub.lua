@@ -20,6 +20,7 @@ UtilityHub = {
       simpleStatsTooltip = true,
       -- AutoBuy
       autoBuy = false,
+      ---@type AutoBuyItem[]
       autoBuyList = {},
       -- Cooldowns
       cooldowns = true,
@@ -38,16 +39,39 @@ UtilityHub = {
     category = nil,
     subcategories = {},
     Register = function() end,
-    OpenConfig = function(category)
-      if (not category) then
+    OpenConfig = function(categoryOrPage)
+      ---@type table|nil
+      local category;
+      ---@type string|nil
+      local page;
+
+      if (not categoryOrPage) then
         category = UtilityHub.GameOptions.category;
       end
 
+      if (type(categoryOrPage) == "string") then
+        page = categoryOrPage;
+        category = UtilityHub.GameOptions.category;
+      end
+
+      -- Invalid category
       if (not category or not category.GetID) then
         return;
       end
 
       Settings.OpenToCategory(category:GetID());
+
+      if (page) then
+        C_Timer.After(0.1, function()
+          if (UtilityHub.OptionsCanvas) then
+            local mainFrame = _G["UtilityHubCanvasFrame"];
+
+            if (mainFrame and mainFrame.content) then
+              UtilityHub.OptionsCanvas:ShowPage(mainFrame.content, page);
+            end
+          end
+        end);
+      end
     end,
   },
   Integration = {},

@@ -41,11 +41,17 @@ end
 
 ---@param parent Frame
 ---@param text string
----@param onClick fun()
+---@param OnClick fun()
 ---@param isFirst boolean
 ---@param previousButton? Button
 ---@return Button
-function OptionsCanvas:CreateNavigationButton(parent, text, onClick, isFirst, previousButton)
+function OptionsCanvas:CreateNavigationButton(
+    parent,
+    text,
+    OnClick,
+    isFirst,
+    previousButton
+)
   local button = CreateFrame("Button", nil, parent);
   button:SetSize(160, 32);
   button:SetNormalFontObject("GameFontNormal");
@@ -69,10 +75,13 @@ function OptionsCanvas:CreateNavigationButton(parent, text, onClick, isFirst, pr
   highlightTexture:SetColorTexture(0.3, 0.3, 0.3, 0.5);
   button:SetHighlightTexture(highlightTexture);
 
-  button:SetScript("OnClick", function()
-    onClick();
-    PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-  end);
+  button:SetScript(
+    "OnClick",
+    function()
+      OnClick();
+      PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+    end
+  );
 
   return button;
 end

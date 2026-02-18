@@ -359,7 +359,17 @@ function Module:UpdateCountReadyCooldowns()
               reason = string.format("expired (%.0fs ago)", math.abs(remaining));
             end
             local now = GetTime();
-            UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-SYNC]|r |cff00FF00READY|r %s - %s (%s) [start=%.2f, max=%d, end=%.2f, now=%.2f]", character.name, cooldown.name, reason, cooldown.start, cooldown.maxCooldown, cooldown.start + cooldown.maxCooldown, now));
+            UtilityHub.Helpers.DebugLog:Add(
+              string.format(
+                "|cffFFFF00[UH-SYNC]|r |cff00FF00READY|r %s - %s (%s) [start=%.2f, max=%d, end=%.2f, now=%.2f]",
+                character.name,
+                cooldown.name,
+                reason,
+                cooldown.start,
+                cooldown.maxCooldown,
+                cooldown.start + cooldown.maxCooldown,
+                now
+              ));
           end
         end
       end
@@ -428,7 +438,7 @@ function Module:CreateCooldownsFrame()
   local content = CreateFrame("Frame", nil, frame);
   frame.Content = content;
   content:SetWidth(frame:GetSize());
-  content:SetPoint("TOPLEFT", 15, -25);
+  content:SetPoint("TOPLEFT", 15, -37);
   content:SetPoint("BOTTOMRIGHT", -5, 7);
 
   local groupByEnum = UtilityHub.Enums.CooldownGroupBy;
@@ -463,8 +473,8 @@ function Module:CreateCooldownsFrame()
 
   local collapseBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate");
   frame.CollapseButton = collapseBtn;
-  collapseBtn:SetSize(80, 22);
-  collapseBtn:SetPoint("TOPRIGHT", content, "TOPRIGHT", -5, 4);
+  collapseBtn:SetSize(80, 28);
+  collapseBtn:SetPoint("TOPRIGHT", content, "TOPRIGHT", -30, 2);
   collapseBtn:SetText("Collapse");
 
   collapseBtn:SetScript("OnClick", function()
@@ -645,7 +655,7 @@ function Module:CreateCooldownsFrame()
     local elementData = node:GetData();
 
     if (elementData.cooldown) then
-      return elementData.hideCountdown and 26 or 38;
+      return elementData.hideCountdown and 26 or 30;
     end
 
     if (elementData.group) then
@@ -935,6 +945,7 @@ function Module:UpdateCooldownsFrameList()
 
           -- Add entry to current group
           local charName = entry.characterName;
+
           if (not tempGroups[currentDateKey].characters[charName]) then
             tempGroups[currentDateKey].characters[charName] = {
               className = entry.className,
@@ -943,7 +954,8 @@ function Module:UpdateCooldownsFrameList()
               entries = {},
             };
           end
-          tempGroups[currentDateKey].characters[charName].count = tempGroups[currentDateKey].characters[charName].count + 1;
+          tempGroups[currentDateKey].characters[charName].count = tempGroups[currentDateKey].characters[charName].count +
+              1;
           tinsert(tempGroups[currentDateKey].characters[charName].entries, entry);
 
           -- Update nearest end time
