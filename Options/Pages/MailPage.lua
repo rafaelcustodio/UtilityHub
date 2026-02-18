@@ -11,6 +11,14 @@ local mailListFrame = nil;
 function MailPage:Create(parent)
   local frame = CreateFrame("Frame", "UtilityHubMailPage", parent);
 
+  frame:HookScript("OnShow", function()
+    --[[
+      When updated and not visible, for some reason, nothing shows until
+      scroll is used inside the list, so this is required
+    ]]
+    MailPage:RefreshList();
+  end);
+
   -- Title
   local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
   title:SetPoint("TOPLEFT", 20, -20);
@@ -26,19 +34,12 @@ function MailPage:Create(parent)
   presetsLabel:SetPoint("TOPLEFT", description, "BOTTOMLEFT", 0, -20);
   presetsLabel:SetText("Presets:");
 
-  -- Helper function to refresh the list
-  local function RefreshList()
-    if (mailListFrame) then
-      local presets = UtilityHub.Database.global.presets or {};
-      mailListFrame:ReplaceData(presets);
-    end
-  end
-
   -- Get framesHelper
   local framesHelper = UtilityHub.GameOptions.framesHelper;
 
   -- Create presets list
   mailListFrame = framesHelper:CreateCustomList(
+    "MailPresetsList",
     frame,
     nil,
     {
@@ -117,7 +118,7 @@ function MailPage:Create(parent)
         UtilityHub.Database.global.presets = presets;
 
         -- Refresh list
-        RefreshList();
+        self:RefreshList();
       end,
       showRemoveIcon = true,
     },
@@ -141,10 +142,17 @@ function MailPage:Create(parent)
   end);
 
   -- Load initial data
-  local initialPresets = UtilityHub.Database.global.presets or {};
-  mailListFrame:ReplaceData(initialPresets);
+  MailPage:RefreshList();
 
   return frame;
+end
+
+-- Helper function to refresh the list
+function MailPage:RefreshList()
+  if (mailListFrame) then
+    local presets = UtilityHub.Database.global.presets or {};
+    mailListFrame:ReplaceData(presets);
+  end
 end
 
 -- Register page

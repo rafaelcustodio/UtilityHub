@@ -127,6 +127,7 @@ local framesHelper = {
   ---@return CustomList
   CreateCustomList = function(
       self,
+      name,
       parent,
       previous,
       configuration,
@@ -193,7 +194,7 @@ local framesHelper = {
       end
     end
 
-    local frame = CreateFrame("Frame", nil, parent, frameTemplate);
+    local frame = CreateFrame("Frame", name, parent, frameTemplate);
 
     if (previous) then
       frame:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -42);
@@ -675,6 +676,7 @@ UtilityHub.GameOptions.Register = function()
             label = "Item groups",
             CreateFrame = function(parent)
               itemGroupsFrame = framesHelper:CreateCustomList(
+                "ItemGroupsList",
                 parent,
                 null,
                 {
@@ -711,6 +713,7 @@ UtilityHub.GameOptions.Register = function()
               );
 
               manualInclusionsFrame = framesHelper:CreateCustomList(
+                "ManualInclusionsList",
                 textListFrame,
                 null,
                 {
@@ -781,6 +784,7 @@ UtilityHub.GameOptions.Register = function()
               );
 
               manualExclusionsFrame = framesHelper:CreateCustomList(
+                "ManualExclusionsList",
                 textListFrame,
                 null,
                 {
@@ -929,7 +933,5 @@ UtilityHub.GameOptions.Register = function()
     end
   end
 
-  print("|cffFFD700[UH Debug] About to register addon category|r");
   Settings.RegisterAddOnCategory(UtilityHub.GameOptions.category);
-  print("|cffFFD700[UH Debug] Register function END - category registered|r");
 end

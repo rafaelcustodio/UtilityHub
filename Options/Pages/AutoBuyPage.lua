@@ -165,6 +165,7 @@ function AutoBuyPage:Create(parent)
 
   -- Create items list
   autoBuyListFrame = framesHelper:CreateCustomList(
+    "AutoBuyList",
     frame,
     addInput,
     {
