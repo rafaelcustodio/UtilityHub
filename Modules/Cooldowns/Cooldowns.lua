@@ -387,7 +387,7 @@ function Module:UpdateCountReadyCooldowns()
 
     for key, label in pairs(currentReadySet) do
       if (not Module.NotifiedCooldowns[key]) then
-        UtilityHub.Helpers.Notification:ShowNotification(label .. " is ready!");
+        UtilityHub.Helpers.Notification:ShowNotification("Cooldown - " .. label .. " is ready!");
         hasNewReady = true;
       end
     end

@@ -233,12 +233,23 @@ local function SetupSlashCommands()
       print("|cffFFD700Characters in database (" .. #UtilityHub.Database.global.characters .. " total):|r");
       for i, char in ipairs(UtilityHub.Database.global.characters) do
         local cooldownCount = 0;
+
         if (char.cooldownGroup) then
           for _, group in pairs(char.cooldownGroup) do
             cooldownCount = cooldownCount + #group;
           end
         end
-        print(string.format("  %d. %s (class=%s, race=%s, cooldowns=%d)", i, char.name or "nil", char.className or "nil", char.race or "nil", cooldownCount));
+
+        print(
+          string.format(
+            "  %d. %s (class=%s, race=%s, cooldowns=%d)",
+            i,
+            char.name or "nil",
+            char.className or "nil",
+            char.race or "nil",
+            cooldownCount
+          )
+        );
       end
     elseif (command == "logs") then
       local subCommand = fragments[2];
@@ -510,13 +521,17 @@ local function UpdateCharacter()
     UtilityHub.Database.global.characters[playerIndex] = playerTable;
 
     if (UtilityHub.Database.global.debugMode) then
-      UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-LOCAL]|r |cff00FF00UPDATED|r local character '%s'", name));
+      UtilityHub.Helpers.DebugLog:Add(
+        string.format("|cffFFFF00[UH-LOCAL]|r |cff00FF00UPDATED|r local character '%s'", name)
+      );
     end
   else
     tinsert(UtilityHub.Database.global.characters, playerTable);
 
     if (UtilityHub.Database.global.debugMode) then
-      UtilityHub.Helpers.DebugLog:Add(string.format("|cffFFFF00[UH-LOCAL]|r |cffFF00FF[NEW]|r Created new local character '%s'", name));
+      UtilityHub.Helpers.DebugLog:Add(
+        string.format("|cffFFFF00[UH-LOCAL]|r |cffFF00FF[NEW]|r Created new local character '%s'", name)
+      );
     end
   end
 
@@ -585,6 +600,7 @@ end);
 
 UtilityHub.Events:RegisterCallback("COUNT_READY_COOLDOWNS_CHANGED", function(_, count, first)
   UpdateMinimapIcon(count > 0);
+  lastCountReadyCooldowns = count;
 end);
 
 EventRegistry:RegisterFrameEventAndCallback("LOADING_SCREEN_DISABLED", function()
