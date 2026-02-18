@@ -68,8 +68,9 @@ function MailPage:Create(parent)
           local editButton = CreateFrame("Button", nil, frame);
           frame.customElements.EditButton = editButton;
           editButton:SetSize(16, 16);
-          editButton:SetNormalAtlas("transmog-icon-chat");
           editButton:SetPoint("TOPRIGHT", -25, -5);
+          local texture = editButton:CreateTexture();
+          UtilityHub.Textures:ApplyTexture("OrangeCogs", texture);
 
           editButton:SetScript("OnClick", function(self)
             local selectedPreset = CopyTable(rowData);

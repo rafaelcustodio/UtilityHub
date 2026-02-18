@@ -167,8 +167,10 @@ function Module:CreateMailIconButtons()
   end
 
   local function CreateGuildButton()
-    Module.GuildButton = UtilityHub.Libs.Utils:CreateIconButton(Module.ButtonContainer,
-      UtilityHub.Helpers.String:ApplyPrefix("GuildButton"));
+    Module.GuildButton = UtilityHub.Libs.Utils:CreateIconButton(
+      Module.ButtonContainer,
+      UtilityHub.Helpers.String:ApplyPrefix("GuildButton")
+    );
     SetPosition(Module.GuildButton);
 
     local iconTexture = Module.GuildButton:CreateTexture(nil, "ARTWORK");

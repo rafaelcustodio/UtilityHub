@@ -88,6 +88,40 @@ UtilityHub = {
     ---@type Frame|nil
     tsmMailFrame = nil,
   },
+  Textures = {
+    ---@param nameOrTable string|TextureData
+    ---@param texture Texture
+    ApplyTexture = function(self, nameOrTable, texture)
+      ---@type TextureData|nil
+      local textureData = nil;
+
+      if (type(nameOrTable) == "string") then
+        textureData = self.list[nameOrTable];
+      else
+        textureData = nameOrTable;
+      end
+
+      if (not textureData) then
+        return;
+      end
+
+      local parent = texture:GetParent();
+
+      texture:SetTexture(textureData.texture);
+      texture:SetSize(unpack(textureData.size));
+      texture:SetTexCoord(unpack(textureData.coords));
+      texture:SetPoint("TOPLEFT", parent, "TOPLEFT");
+      texture:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT");
+    end,
+    ---@type TextureData[]
+    list = {
+      OrangeCogs = {
+        texture = "Interface/Glues/CharacterSelect/UICharacterSelectGlues",
+        size = { 16, 16 },
+        coords = { 0.884, 0.913, 0.627, 0.654 },
+      },
+    },
+  },
   Database = {},
   Events = CreateFromMixins(CallbackRegistryMixin),
   ---@param version string|nil

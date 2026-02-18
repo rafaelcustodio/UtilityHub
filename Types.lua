@@ -1,6 +1,12 @@
 -------- Generic
 ---@alias ItemLink string
 
+--------- Texture
+---@class TextureData
+---@field texture string
+---@field size [number, number]
+---@field coords [number, number, number, number]
+
 --------- Database
 ---@class Character
 ---@field name string
