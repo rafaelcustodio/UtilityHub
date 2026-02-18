@@ -131,6 +131,10 @@ local function CreateModule()
     button:SetAttribute("IsMount", false);
     button:SetAttribute("shift-type1", "spell");
 
+    if (select(2, UnitClass("player")) ~= "MAGE") then
+      button:Hide();
+    end
+
     if (parent) then
       button:SetPoint("TOPLEFT", parent, "TOPRIGHT", 10, 0);
     else
@@ -169,9 +173,8 @@ local function CreateModule()
       frame:Update();
       frame:Show();
     end,
-    UpdateParent = function()
+    Update = function()
       frame:ClearAllPoints();
-      -- Anchor to match TradeFrame width
       frame:SetPoint("TOPLEFT", TradeFrame, "BOTTOMLEFT", 0, -10);
       frame:SetPoint("TOPRIGHT", TradeFrame, "BOTTOMRIGHT", 0, -10);
     end,
@@ -228,12 +231,4 @@ EventRegistry:RegisterFrameEventAndCallback("TRADE_SHOW", function()
   if (module:IsEnabled()) then
     moduleData.Show();
   end
-end);
-
-hooksecurefunc(CharacterFrame, "Show", function()
-  moduleData.UpdateParent();
-end);
-
-hooksecurefunc(CharacterFrame, "Hide", function()
-  moduleData.UpdateParent();
 end);

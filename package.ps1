@@ -79,3 +79,5 @@ Compress-Archive -Path $addonDestinationPath -DestinationPath $zipFilePath -Forc
 Write-Host "Addon prepared for distribution in '$addonDestinationPath'"
 Write-Host "Release archive created: '$zipFilePath'"
 Write-Host "Packaging script completed."
+
+Start-Process explorer.exe -ArgumentList "C:\wow-addon-versions"
