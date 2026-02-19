@@ -80,6 +80,11 @@ Module.CVARS = {
     performance = "0",
     quality = "0",
   },
+  renderScale = {
+    label = "Render Scale",
+    performance = "1",
+    quality = "1",
+  },
 };
 
 --- Ordered list of CVar keys for consistent display
@@ -98,6 +103,7 @@ Module.CVAR_ORDER = {
   "maxFPSBk",
   "cameraShake",
   "gxVSync",
+  "renderScale",
 };
 
 ---@return table|nil
