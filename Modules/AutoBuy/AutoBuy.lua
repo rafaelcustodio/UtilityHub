@@ -19,7 +19,7 @@ function Module:SearchAndBuyItems()
 
   -- Iterate through autoBuyList in order
   for _, buyItem in ipairs(autoBuyList) do
-    if (type(buyItem) == "table" and buyItem.itemLink) then
+    if (type(buyItem) == "table" and buyItem.itemID) then
       -- Check scope
       local scope = buyItem.scope or UtilityHub.Enums.AutoBuyScope.ACCOUNT;
       local inScope = true;
