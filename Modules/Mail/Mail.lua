@@ -360,8 +360,17 @@ function Module:GetHistoryGeneratorFunction()
             end
           end);
 
+          -- Hide when the parent frame is recycled by another menu
+          btn:HookScript("OnHide", function()
+            if (btn._uhHistoryDeleteBtn) then
+              btn._uhHistoryDeleteBtn:Hide();
+            end
+          end);
+
           btn._uhHistoryDeleteBtn = xBtn;
         end
+
+        xBtn:Show();
 
         -- Always update click handler with current index (frame may be reused)
         xBtn:SetScript("OnClick", function(self)
