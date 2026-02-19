@@ -598,6 +598,7 @@ UtilityHub.Events:RegisterCallback("OPTIONS_CHANGED", function(_, name)
       UtilityHub.Addon:DisableModule("Trade");
     end
   end
+
 end);
 
 UtilityHub.Events:RegisterCallback("COUNT_READY_COOLDOWNS_CHANGED", function(_, count, first)
@@ -646,4 +647,6 @@ function UtilityHub.Addon:OnInitialize()
   if (UtilityHub.Database.global.options.tradeExtraInfo) then
     UtilityHub.Addon:EnableModule("Trade");
   end
+
+  UtilityHub.Addon:EnableModule("GraphicsSettings");
 end

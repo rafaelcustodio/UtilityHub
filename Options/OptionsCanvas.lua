@@ -108,7 +108,7 @@ function OptionsCanvas:Create()
   local mainFrame = self:CreateMainFrame();
 
   -- Register pages (order matters for navigation)
-  self.pageOrder = { "general", "autoBuy", "mail" };
+  self.pageOrder = { "general", "autoBuy", "mail", "graphicsSettings" };
   self.pages = {
     general = {
       label = "General",
@@ -126,6 +126,12 @@ function OptionsCanvas:Create()
       label = "Mail",
       CreateFrame = function(parent)
         return UtilityHub.OptionsPages.Mail:Create(parent);
+      end
+    },
+    graphicsSettings = {
+      label = "Graphics",
+      CreateFrame = function(parent)
+        return UtilityHub.OptionsPages.GraphicsSettings:Create(parent);
       end
     },
   };
