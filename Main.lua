@@ -159,6 +159,8 @@ local function InitVariables()
       whispers = {},
       ---@type Character[]
       characters = {},
+      ---@type string[]
+      mailHistory = {},
     },
     char = {},
   }, "Default");
