@@ -14,11 +14,23 @@ function Module:SearchAndBuyItems()
 
   local freeBagSlots = UtilityHub.Helpers.Item:GetFreeBagSlots();
   local purchasedItems = {};
+  local playerName = UnitName("player");
+  local _, playerClass = UnitClass("player");
 
   -- Iterate through autoBuyList in order
   for _, buyItem in ipairs(autoBuyList) do
     if (type(buyItem) == "table" and buyItem.itemLink) then
-      local itemID = tonumber(string.match(buyItem.itemLink, "item:(%d+):"));
+      -- Check scope
+      local scope = buyItem.scope or UtilityHub.Enums.AutoBuyScope.ACCOUNT;
+      local inScope = true;
+
+      if (scope == UtilityHub.Enums.AutoBuyScope.CHARACTER) then
+        inScope = (buyItem.scopeValue == playerName);
+      elseif (scope == UtilityHub.Enums.AutoBuyScope.CLASS) then
+        inScope = (buyItem.scopeValue == playerClass);
+      end
+
+      local itemID = inScope and buyItem.itemID or nil;
 
       if (itemID) then
         -- Search for item in merchant
@@ -55,13 +67,15 @@ function Module:SearchAndBuyItems()
             local priceTooHigh = unitPrice >= MERCHANT_HIGH_PRICE_COST;
             local hasSpace = freeBagSlots >= slotsNeeded;
 
+            local itemName = C_Item.GetItemInfo(itemID) or ("Item #" .. itemID);
+
             if (not hasSpace) then
               UtilityHub.Helpers.Notification:ShowNotification(
-                string.format("Insufficient bag space for %s", buyItem.itemLink)
+                string.format("Insufficient bag space for %s", itemName)
               );
             elseif (priceTooHigh) then
               UtilityHub.Helpers.Notification:ShowNotification(
-                string.format("Price of %s is too high", buyItem.itemLink)
+                string.format("Price of %s is too high", itemName)
               );
             elseif (not canAfford) then
               -- Partial buy: buy maximum possible (only for restock mode)
@@ -69,16 +83,16 @@ function Module:SearchAndBuyItems()
                 local maxAffordable = math.floor(GetMoney() / unitPrice);
                 if (maxAffordable > 0 and maxAffordable < quantityToBuy) then
                   BuyMerchantItem(i, maxAffordable);
-                  tinsert(purchasedItems, string.format("%s x%d (partial)", buyItem.itemLink, maxAffordable));
+                  tinsert(purchasedItems, string.format("%s x%d (partial)", itemName, maxAffordable));
                   freeBagSlots = freeBagSlots - math.ceil(maxAffordable / stackCount);
                 else
                   UtilityHub.Helpers.Notification:ShowNotification(
-                    string.format("Insufficient gold for %s", buyItem.itemLink)
+                    string.format("Insufficient gold for %s", itemName)
                   );
                 end
               else
                 UtilityHub.Helpers.Notification:ShowNotification(
-                  string.format("Insufficient gold for %s", buyItem.itemLink)
+                  string.format("Insufficient gold for %s", itemName)
                 );
               end
             else
@@ -86,9 +100,9 @@ function Module:SearchAndBuyItems()
               BuyMerchantItem(i, quantityToBuy);
 
               if (buyItem.quantity == 1) then
-                tinsert(purchasedItems, string.format("%s", buyItem.itemLink));
+                tinsert(purchasedItems, itemName);
               else
-                tinsert(purchasedItems, string.format("%s x%d", buyItem.itemLink, quantityToBuy));
+                tinsert(purchasedItems, string.format("%s x%d", itemName, quantityToBuy));
               end
 
               freeBagSlots = freeBagSlots - slotsNeeded;

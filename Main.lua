@@ -101,6 +101,44 @@ local function MigrateDB(version, oldVersion)
     UtilityHub.Helpers.Notification:ShowNotification("Merged Auto-Restock items into AutoBuy list");
   end
 
+  -- Migrate autoBuyList entries that still use itemLink to itemID-only format
+  if (UtilityHub.Database.global.options.autoBuyList) then
+    local needsItemIDMigration = false;
+
+    for _, item in ipairs(UtilityHub.Database.global.options.autoBuyList) do
+      if (type(item) == "table" and item.itemLink) then
+        needsItemIDMigration = true;
+        break;
+      end
+    end
+
+    if (needsItemIDMigration) then
+      local newList = {};
+
+      for _, item in ipairs(UtilityHub.Database.global.options.autoBuyList) do
+        if (type(item) == "table") then
+          local itemID = item.itemID;
+
+          if (not itemID and item.itemLink) then
+            itemID = tonumber(string.match(item.itemLink, "item:(%d+):"));
+          end
+
+          if (itemID) then
+            tinsert(newList, {
+              itemID = itemID,
+              quantity = item.quantity or 1,
+              scope = item.scope,
+              scopeValue = item.scopeValue,
+            });
+          end
+        end
+      end
+
+      UtilityHub.Database.global.options.autoBuyList = newList;
+      UtilityHub.Helpers.Notification:ShowNotification("Migrated AutoBuy list to itemID format");
+    end
+  end
+
   if (UtilityHub.Database.global.characters) then
     for index, value in ipairs(UtilityHub.Database.global.characters) do
       if (type(value) == "string") then
@@ -166,6 +204,45 @@ local function InitVariables()
 
   if (oldVersion and oldVersion ~= version) then
     MigrateDB(version, oldVersion);
+  end
+
+  -- Always convert any autoBuyList entries that still store itemLink to itemID.
+  -- This runs unconditionally to handle cases where the migration was added after
+  -- the user's last version change.
+  if (UtilityHub.Database.global.options and UtilityHub.Database.global.options.autoBuyList) then
+    local needsConversion = false;
+
+    for _, item in ipairs(UtilityHub.Database.global.options.autoBuyList) do
+      if (type(item) == "table" and item.itemLink and not item.itemID) then
+        needsConversion = true;
+        break;
+      end
+    end
+
+    if (needsConversion) then
+      local converted = {};
+
+      for _, item in ipairs(UtilityHub.Database.global.options.autoBuyList) do
+        if (type(item) == "table") then
+          local itemID = item.itemID;
+
+          if (not itemID and item.itemLink) then
+            itemID = tonumber(string.match(item.itemLink, "item:(%d+):"));
+          end
+
+          if (itemID) then
+            tinsert(converted, {
+              itemID = itemID,
+              quantity = item.quantity or 1,
+              scope = item.scope,
+              scopeValue = item.scopeValue,
+            });
+          end
+        end
+      end
+
+      UtilityHub.Database.global.options.autoBuyList = converted;
+    end
   end
 end
 
