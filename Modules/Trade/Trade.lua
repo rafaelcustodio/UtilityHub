@@ -171,6 +171,7 @@ local function CreateModule()
     end,
     Show = function()
       frame:Update();
+      frame:UpdateWhisper();
       frame:Show();
     end,
     Update = function()

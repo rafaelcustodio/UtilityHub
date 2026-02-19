@@ -48,3 +48,5 @@
 ---@class AutoBuyItem
 ---@field itemLink ItemLink
 ---@field quantity number
+---@field scope EAutoBuyScope
+---@field scopeValue? string

@@ -97,6 +97,53 @@ end
 
 -- Mail
 
+---@param name string
+function UtilityHub.Helpers.Mail:AddToHistory(name)
+  if (not name or name == "") then return end
+
+  -- Copy existing values to a new table to ensure AceDB persists the write
+  local existing = UtilityHub.Database.global.mailHistory;
+  local history = {};
+  if (existing) then
+    for i, v in ipairs(existing) do
+      history[i] = v;
+    end
+  end
+
+  for i = #history, 1, -1 do
+    if (history[i] == name) then
+      table.remove(history, i);
+    end
+  end
+
+  table.insert(history, 1, name);
+
+  while (#history > 10) do
+    table.remove(history);
+  end
+
+  -- Always assign back so AceDB persists the value in saved variables
+  UtilityHub.Database.global.mailHistory = history;
+end
+
+---@return string[]
+function UtilityHub.Helpers.Mail:GetHistory()
+  return UtilityHub.Database.global.mailHistory or {};
+end
+
+---@param index number
+function UtilityHub.Helpers.Mail:RemoveFromHistory(index)
+  local existing = UtilityHub.Database.global.mailHistory;
+  local history = {};
+  if (existing) then
+    for i, v in ipairs(existing) do
+      history[i] = v;
+    end
+  end
+  table.remove(history, index);
+  UtilityHub.Database.global.mailHistory = history;
+end
+
 function UtilityHub.Helpers.Mail:AddItemToNextEmptyMailSlot(bag, slot)
   for mailSlot = 1, ATTACHMENTS_MAX_SEND do
     if (not HasSendMailItem(mailSlot)) then
@@ -133,6 +180,8 @@ function UtilityHub.Helpers.Mail:OpenSendMailTab(callback)
 end
 
 function UtilityHub.Helpers.Mail:SetRecipient(name)
+  -- Cache recipient for history tracking (TSM doesn't call SendMailFrame_SendMail)
+  UtilityHub.Helpers.Mail.lastRecipient = name;
   -- Always set Blizzard field (backend uses this)
   SendMailNameEditBox:SetText(name);
 

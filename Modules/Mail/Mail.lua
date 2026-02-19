@@ -43,7 +43,7 @@ function Module:CreateMailIconButtons()
   -- Container frame parented to UIParent (independent of MailFrame)
   Module.ButtonContainer = CreateFrame("Frame",
     UtilityHub.Helpers.String:ApplyPrefix("MailButtonContainer"), UIParent);
-  Module.ButtonContainer:SetSize(40, 240);
+  Module.ButtonContainer:SetSize(40, 280);
   Module.ButtonContainer:SetFrameStrata("HIGH");
   Module.ButtonContainer:Hide();
 
@@ -132,6 +132,44 @@ function Module:CreateMailIconButtons()
     Module.CharactersButton:SetupMenu(CharactersModule:GetAccountCharactersGeneratorFunction());
 
     return Module.CharactersButton;
+  end
+
+  local function CreateHistoryButton()
+    Module.HistoryButton = UtilityHub.Libs.Utils:CreateIconButton(Module.ButtonContainer,
+      UtilityHub.Helpers.String:ApplyPrefix("HistoryButton"));
+    SetPosition(Module.HistoryButton);
+
+    local iconTexture = Module.HistoryButton:CreateTexture(nil, "ARTWORK");
+    iconTexture:SetTexture("Interface\\Icons\\INV_Misc_PocketWatch_01");
+    iconTexture:ClearAllPoints();
+    iconTexture:SetSize(20, 20);
+    iconTexture:SetPoint("CENTER", Module.HistoryButton, "CENTER", 0, 0);
+    Module.HistoryButton:SetFrameLevel(Module.HistoryButton:GetFrameLevel() + 1);
+
+    Module.HistoryButton.menuMixin = MenuStyle2Mixin;
+    Module.HistoryButton.menuRelativePoint = "TOPRIGHT";
+    Module.HistoryButton:SetMenuAnchor(AnchorUtil.CreateAnchor(Module.HistoryButton.menuPoint,
+      Module.HistoryButton, Module.HistoryButton.menuRelativePoint,
+      Module.HistoryButton.menuPointX, Module.HistoryButton.menuPointY));
+
+    -- Events
+    Module.HistoryButton:SetScript("OnEnter", function(self)
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+      GameTooltip:AddLine("Recently sent to", nil, nil, nil);
+      GameTooltip:Show();
+    end);
+    Module.HistoryButton:SetScript("OnLeave", function(self)
+      if (GameTooltip:IsOwned(self)) then
+        GameTooltip:Hide();
+      end
+    end);
+    Module.HistoryButton:SetScript("OnClick", function(self)
+      PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+    end);
+
+    Module.HistoryButton:SetupMenu(Module:GetHistoryGeneratorFunction());
+
+    return Module.HistoryButton;
   end
 
   local function CreateConfigEmailButton()
@@ -255,9 +293,95 @@ function Module:CreateMailIconButtons()
   CreateItemClassButton();
   CreateCharactersButton();
   CreateGuildButton();
+  CreateHistoryButton();
   CreateConfigEmailButton();
 
   Module:UpdateMailButtons();
+end
+
+function Module:GetLongestHistoryNameWidth()
+  if (not Module.historyMeasureFS) then
+    Module.historyMeasureFS = UIParent:CreateFontString(nil, "ARTWORK", "GameFontNormal");
+    Module.historyMeasureFS:Hide();
+  end
+
+  local maxWidth = 0;
+  for _, name in ipairs(UtilityHub.Helpers.Mail:GetHistory()) do
+    Module.historyMeasureFS:SetText(name);
+    local w = Module.historyMeasureFS:GetStringWidth();
+    if (w > maxWidth) then
+      maxWidth = w;
+    end
+  end
+
+  return maxWidth;
+end
+
+function Module:GetHistoryGeneratorFunction()
+  return function(dropdown, rootDescription)
+    local history = UtilityHub.Helpers.Mail:GetHistory();
+
+    if (#history == 0) then
+      rootDescription:CreateTitle("No history yet");
+      return;
+    end
+
+    -- Fit menu width to longest name + left margin + × button + right margin
+    local nameWidth = Module:GetLongestHistoryNameWidth();
+    rootDescription:SetMinimumWidth(nameWidth + 52);
+
+    for i, name in ipairs(history) do
+      local button = rootDescription:CreateButton(name, function()
+        UtilityHub.Helpers.Mail:OpenSendMailTab(function()
+          UtilityHub.Helpers.Mail:SetRecipient(name);
+        end);
+      end);
+
+      button:AddInitializer(function(btn, description, menu)
+        local xBtn = btn._uhHistoryDeleteBtn;
+        if (not xBtn) then
+          xBtn = CreateFrame("Button", nil, btn);
+          xBtn:SetSize(20, 20);
+          xBtn:SetPoint("RIGHT", btn, "RIGHT", -4, 0);
+          xBtn:SetFrameLevel(btn:GetFrameLevel() + 2);
+
+          local fs = xBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+          fs:SetAllPoints();
+          fs:SetText("|cffff4444×|r");
+
+          xBtn:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+            GameTooltip:AddLine("Remove from history");
+            GameTooltip:Show();
+          end);
+          xBtn:SetScript("OnLeave", function(self)
+            if (GameTooltip:IsOwned(self)) then
+              GameTooltip:Hide();
+            end
+          end);
+
+          -- Hide when the parent frame is recycled by another menu
+          btn:HookScript("OnHide", function()
+            if (btn._uhHistoryDeleteBtn) then
+              btn._uhHistoryDeleteBtn:Hide();
+            end
+          end);
+
+          btn._uhHistoryDeleteBtn = xBtn;
+        end
+
+        xBtn:Show();
+
+        -- Always update click handler with current index (frame may be reused)
+        xBtn:SetScript("OnClick", function(self)
+          UtilityHub.Helpers.Mail:RemoveFromHistory(i);
+          Menu.GetManager():CloseMenus();
+        end);
+
+        return nil, 20;
+      end);
+    end
+  end;
 end
 
 function Module:UpdateMailButtons()
@@ -282,6 +406,24 @@ function Module:OnInitialize()
       C_Timer.After(0.15, function()
         Module:AnchorButtons();
       end);
+    end
+  end);
+
+  -- Capture recipient before SendMailFrame_SendMail returns (fires before MAIL_SEND_SUCCESS resets the field)
+  hooksecurefunc("SendMailFrame_SendMail", function()
+    Module.pendingRecipient = SendMailNameEditBox:GetText();
+  end);
+
+  -- MAIL_SEND_SUCCESS fires after SendMailFrame_Reset clears SendMailNameEditBox.
+  -- Priority: hook capture (Blizzard UI) > SetRecipient cache (TSM) > field text (fallback)
+  EventRegistry:RegisterFrameEventAndCallback("MAIL_SEND_SUCCESS", function()
+    local recipient = Module.pendingRecipient
+      or UtilityHub.Helpers.Mail.lastRecipient
+      or SendMailNameEditBox:GetText();
+    Module.pendingRecipient = nil;
+    UtilityHub.Helpers.Mail.lastRecipient = nil;
+    if (recipient and recipient ~= "") then
+      UtilityHub.Helpers.Mail:AddToHistory(recipient);
     end
   end);
 

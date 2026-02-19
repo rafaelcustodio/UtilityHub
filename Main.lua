@@ -159,6 +159,8 @@ local function InitVariables()
       whispers = {},
       ---@type Character[]
       characters = {},
+      ---@type string[]
+      mailHistory = {},
     },
     char = {},
   }, "Default");
@@ -167,6 +169,7 @@ local function InitVariables()
   if (oldVersion and oldVersion ~= version) then
     MigrateDB(version, oldVersion);
   end
+
 end
 
 local function SetupSlashCommands()
