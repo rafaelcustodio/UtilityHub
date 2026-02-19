@@ -170,8 +170,8 @@ function AutoBuyPage:Create(parent)
     addInput,
     {
       SortComparator = function(a, b)
-        local itemLinkA = type(a) == "table" and a.itemLink or a;
-        local itemLinkB = type(b) == "table" and b.itemLink or b;
+        local itemLinkA = type(a) == "table" and (a.itemLink or "") or tostring(a or "");
+        local itemLinkB = type(b) == "table" and (b.itemLink or "") or tostring(b or "");
 
         local itemNameA = itemLinkA and select(3, strfind(itemLinkA, "|H(.+)|h")) or "";
         local itemNameB = itemLinkB and select(3, strfind(itemLinkB, "|H(.+)|h")) or "";

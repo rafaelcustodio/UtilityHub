@@ -42,3 +42,5 @@ Modules/Cooldowns/Cooldowns.lua
 Modules/Cooldowns/Sync.lua
 Modules/DailyQuests/DailyQuests.lua
 Modules/DebugLog/DebugLogViewer.lua
+Modules/GraphicsSettings/GraphicsSettings.lua
+Options/Pages/GraphicsSettingsPage.lua

@@ -33,6 +33,11 @@ UtilityHub = {
       dailyQuests = false,
       -- Trade
       tradeExtraInfo = false,
+      -- GraphicsSettings
+      graphicsSettings = {
+        originalValues = {},
+        presetApplied = nil,
+      },
     },
     ---@type Option[]
     options = {},
