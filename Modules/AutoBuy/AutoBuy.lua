@@ -19,7 +19,7 @@ function Module:SearchAndBuyItems()
 
   -- Iterate through autoBuyList in order
   for _, buyItem in ipairs(autoBuyList) do
-    if (type(buyItem) == "table" and buyItem.itemID) then
+    if (type(buyItem) == "table" and buyItem.itemLink) then
       -- Check scope
       local scope = buyItem.scope or UtilityHub.Enums.AutoBuyScope.ACCOUNT;
       local inScope = true;
@@ -30,7 +30,7 @@ function Module:SearchAndBuyItems()
         inScope = (buyItem.scopeValue == playerClass);
       end
 
-      local itemID = inScope and buyItem.itemID or nil;
+      local itemID = inScope and tonumber(string.match(buyItem.itemLink, "item:(%d+):")) or nil;
 
       if (itemID) then
         -- Search for item in merchant
@@ -67,7 +67,7 @@ function Module:SearchAndBuyItems()
             local priceTooHigh = unitPrice >= MERCHANT_HIGH_PRICE_COST;
             local hasSpace = freeBagSlots >= slotsNeeded;
 
-            local itemName = C_Item.GetItemInfo(itemID) or ("Item #" .. itemID);
+            local itemName = C_Item.GetItemInfo(buyItem.itemLink) or buyItem.itemLink;
 
             if (not hasSpace) then
               UtilityHub.Helpers.Notification:ShowNotification(

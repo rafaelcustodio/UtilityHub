@@ -6,11 +6,11 @@ local AutoBuyPage = {};
 ---@type Frame|nil
 local autoBuyListFrame = nil;
 
--- Returns display name and icon for an itemID (both may be nil if not cached)
----@param itemID number
+-- Returns display name and icon for an itemLink (both may be nil if not cached)
+---@param itemLink ItemLink
 ---@return string|nil, number|string|nil
-local function GetItemDisplay(itemID)
-  local name, _, _, _, _, _, _, _, _, icon = C_Item.GetItemInfo(itemID);
+local function GetItemDisplay(itemLink)
+  local name, _, _, _, _, _, _, _, _, icon = C_Item.GetItemInfo(itemLink);
   return name, icon;
 end
 
@@ -144,25 +144,25 @@ local function GetOrCreateEditDialog()
   end);
 
   -- Save / Cancel buttons
-  local saveBtn = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate");
-  saveBtn:SetText("Save");
-  saveBtn:SetSize(80, 22);
-  saveBtn:SetPoint("BOTTOMRIGHT", -15, 15);
-  dialog.saveBtn = saveBtn;
-
   local cancelBtn = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate");
   cancelBtn:SetText("Cancel");
   cancelBtn:SetSize(80, 22);
-  cancelBtn:SetPoint("RIGHT", saveBtn, "LEFT", -5, 0);
+  cancelBtn:SetPoint("BOTTOMRIGHT", -15, 15);
+
+  local saveBtn = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate");
+  saveBtn:SetText("Save");
+  saveBtn:SetSize(80, 22);
+  saveBtn:SetPoint("RIGHT", cancelBtn, "LEFT", -5, 0);
+  dialog.saveBtn = saveBtn;
   cancelBtn:SetScript("OnClick", function()
     dialog:Hide();
   end);
 
-  ---@param itemID number
+  ---@param itemLink ItemLink
   ---@param currentData AutoBuyItem
   ---@param onSave fun(quantity: number, scope: EAutoBuyScope, scopeValue: string|nil)
-  function dialog:Open(itemID, currentData, onSave)
-    local itemName = C_Item.GetItemInfo(itemID) or ("Item #" .. itemID);
+  function dialog:Open(itemLink, currentData, onSave)
+    local itemName = C_Item.GetItemInfo(itemLink) or itemLink;
 
     if (self.TitleText) then
       self.TitleText:SetText(itemName);
@@ -346,43 +346,61 @@ function AutoBuyPage:Create(parent)
       return;
     end
 
-    local itemID = tonumber(string.match(text, "item:(%d+):")) or tonumber(text);
+    local numericID = tonumber(text);
 
-    if (not itemID) then
+    -- Validate that it's either a numeric ID or an itemLink format
+    if (not numericID and not string.match(text, "item:(%d+):")) then
       return;
     end
 
-    -- Check for duplicate
-    local list = UtilityHub.Database.global.options.autoBuyList or {};
+    addEditBox:SetText("");
 
-    for _, existingItem in ipairs(list) do
-      if (existingItem.itemID == itemID) then
-        return;
+    local function ProceedWithLink(link)
+      if (not link) then return; end
+
+      local newID = tonumber(string.match(link, "item:(%d+):"));
+      if (not newID) then return; end
+
+      -- Check for duplicate by comparing itemIDs
+      local list = UtilityHub.Database.global.options.autoBuyList or {};
+
+      for _, existingItem in ipairs(list) do
+        if (existingItem.itemLink) then
+          local existingID = tonumber(string.match(existingItem.itemLink, "item:(%d+):"));
+          if (existingID == newID) then
+            return;
+          end
+        end
       end
+
+      local dialog = GetOrCreateEditDialog();
+      dialog:Open(
+        link,
+        { quantity = 1, scope = UtilityHub.Enums.AutoBuyScope.ACCOUNT, scopeValue = nil },
+        function(qty, scope, scopeValue)
+          local currentList = UtilityHub.Database.global.options.autoBuyList or {};
+
+          tinsert(currentList, {
+            itemLink = link,
+            quantity = qty,
+            scope = scope,
+            scopeValue = scopeValue,
+          });
+
+          UtilityHub.Database.global.options.autoBuyList = currentList;
+          UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "autoBuyList", currentList);
+          RefreshList();
+          RefreshBagItems();
+        end
+      );
     end
 
-    local dialog = GetOrCreateEditDialog();
-    dialog:Open(
-      itemID,
-      { quantity = 1, scope = UtilityHub.Enums.AutoBuyScope.ACCOUNT, scopeValue = nil },
-      function(qty, scope, scopeValue)
-        local currentList = UtilityHub.Database.global.options.autoBuyList or {};
-
-        tinsert(currentList, {
-          itemID = itemID,
-          quantity = qty,
-          scope = scope,
-          scopeValue = scopeValue,
-        });
-
-        UtilityHub.Database.global.options.autoBuyList = currentList;
-        UtilityHub.Events:TriggerEvent("OPTIONS_CHANGED", "autoBuyList", currentList);
-        RefreshList();
-        RefreshBagItems();
-      end
-    );
-
-    addEditBox:SetText("");
+    if (numericID) then
+      -- Resolve asynchronously: works even if the item is not in the client cache yet
+      UtilityHub.Helpers.Item:AsyncGetItemInfo(numericID, ProceedWithLink);
+    else
+      ProceedWithLink(text);
+    end
   end
 
   addEditBox:SetScript("OnEnterPressed", function()
@@ -415,13 +433,13 @@ function AutoBuyPage:Create(parent)
     nil,
     {
       SortComparator = function(a, b)
-        local nameA = (a.itemID and C_Item.GetItemInfo(a.itemID)) or "";
-        local nameB = (b.itemID and C_Item.GetItemInfo(b.itemID)) or "";
+        local nameA = (a.itemLink and C_Item.GetItemInfo(a.itemLink)) or "";
+        local nameB = (b.itemLink and C_Item.GetItemInfo(b.itemLink)) or "";
         return nameA < nameB;
       end,
       GetText = function(rowData)
-        local itemName, icon = GetItemDisplay(rowData.itemID);
-        local displayName = itemName or ("Item #" .. rowData.itemID);
+        local itemName, icon = GetItemDisplay(rowData.itemLink);
+        local displayName = itemName or rowData.itemLink or "Unknown";
 
         if (rowData.alreadyAdded) then
           return IconStr(icon) .. "|cff888888" .. displayName .. " (added)|r";
@@ -430,21 +448,20 @@ function AutoBuyPage:Create(parent)
         return IconStr(icon) .. displayName;
       end,
       GetHyperlink = function(rowData)
-        local _, itemLink = C_Item.GetItemInfo(rowData.itemID);
-        return itemLink or ("item:" .. rowData.itemID);
+        return rowData.itemLink or "";
       end,
       CustomizeRow = function(listFrame, rowData, helpers)
         if (not rowData.alreadyAdded) then
           listFrame:SetScript("OnClick", function()
             local dialog = GetOrCreateEditDialog();
             dialog:Open(
-              rowData.itemID,
+              rowData.itemLink,
               { quantity = 1, scope = UtilityHub.Enums.AutoBuyScope.ACCOUNT, scopeValue = nil },
               function(qty, scope, scopeValue)
                 local currentList = UtilityHub.Database.global.options.autoBuyList or {};
 
                 tinsert(currentList, {
-                  itemID = rowData.itemID,
+                  itemLink = rowData.itemLink,
                   quantity = qty,
                   scope = scope,
                   scopeValue = scopeValue,
@@ -474,8 +491,9 @@ function AutoBuyPage:Create(parent)
     local addedIDs = {};
 
     for _, item in ipairs(autoBuyList) do
-      if (item.itemID) then
-        addedIDs[item.itemID] = true;
+      if (item.itemLink) then
+        local id = tonumber(string.match(item.itemLink, "item:(%d+):"));
+        if (id) then addedIDs[id] = true; end
       end
     end
 
@@ -486,15 +504,15 @@ function AutoBuyPage:Create(parent)
       local numSlots = C_Container.GetContainerNumSlots(bag);
 
       for slot = 1, numSlots do
-        local itemLink = C_Container.GetContainerItemLink(bag, slot);
+        local bagItemLink = C_Container.GetContainerItemLink(bag, slot);
 
-        if (itemLink) then
-          local itemID = tonumber(string.match(itemLink, "item:(%d+):"));
+        if (bagItemLink) then
+          local itemID = tonumber(string.match(bagItemLink, "item:(%d+):"));
 
           if (itemID and not seenIDs[itemID]) then
             seenIDs[itemID] = true;
             tinsert(bagItems, {
-              itemID = itemID,
+              itemLink = bagItemLink,
               alreadyAdded = addedIDs[itemID] == true,
             });
           end
@@ -605,16 +623,16 @@ function AutoBuyPage:Create(parent)
     nil,
     {
       SortComparator = function(a, b)
-        local nameA = (a.itemID and C_Item.GetItemInfo(a.itemID)) or "";
-        local nameB = (b.itemID and C_Item.GetItemInfo(b.itemID)) or "";
+        local nameA = (a.itemLink and C_Item.GetItemInfo(a.itemLink)) or "";
+        local nameB = (b.itemLink and C_Item.GetItemInfo(b.itemLink)) or "";
         return nameA < nameB;
       end,
       Predicate = function(rowData)
-        return tostring(rowData.itemID);
+        return rowData.itemLink;
       end,
       GetText = function(rowData)
-        local itemName, icon = GetItemDisplay(rowData.itemID);
-        local displayName = itemName or ("Item #" .. rowData.itemID);
+        local itemName, icon = GetItemDisplay(rowData.itemLink);
+        local displayName = itemName or rowData.itemLink or "Unknown";
         local qty = rowData.quantity or 1;
         local scopeTag = GetScopeTag(rowData);
 
@@ -628,16 +646,19 @@ function AutoBuyPage:Create(parent)
         return IconStr(icon) .. string.format("%s (%s) %s", displayName, qtyText, scopeTag);
       end,
       GetHyperlink = function(rowData)
-        local _, itemLink = C_Item.GetItemInfo(rowData.itemID);
-        return itemLink or ("item:" .. rowData.itemID);
+        return rowData.itemLink or "";
       end,
       OnRemove = function(rowData, configuration)
         local list = UtilityHub.Database.global.options.autoBuyList or {};
+        local removeID = tonumber(string.match(rowData.itemLink, "item:(%d+):"));
 
         for i = #list, 1, -1 do
-          if (list[i].itemID == rowData.itemID) then
-            tremove(list, i);
-            break;
+          if (list[i].itemLink) then
+            local existingID = tonumber(string.match(list[i].itemLink, "item:(%d+):"));
+            if (existingID == removeID) then
+              tremove(list, i);
+              break;
+            end
           end
         end
 
@@ -674,15 +695,19 @@ function AutoBuyPage:Create(parent)
         -- Re-bind OnClick each time to capture the current rowData.
         listFrame.customElements.EditButton:SetScript("OnClick", function(self)
           local dialog = GetOrCreateEditDialog();
-          dialog:Open(rowData.itemID, rowData, function(qty, scope, scopeValue)
+          dialog:Open(rowData.itemLink, rowData, function(qty, scope, scopeValue)
             local list = UtilityHub.Database.global.options.autoBuyList or {};
+            local editID = tonumber(string.match(rowData.itemLink, "item:(%d+):"));
 
             for i, item in ipairs(list) do
-              if (item.itemID == rowData.itemID) then
-                list[i].quantity = qty;
-                list[i].scope = scope;
-                list[i].scopeValue = scopeValue;
-                break;
+              if (item.itemLink) then
+                local existingID = tonumber(string.match(item.itemLink, "item:(%d+):"));
+                if (existingID == editID) then
+                  list[i].quantity = qty;
+                  list[i].scope = scope;
+                  list[i].scopeValue = scopeValue;
+                  break;
+                end
               end
             end
 
@@ -705,9 +730,8 @@ function AutoBuyPage:Create(parent)
     local allList = UtilityHub.Database.global.options.autoBuyList or {};
     local validList = {};
 
-    -- Skip legacy records that still use itemLink and haven't been migrated yet
     for _, item in ipairs(allList) do
-      if (item.itemID) then
+      if (item.itemLink) then
         tinsert(validList, item);
       end
     end
