@@ -1,3 +1,10 @@
+---@enum EAutoBuyScope
+local AUTO_BUY_SCOPE = {
+  ACCOUNT = "account",
+  CHARACTER = "character",
+  CLASS = "class",
+};
+
 ---@enum EnumCharacterGroup
 local CHARACTER_GROUP = {
   UNGROUPED = 0,
@@ -16,6 +23,14 @@ local COOLDOWN_GROUP_BY = {
 
 ---@class Enums
 UtilityHub.Enums = {
+  ---@type EAutoBuyScope
+  AutoBuyScope = AUTO_BUY_SCOPE,
+  ---@enum EAutoBuyScopeText
+  AutoBuyScopeText = {
+    [AUTO_BUY_SCOPE.ACCOUNT] = "Account",
+    [AUTO_BUY_SCOPE.CHARACTER] = "Character",
+    [AUTO_BUY_SCOPE.CLASS] = "Class",
+  },
   CharacterGroup = CHARACTER_GROUP,
   ---@enum ECharacterGroupText
   CharacterGroupText = {

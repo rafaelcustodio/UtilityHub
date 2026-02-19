@@ -169,6 +169,7 @@ local function InitVariables()
   if (oldVersion and oldVersion ~= version) then
     MigrateDB(version, oldVersion);
   end
+
 end
 
 local function SetupSlashCommands()
